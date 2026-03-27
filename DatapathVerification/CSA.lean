@@ -45,7 +45,18 @@ def mul4 (a b : BitVec 4) : BitVec 4 :=
 
 #eval mul4 4 3
 
+@[simp]
+theorem mul4_partial_products (a b : BitVec 4) :
+    let p0 : BitVec 4 := (BitVec.ofBool a[0]).zeroExtend 4 * b
+    let p1 : BitVec 4 := ((BitVec.ofBool a[1]).zeroExtend 4 * b) <<< 1
+    let p2 : BitVec 4 := ((BitVec.ofBool a[2]).zeroExtend 4 * b) <<< 2
+    let p3 : BitVec 4 := ((BitVec.ofBool a[3]).zeroExtend 4 * b) <<< 3
+    a * b = p0 + p1 + p2 + p3 := by
+    bv_decide
+
 theorem mul4_correct (a b : BitVec 4) : a * b = mul4 a b := by
-    sorry
+  rw [mul4_partial_products]
+  simp only [mul4, carrySave]
+  bv_decide
 
 end CSA
