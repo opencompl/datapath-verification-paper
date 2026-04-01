@@ -66,4 +66,19 @@ theorem mul4_correct (a b : BitVec 4) : a * b = mul4 a b := by
   simp only [mul4, carrySave]
   bv_decide
 
+-- N:2 compressor implementation.
+-- Takes a vector of n bit-vectors and reduces them to 2 bit-vectors (sum and carry) using a tree of carry-save adders.
+def chain {w n : Nat} (v : Vector (BitVec w) n) : CSAResult w :=
+  match n with
+  | 0 => ⟨0, 0⟩
+  | 1 => ⟨v[0], 0⟩
+  | 2 => carrySave w v[0] v[1] 0
+  | 3 => carrySave w v[0] v[1] v[2]
+  | n + 1 =>
+    let ⟨sum, carry⟩ := chain (v.take n) -- takes the first n elements of the vector.
+    let ⟨s, t⟩ := carrySave w sum (carry <<< 1) (v.back) -- the chained carry is shifted left by 1 to align with the next input.
+    ⟨s, t⟩ -- return the carry without shifting, the next level handles it.
+
+#eval chain (v := (⟨#[5, 2, 3, 7, 3], rfl⟩ : Vector (BitVec 32) 5))
+
 end CSA
