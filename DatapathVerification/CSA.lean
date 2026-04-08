@@ -75,7 +75,8 @@ def chain {w n : Nat} (v : Vector (BitVec w) n) : CSAResult w :=
   | 2 => carrySave w v[0] v[1] 0
   | 3 => carrySave w v[0] v[1] v[2]
   | n + 1 =>
-    let ⟨sum, carry⟩ := chain (v.take n) -- takes the first n elements of the vector.
+    -- take the first n elements; the cast removes the `min n (n+1)` from `Vector.take`'s type.
+    let ⟨sum, carry⟩ := chain ((v.take n).cast (Nat.min_eq_left (Nat.le_succ _)))
     let ⟨s, t⟩ := carrySave w sum (carry <<< 1) (v.back) -- the chained carry is shifted left by 1 to align with the next input.
     ⟨s, t⟩ -- return the carry without shifting, the next level handles it.
 
@@ -94,47 +95,33 @@ def vector_sum {w n : Nat} (v : Vector (BitVec w) n) : BitVec w :=
 
 #eval vector_sum (v := (⟨#[5, 2, 3, 7, 3], rfl⟩ : Vector (BitVec 32) 5))
 
-def chain_with_proof {w n : Nat} (v : Vector (BitVec w) n) : { r : CSAResult w // r.s + r.t <<< 1 = vector_sum v } :=
-  match n with
-  | 0 =>
-    let out := ⟨0, 0⟩
-    ⟨out, by
-      unfold vector_sum
-      simp [out]
-      ⟩
-  | 1 =>
-    let out := ⟨v[0], 0⟩
-    ⟨out, by
-      simp [vector_sum, out]
-      ⟩
-  | 2 =>
-    let out := carrySave w v[0] v[1] 0
-    ⟨out, by
-      simp [vector_sum, out, carrySave]
-      conv_rhs => rw [b1_add_b2_eq_add_zero] --apply the lemma to second occurence
-      rw [carrySaveAdder]
-      simp
-      ⟩
-  | 3 =>
-    let out := carrySave w v[0] v[1] v[2]
-    ⟨out, by
-      simp [vector_sum]
-      simp [out, carrySave]
-      rw [carrySaveAdder]
-      ⟩
-  | n + 1 =>
-    let result := chain_with_proof (v.take n) -- takes the first n elements of the vector.
-    let out := carrySave w result.val.s (result.val.t <<< 1) (v.back) -- the chained carry is shifted left by 1 to align with the next input.
-    ⟨out, by
-      -- v.sum = (v.take n).sum + v.back [lemma]
-      -- v.sum = (sum + carry <<< 1) + v.back [ih]
-      have hcsa := carrySaveAdder w result.val.s (result.val.t <<< 1) v.back
-      simp only [carrySave] at hcsa
-      simp only [out, carrySave]
-      rw [← hcsa]
-      rw [result.property]
-      conv_rhs => unfold vector_sum
-      simp [Vector.back]
-      ⟩
+theorem vector_sum_cast {w n m : Nat} (h : n = m) (v : Vector (BitVec w) n) :
+    vector_sum (v.cast h) = vector_sum v := by
+  subst h
+  rfl
+
+theorem chain_correct {w n : Nat} (v : Vector (BitVec w) n) :
+    let ⟨s, t⟩ := chain v
+    vector_sum v = s + t <<< 1 := by
+  induction n with
+  | zero =>
+    simp [chain, vector_sum]
+  | succ n ih =>
+    match n with
+      | 0 =>
+        simp [chain, vector_sum]
+      | 1 =>
+        simp [vector_sum, ih, chain, carrySave]
+        rw [b1_add_b2_eq_add_zero, carrySaveAdder]
+        simp
+      | 2 =>
+        simp [chain, vector_sum, carrySave]
+        rw [carrySaveAdder]
+      | n + 3 =>
+        have hih := ih ((v.take (n + 3)).cast (by omega))
+        simp only [chain, carrySave] at hih ⊢
+        rw [← carrySaveAdder, ← hih]
+        conv_lhs => unfold vector_sum
+        simp [Vector.back, vector_sum_cast]
 
 end CSA
