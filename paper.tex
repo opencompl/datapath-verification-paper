@@ -108,12 +108,17 @@
 
 \createtodoauthor{grosser}{pairedOneLightBlue}
 \createtodoauthor{sam}{pairedTwoDarkBlue}
-\createtodoauthor{authorThree}{pairedThreeLightGreen}
+\createtodoauthor{osman}{pairedThreeLightGreen}
 \createtodoauthor{authorFour}{pairedFourDarkGreen}
 \createtodoauthor{authorFive}{pairedFiveLightRed}
 \createtodoauthor{authorSix}{pairedSixDarkRed}
 
 \newacronym{ir}{IR}{Intermediate Representation}
+\newacronym{fa}{FA}{full-adder}
+\newacronym{ha}{HA}{half-adder}
+\newacronym{cpa}{CPA}{carry-propagate adder}
+\newacronym{lsb}{LSB}{least-significant bit}
+\newacronym{msb}{MSB}{most-significant bit}
 
 \graphicspath{{./images/}}
 
@@ -283,7 +288,8 @@
 
 \section{Background}
 
-Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation using full-adders (FAs) and half-adders (HAs), after which a single carry-propagate adder (CPA) produces the final result. \sam{Lookup the acronym latex package for defining accronyms as this helps to ensure all accronyms are defined once. e.g. FA - will be useful when the document gets larger!}
+Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
+using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces the final result.
 
 \begin{figure}[h]
   \centering
@@ -312,9 +318,9 @@ Dadda's algorithm is a method for reducing the partial products of an $n$-bit mu
 \begin{enumerate}
   \item Compute the smallest $L$ such that $m_L \geq h$, where the Dadda
         sequence (Table 1) is given by $m_0 = 2$ and $m_l = \lfloor \frac{3}{2} m_{l-1} \rfloor$.
-  \item Starting at level $l = L$, scan all columns from LSB to MSB.
+  \item Starting at level $l = L$, scan all columns from \acrfull{lsb} to \acrfull{msb}.
         For each column whose height exceeds $m_{l-1}$, introduce the
-        fewest number of FAs and at most one HA to bring the height down to $m_{l-1}$.
+        fewest number of \acrshort{fa}s and at most one \acrshort{ha} to bring the height down to $m_{l-1}$.
         Carry outputs are added to the next column, but
         should be left uncompressed until the following level.
   \item Decrement $l$ and repeat until every column has height at most~2.
