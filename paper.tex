@@ -107,7 +107,7 @@
 \definecolor{pairedSixDarkRed}{HTML}{e31a1c}
 
 \createtodoauthor{grosser}{pairedOneLightBlue}
-\createtodoauthor{authorTwo}{pairedTwoDarkBlue}
+\createtodoauthor{sam}{pairedTwoDarkBlue}
 \createtodoauthor{authorThree}{pairedThreeLightGreen}
 \createtodoauthor{authorFour}{pairedFourDarkGreen}
 \createtodoauthor{authorFive}{pairedFiveLightRed}
@@ -283,7 +283,7 @@
 
 \section{Background}
 
-Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation using full-adders (FAs) and half-adders (HAs), after which a single carry-propagate adder (CPA) produces the final result. 
+Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation using full-adders (FAs) and half-adders (HAs), after which a single carry-propagate adder (CPA) produces the final result. \sam{Lookup the acronym latex package for defining accronyms as this helps to ensure all accronyms are defined once. e.g. FA - will be useful when the document gets larger!}
 
 \begin{figure}[h]
   \centering
@@ -320,6 +320,7 @@ Dadda's algorithm is a method for reducing the partial products of an $n$-bit mu
   \item Decrement $l$ and repeat until every column has height at most~2.
 \end{enumerate}
 \end{tcolorbox}
+\sam{Strictly its at most one HA per column?}
 
 \section{Related Work}
 
