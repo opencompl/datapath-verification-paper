@@ -286,6 +286,13 @@
 
 \section{Introduction}
 
+\begin{itemize} 
+  \item Formalization of bitheap data structure and efficient compression algorithms in a theorem prover
+  \item Integration into an existing synthesis flow to provide formally verified datapath circuits to eliminate the SAT solver bottleneck
+  \item Integration of bitheap data structure into Lean 4's formally verified bit blaster to improve the solvers capabilities
+  \item Verified synthesis of existing datapath benchmark suite 
+\end{itemize}
+
 \section{Background}
 In digital arithmetic, an integer or fixed-point number is represented as follows:
 \[
@@ -344,6 +351,20 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces
   \item Decrement $l$ and repeat until every column has height at most~2.
 \end{enumerate}
 \end{tcolorbox}
+
+\section{Formalization}
+
+\subsection{Bit Heap Data Structure}
+
+\subsection{Compression Algorithms}
+
+\section{Integration}
+
+\subsection{Datapath Synthesis Engine}
+
+\subsection{Bit Blaster}
+
+\section{Results}
 
 \section{Related Work}
 
