@@ -380,12 +380,13 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces
 \section{Results}
 
 \section{Related Work}
-In their work, Temel et al. \cite{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
-Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes.
-
 Konrad and Scholl \cite{sca} presents a method based \acrfull{sca} approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
 However, their verification tool itself remains to be unverified.
+
+In their work, Temel et al. \cite{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
+Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
+Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 \section{Conclusion}
 
 %% Acknowledgments
