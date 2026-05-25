@@ -119,6 +119,8 @@
 \newacronym{cpa}{CPA}{carry-propagate adder}
 \newacronym{lsb}{LSB}{least-significant bit}
 \newacronym{msb}{MSB}{most-significant bit}
+\newacronym{sca}{SCA}{Symbolic Computer Algebra}
+
 
 \graphicspath{{./images/}}
 
@@ -322,6 +324,7 @@ Different compression algorithms exist, such as Wallace tree which greedily comp
 using only as many adders to meet a fix target height. 
 
 \subsubsection{Wallace Tree}
+
 \subsubsection{Dadda's Algorithm}
 Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
 using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces the final result.
@@ -379,6 +382,10 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces
 \section{Related Work}
 In their work, Temel et al. \cite{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes.
+
+Konrad and Scholl \cite{sca} presents a method based \acrfull{sca} approach to verify multiplication circuits, 
+using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
+However, their verification tool itself remains to be unverified.
 \section{Conclusion}
 
 %% Acknowledgments
