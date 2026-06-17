@@ -120,7 +120,8 @@
 \newacronym{lsb}{LSB}{least-significant bit}
 \newacronym{msb}{MSB}{most-significant bit}
 \newacronym{sca}{SCA}{Symbolic Computer Algebra}
-
+\newacronym{hls}{HLS}{High-level Synthesis}
+\newacronym{asic}{ASIC}{application-specific integrated circuits}
 
 \graphicspath{{./images/}}
 
@@ -285,6 +286,24 @@
 \maketitle
 
 \section{Introduction}
+Datapath circuits are a fundamental component of digital systems, responsible from moving and processing data.
+
+Adders are used incessantly in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
+
+In \acrfull{asic}, carry propagation is a major contributor to delay. 
+In cases where multiple summands must be added, the naïve approach chains carry-propagation adders, growing the delay linearly with the number of bits and summands.
+Datapath synthesis methods address this issue by reducing multiple summands to two using carry-save arithmetic, avoiding multiple carry-propagation adders to compute the sum.
+The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
+
+Different techniques exist to verify datapath circuits, such as \acrfull{sca} and SAT-based methods.
+A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large circuits (need to make this claim more precise and be careful).
+
+We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
+This correct-by-construction approach guarantees that the generated circuits are correct, and scales to large circuits.
+
+We formalize the bitheap data structure and compression algorithms, and integrate them into an existing industrial synthesis tool to provide formally verified datapath circuits.
+
+
 Our list of contributions is as follows:
 \begin{itemize} 
   \item Formalization of bitheap data structure and efficient compression algorithms in a theorem prover
@@ -380,13 +399,17 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces
 \section{Results}
 
 \section{Related Work}
-Konrad and Scholl \cite{sca} presents a method based \acrfull{sca} approach to verify multiplication circuits, 
+\citet{sca} presents a method based \acrfull{sca} approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
 However, their verification tool itself remains to be unverified.
 
-In their work, Temel et al. \cite{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
+In their work, \citet{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
+
+A line of research focuses on proving \acrfull{hls} tools correctt. 
+\citet{graphiti} introduces Graphiti, a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
+Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
 \section{Conclusion}
 
 %% Acknowledgments
