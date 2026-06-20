@@ -288,10 +288,10 @@
 \section{Introduction}
 Datapath circuits are a fundamental component of digital systems, responsible from moving and processing data.
 
-Adders are used incessantly in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
+Adders are used extensively in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
 
 In \acrfull{asic}, carry propagation is a major contributor to delay. 
-In cases where multiple summands must be added, the naïve approach chains carry-propagation adders, growing the delay linearly with the number of bits and summands.
+In cases where multiple summands must be added, the naïve approach chains carry-propagate adders, growing the delay linearly with the number of bits and summands.
 Datapath synthesis methods address this issue by reducing multiple summands to two using carry-save arithmetic, avoiding multiple carry-propagation adders to compute the sum.
 The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
 
