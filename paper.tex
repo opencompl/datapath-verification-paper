@@ -8,7 +8,7 @@
   \def\paperversion{draft}
 \fi
 
-\documentclass[review, anonymous, acmsmall, acmtog]{acmart}
+\documentclass[review, anonymous, acmsmall, acmtog, 10pt]{acmart}
 
 \def\acmversionanonymous{anonymous}
 \def\acmversionjournal{journal}
@@ -435,7 +435,7 @@ which maps the \texttt{Circuit} to Boolean values.
 \mathcal{C}\sem{b_n}\sigma &=& \sigma(n)\\
 \mathcal{C}\sem{0}\sigma &=& \mathit{false}\\
 \mathcal{C}\sem{1}\sigma &=& \mathit{true}\\
-\mathcal{C}\sem{c_1 \circledast c_2}\sigma
+\mathcal{C}\sem{c_0 \circledast c_1}\sigma
   &=& \mathcal{C}\sem{c_0}\sigma \circledast \mathcal{C}\sem{c_1}\sigma
 \end{array}
 \]
@@ -480,19 +480,6 @@ The value of the bit heap is computed in modular arithmetic. Therefore, all corr
 \end{array}
 \]
 
-The value of a bit heap is obtained by summing each column and combining the columns with Horner's method:
-\begin{equation}
-\begin{split}
-  \Bigl( \sum_{k=0}^{w-1} &\mathcal{G}\sem{h_k}\sigma \cdot x^{k} \Bigr) \bmod 2^{w}\\
-    &= \Bigl( \mathcal{G}\sem{h_0}\sigma + x \bigl( \mathcal{G}\sem{h_1}\sigma
-      + x ( \mathcal{G}\sem{h_2}\sigma + \cdots\\
-    &\qquad + x \, \mathcal{G}\sem{h_{w-1}}\sigma ) \bigr) \Bigr) \bmod 2^{w}
-\end{split}
-\end{equation}
-
-By setting $x = 2$, so that each column at index $k$ contributes its value $\mathcal{G}\sem{h_k}\sigma$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
-Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
-
 \begin{table*}[t]
   \centering
   \caption{Compression steps. $\maj$ denotes the majority function
@@ -515,6 +502,19 @@ Horner's method is structurally recursive on the list of columns, which makes it
   \bottomrule
   \end{tabular}
 \end{table*}
+
+The value of a bit heap is obtained by summing each column and combining the columns with Horner's method:
+\begin{equation}
+\begin{split}
+  \Bigl( \sum_{k=0}^{w-1} &\mathcal{G}\sem{h_k}\sigma \cdot x^{k} \Bigr) \bmod 2^{w}\\
+    &= \Bigl( \mathcal{G}\sem{h_0}\sigma + x \bigl( \mathcal{G}\sem{h_1}\sigma
+      + x ( \mathcal{G}\sem{h_2}\sigma + \cdots\\
+    &\qquad + x \, \mathcal{G}\sem{h_{w-1}}\sigma ) \bigr) \Bigr) \bmod 2^{w}
+\end{split}
+\end{equation}
+
+By setting $x = 2$, so that each column at index $k$ contributes its value $\mathcal{G}\sem{h_k}\sigma$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
+Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
 Our framework is based on modular arithmetic, so correctness statements for operations on a bit heap hold only modulo $2^w$.
 That means when a carry is produced on the last column, it is dropped.
@@ -579,7 +579,7 @@ Writing $s(h)$ for the heap obtained by applying step $s$ to $h$, we prove that 
 \begin{theorem}[\texttt{halfAdder\_correct\_mod}, \texttt{fullAdder\_correct\_mod}]
 \label{thm:step-correct}
 For all $h : \Heap_w$, $s : \Step$ and
-$\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in \ref{tab:steps}, then
+$\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in Table~\ref{tab:steps}, then
 \[
  \mathcal{H}\sem{h}\sigma \;=\; \mathcal{H}\sem{s(h)}\sigma.
 \]
