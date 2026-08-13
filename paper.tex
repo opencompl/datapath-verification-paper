@@ -413,6 +413,11 @@ We also discuss the correctness of the composition of adders and how we relate b
 The building block of the bit heap data structure is a single bit. 
 In our formalization, the Circuit data structure represent a boolean expression, that is named by a natural-number index.
 
+A \texttt{Circuit} describes a logical expression, that can be a binary variable, constant, or any binary operation over composition Circuit objects.
+The bits represented by \texttt{Circuit} are symbolic and do not hold any value.
+A Circuit is assigned a value under a bit environment $\sigma$,
+which maps the \texttt{Circuit} to Boolean values. 
+
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
@@ -422,11 +427,6 @@ In our formalization, the Circuit data structure represent a boolean expression,
 \Circ \ni c &::=& b_n \mid 0 \mid 1 \mid c \circledast c &
 \end{array}
 \]
-
-A \texttt{Circuit} describes a logical expression, that can be a binary variable, constant, or any binary operation over composition Circuit objects.
-The bits represented by \texttt{Circuit} are symbolic and do not hold any value.
-A Circuit is assigned a value under a bit environment $\sigma$,
-which maps the \texttt{Circuit} to Boolean values.
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
