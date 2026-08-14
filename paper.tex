@@ -15,8 +15,6 @@
 \def\acmversionjournal{journal}
 \def\acmversionnone{none}
 
-% IEEEtran has no built-in anonymous mode; drive it from \paperversion so the
-% conditional blocks below keep working.
 \def\acmversion{anonymous}
 
 \usepackage{colortbl}
@@ -41,9 +39,6 @@
 \usepackage{microtype}
 \usepackage{tcolorbox}
 
-% geometry is only needed for the widened draft margins (see tex/setup.tex).
-% Loading it unconditionally would override IEEEtran's own page layout and
-% shrink the text block, so it is deliberately draft-only.
 \ifx\paperversion\paperversiondraft
   \usepackage{geometry}
 \fi
@@ -56,9 +51,7 @@
 \usepackage{etoolbox}
 \usepackage[acronym,shortcuts]{glossaries}
 \usepackage{amsmath}
-\usepackage{amssymb} % \mathbb, \barwedge, \circledast; acmart loaded this
-% acmart loaded hyperref for us; IEEEtran does not. It must come before
-% thmtools, which otherwise defines a conflicting \autoref.
+\usepackage{amssymb}
 \usepackage{hyperref}
 \usepackage{amsthm}   % \theoremstyle/\newtheorem; acmart loaded this
 \usepackage{thmtools} % required for autoref to lemmas
@@ -69,8 +62,6 @@
 
 \input{tex/setup.tex}
 
-% The paper uses \citet, so we need natbib. IEEEtranN is the natbib-compatible
-% IEEE bibliography style (plain IEEEtran.bst is not).
 \usepackage[numbers]{natbib}
 \bibliographystyle{IEEEtranN}
 
@@ -78,28 +69,28 @@
 
 % Newer versions of minted require the 'customlexer' argument for custom lexers
 % whereas older versions require the '-x' to be passed via the command line.
-\makeatletter
-\ifcsdef{MintedExecutable}
-{
-  % minted v3
-  \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps}{mathescape}
-  \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer}{mathescape, style=murphy}
-  \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer}{mathescape, breaklines}
-}
-{
-  \ifcsdef{minted@optlistcl@quote}
-  {
-    \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps}{customlexer, mathescape}
-    \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer}{customlexer, mathescape, style=murphy}
-    \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer}{customlexer, mathescape, breaklines}
-  }
-  {
-    \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps -x}{mathescape}
-    \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer -x}{mathescape, style=murphy}
-    \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer -x}{mathescape, breaklines}
-  }
-}
-\makeatother
+% \makeatletter
+% \ifcsdef{MintedExecutable}
+% {
+%   % minted v3
+%   \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps}{mathescape}
+%   \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer}{mathescape, style=murphy}
+%   \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer}{mathescape, breaklines}
+% }
+% {
+%   \ifcsdef{minted@optlistcl@quote}
+%   {
+%     \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps}{customlexer, mathescape}
+%     \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer}{customlexer, mathescape, style=murphy}
+%     \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer}{customlexer, mathescape, breaklines}
+%   }
+%   {
+%     \newminted[mlir]{tools/lexers/MLIRLexer.py:MLIRLexerOnlyOps -x}{mathescape}
+%     \newminted[xdsl]{tools/lexers/MLIRLexer.py:MLIRLexer -x}{mathescape, style=murphy}
+%     \newminted[lean4]{tools/lexers/Lean4Lexer.py:Lean4Lexer -x}{mathescape, breaklines}
+%   }
+% }
+% \makeatother
 
 % We use the following color scheme
 %
