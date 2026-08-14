@@ -127,10 +127,7 @@
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
-% Names of Lean datatypes. \ensuremath lets these be used in prose (\Circ) and
-% in math mode ($\Circ$) alike; \xspace supplies the following space in prose,
-% so no trailing {} is needed.
-\newcommand{\Circ}{\ensuremath{\texttt{Circuit}}\xspace}
+\newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
 \newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
 \newcommand{\Heap}{\ensuremath{\texttt{BitHeap}}\xspace}
 \newcommand{\Arith}{\ensuremath{\texttt{Arith}}\xspace}
@@ -384,15 +381,15 @@ In this section, we present the formalization of the bit heap data structure in 
 We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
 \sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
 
-\subsection{\Circ}
+\subsection{\BitExpr}
 The building block of the bit heap data structure is a single bit.
-In our formalization, the \Circ data structure represent a boolean expression, that is named by a natural-number index.
+In our formalization, the \BitExpr data structure represent a boolean expression, that is named by a natural-number index.
 \sam{Circuit is not a data structure, it is a language. Also you've got inconsistent presentation of Circuit (vs \texttt{Circuit}) - consistency is essential so I'd suggest creating a macro.}
 
-A \Circ describes a logical expression, that can be a binary variable, constant, or any binary operation over composition \Circ objects.
-The bits represented by \Circ are symbolic and do not hold any value.
-A \Circ is assigned a value under a bit environment $\sigma$,
-which maps the \Circ to Boolean values.
+A \BitExpr describes a logical expression, that can be a binary variable, constant, or any binary operation over composition \BitExpr objects.
+The bits represented by \BitExpr are symbolic and do not hold any value.
+A \BitExpr is assigned a value under a bit environment $\sigma$,
+which maps the \BitExpr to Boolean values.
 \sam{The bit environment maps a symbolic bit to a boolean value - not an arbitrary \texttt{Circuit}. The mapping of higher-level expressions is handled by your semantics.}
 
 \[
@@ -401,7 +398,7 @@ which maps the \Circ to Boolean values.
   \text{indices } \mathbb{N} \ni n,k \qquad
   \text{width } \mathbb{N}^{+} \ni w \qquad
   \circledast \in \{\oplus,\wedge,\vee,\barwedge\}}\\[6pt]
-\Circ \ni c &::=& b_n \mid 0 \mid 1 \mid c \circledast c &
+\BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
 \sam{What is $\barwedge$? You need to define it. Secondly we're missing an inversion/negation operator?}
@@ -413,6 +410,7 @@ which maps the \Circ to Boolean values.
 \mathcal{C}\sem{b_n}\sigma &=& \sigma(n)\\
 \mathcal{C}\sem{0}\sigma &=& \mathit{false}\\
 \mathcal{C}\sem{1}\sigma &=& \mathit{true}\\
+\mathcal{C}\sem{\neg c}\sigma &=& \neg \mathcal{C}\sem{c}\sigma\\
 \mathcal{C}\sem{c_0 \circledast c_1}\sigma
   &=& \mathcal{C}\sem{c_0}\sigma \circledast \mathcal{C}\sem{c_1}\sigma
 \end{array}
@@ -421,14 +419,14 @@ which maps the \Circ to Boolean values.
 
 We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
 Boolean into the natural number, so that $\lift{\mathcal{C}\sem{c}\sigma}$ is
-the numeric contribution of circuit $c$.
+the numeric contribution of \BitExpr $c$.
 \sam{Think you probably need a lot more explanation here - you just dump a lot of equations that will probably confuse the average DATE reviewer.
 Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need to say that $\sem{\cdot}_\sigma: \texttt{Circuit} \to \mathbb{B}$ (or whatever is the correct mapping).}
 
 \sam{Currently this just looks like a semantics of Boolean arithmetic - so it may not be necessary to spell it out so much.}
 \subsection{Bit Heap Data Structure}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
-A \Col is a set of \Circ elements.
+A \Col is a set of \BitExpr elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
@@ -513,9 +511,9 @@ $c$ is present in that column, decreases it by the same amount
 
 \sam{Rename the theorems to something more concise e.g. addBit?}
 
-\begin{theorem}[\texttt{evalMod\_heap\_addBit}]
+\begin{theorem}[\texttt{addBit}]
 \label{thm:addBit}
-For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \Circ$ and
+For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$,
 \[
   \mathcal{H}\sem{\mathtt{addBit}(k, c, h)}\sigma
@@ -525,9 +523,9 @@ $\sigma : \mathbb{N} \to \mathbb{B}$,
 \]
 \end{theorem}
 
-\begin{theorem}[\texttt{evalMod\_heap\_removeBit}]
+\begin{theorem}[\texttt{removeBit}]
 \label{thm:removeBit}
-For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \Circ$ and
+For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \[
   \mathcal{H}\sem{\mathtt{removeBit}(k, c, h)}\sigma
@@ -538,7 +536,7 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \end{theorem}
 
 Since a \Col is defined as a set, it cannot contain duplicates.
-Therefore, if the same bit is added to a \Col at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the circuit as well.
+Therefore, if the same bit is added to a \Col at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
 \sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".}
 Effectively the bit heap is optimized during its construction.
 \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
@@ -570,7 +568,7 @@ Both applicability conditions are forced by Theorem~\ref{thm:removeBit}, which r
 Writing $s(h)$ for the heap obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
 \sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?}
 
-\begin{theorem}[\texttt{halfAdder\_correct\_mod}, \texttt{fullAdder\_correct\_mod}]
+\begin{theorem}[\texttt{Half Adder Correctness}, \texttt{Full Adder Correctness}]
 \label{thm:step-correct}
 For all $h : \Heap_w$, $s : \Step$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in Table~\ref{tab:steps}, then
