@@ -8,19 +8,16 @@
   \def\paperversion{draft}
 \fi
 
-\documentclass[review, anonymous, acmsmall, acmtog, 10pt]{acmart}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
 
 \def\acmversionanonymous{anonymous}
 \def\acmversionjournal{journal}
 \def\acmversionnone{none}
 
-\makeatletter
-\if@ACM@anonymous
-  \def\acmversion{anonymous}
-\else
-  \def\acmversion{journal}
-\fi
-\makeatother
+% IEEEtran has no built-in anonymous mode; drive it from \paperversion so the
+% conditional blocks below keep working.
+\def\acmversion{anonymous}
 
 \usepackage{colortbl}
 
@@ -44,6 +41,12 @@
 \usepackage{microtype}
 \usepackage{tcolorbox}
 
+% geometry is only needed for the widened draft margins (see tex/setup.tex).
+% Loading it unconditionally would override IEEEtran's own page layout and
+% shrink the text block, so it is deliberately draft-only.
+\ifx\paperversion\paperversiondraft
+  \usepackage{geometry}
+\fi
 \usepackage{xargs}
 \usepackage{lipsum}
 \usepackage{xparse}
@@ -53,6 +56,11 @@
 \usepackage{etoolbox}
 \usepackage[acronym,shortcuts]{glossaries}
 \usepackage{amsmath}
+\usepackage{amssymb} % \mathbb, \barwedge, \circledast; acmart loaded this
+% acmart loaded hyperref for us; IEEEtran does not. It must come before
+% thmtools, which otherwise defines a conflicting \autoref.
+\usepackage{hyperref}
+\usepackage{amsthm}   % \theoremstyle/\newtheorem; acmart loaded this
 \usepackage{thmtools} % required for autoref to lemmas
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
@@ -60,7 +68,11 @@
 \usepackage[shortcuts]{extdash}
 
 \input{tex/setup.tex}
-\input{tex/acm.tex}
+
+% The paper uses \citet, so we need natbib. IEEEtranN is the natbib-compatible
+% IEEE bibliography style (plain IEEEtran.bst is not).
+\usepackage[numbers]{natbib}
+\bibliographystyle{IEEEtranN}
 
 \usemintedstyle{colorful}
 
@@ -124,12 +136,16 @@
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
-\newcommand{\Circ}{\mathit{Circuit}}
-\newcommand{\Col}{\mathit{Column}}
-\newcommand{\Heap}{\mathit{BitHeap}}
-\newcommand{\Arith}{\mathit{Arith}}
-\newcommand{\Step}{\mathit{Step}}
-\newcommand{\Chain}{\mathit{Chain}}
+% Names of Lean datatypes. \ensuremath lets these be used in prose (\Circ) and
+% in math mode ($\Circ$) alike; \xspace supplies the following space in prose,
+% so no trailing {} is needed.
+\newcommand{\Circ}{\ensuremath{\texttt{Circuit}}\xspace}
+\newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
+\newcommand{\Heap}{\ensuremath{\texttt{BitHeap}}\xspace}
+\newcommand{\Arith}{\ensuremath{\texttt{Arith}}\xspace}
+\newcommand{\Step}{\ensuremath{\texttt{Step}}\xspace}
+\newcommand{\Chain}{\ensuremath{\texttt{Chain}}\xspace}
+\newcommand{\Vect}{\ensuremath{\texttt{Vector}}\xspace}
 \newcommand{\var}{\mathsf{var}}
 \newcommand{\HA}{\mathsf{HA}}
 \newcommand{\FA}{\mathsf{FA}}
@@ -187,19 +203,37 @@
 
 % listings don't write "Listing" in autoref without this.
 \providecommand*{\listingautorefname}{Listing}
+\providecommand*{\sectionautorefname}{Section}
+\providecommand*{\subsectionautorefname}{Section}
+\providecommand*{\subsubsectionautorefname}{Section}
 \renewcommand{\sectionautorefname}{Section}
 \renewcommand{\subsectionautorefname}{Section}
 \renewcommand{\subsubsectionautorefname}{Section}
 \usepackage{stmaryrd}
 \newcommand{\bit}[2]{\llbracket #1 \rrbracket_{#2}}
 
+% acmart predefined these; IEEEtran does not.
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\providecommand*{\theoremautorefname}{Theorem}
+\providecommand*{\definitionautorefname}{Definition}
+\providecommand*{\lemmaautorefname}{Lemma}
+
+% acmart provided these; IEEEtran does not.
+\providecommand{\keywords}[1]{\par\noindent\textbf{Keywords:} #1}
+\providecommand{\ccsdesc}[2][]{}
+\providecommand{\settopmatter}[1]{}
+\providecommand{\received}[2][]{}
+
 
 \begin{document}
 
 %% Title information
-\title[Short Title]{Datapath Verification in Lean 4}       %% [Short Title] is optional;
-                                      %% when present, will be used in
-                                      %% header instead of Full Title.
+\title{Datapath Verification in Lean 4}
 
 %% Author information
 %% Contents and number of authors suppressed with 'anonymous'.
@@ -210,48 +244,30 @@
 %% appropriate command.
 %% Many elements are not rendered, but should be provided for metadata
 %% extraction tools.
-\author{First1 Last1}
-\authornote{with author1 note}          %% \authornote is optional;
-                                      %% can be repeated if necessary
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
-\affiliation{
-  \position{Position1}
-  \department{Department1}              %% \department is recommended
-  \institution{Institution1}            %% \institution is required
-  \streetaddress{Street1 Address1}
-  \city{City1}
-  \state{State1}
-  \postcode{Post-Code1}
-  \country{Country1}
+%% Author information (IEEEtran format).
+%% Anonymized for review; restore the real block for camera-ready.
+\ifx\acmversion\acmversionanonymous
+\author{\IEEEauthorblockN{Anonymous Author(s)}}
+\else
+\author{%
+  \IEEEauthorblockN{First1 Last1}
+  \IEEEauthorblockA{%
+    \textit{Department1} \\
+    \textit{Institution1} \\
+    City1, Country1 \\
+    first1.last1@inst1.edu}
+  \and
+  \IEEEauthorblockN{First2 Last2}
+  \IEEEauthorblockA{%
+    \textit{Department2a} \\
+    \textit{Institution2a} \\
+    City2a, Country2a \\
+    first2.last2@inst2a.com}
 }
-\email{first1.last1@inst1.edu}          %% \email is recommended
+\fi
 
-\author{First2 Last2}
-\authornote{with author2 note}          %% \authornote is optional;
-                                      %% can be repeated if necessary
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
-\affiliation{
-  \position{Position2a}
-  \department{Department2a}             %% \department is recommended
-  \institution{Institution2a}           %% \institution is required
-  \streetaddress{Street2a Address2a}
-  \city{City2a}
-  \state{State2a}
-  \postcode{Post-Code2a}
-  \country{Country2a}
-}
-\email{first2.last2@inst2a.com}         %% \email is recommended
-\affiliation{
-  \position{Position2b}
-  \department{Department2b}             %% \department is recommended
-  \institution{Institution2b}           %% \institution is required
-  \streetaddress{Street3b Address2b}
-  \city{City2b}
-  \state{State2b}
-  \postcode{Post-Code2b}
-  \country{Country2b}
-}
-\email{first2.last2@inst2b.org}         %% \email is recommended
+%% IEEEtran requires \maketitle before the abstract (acmart wanted it after).
+\maketitle
 
 \begin{abstract}
 % An abstract should consist of six main sentences:
@@ -266,44 +282,11 @@
 
 \end{abstract}
 
-% Only add ACM notes and keywords in camera ready version
-% Drop citations and footnotes in draft and blind mode.
-\ifx\acmversion\acmversionanonymous
-\settopmatter{printacmref=false} % Removes citation information below abstract
-\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
-\fi
-\ifx\acmversion\acmversionjournal
-%% 2012 ACM Computing Classification System (CSS) concepts
-%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
-\begin{CCSXML}
-<ccs2012>
-<concept>
-<concept_id>10011007.10011006.10011008</concept_id>
-<concept_desc>Software and its engineering~General programming languages</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
-<concept>
-<concept_id>10003456.10003457.10003521.10003525</concept_id>
-<concept_desc>Social and professional topics~History of programming languages</concept_desc>
-<concept_significance>300</concept_significance>
-</concept>
-</ccs2012>
-\end{CCSXML}
-
-\ccsdesc[500]{Software and its engineering~General programming languages}
-\ccsdesc[300]{Social and professional topics~History of programming languages}
-%% End of generated code
-
-%% Keywords
-%% comma separated list
-\keywords{keyword1, keyword2, keyword3}
-\fi
-
-%% \maketitle
-%% Note: \maketitle command must come after title commands, author
-%% commands, abstract environment, Computing Classification System
-%% environment and commands, and keywords command.
-\maketitle
+%% IEEE keywords. The ACM CCS concept block has no IEEE equivalent and was
+%% dropped; IEEE venues use index terms instead.
+\begin{IEEEkeywords}
+keyword1, keyword2, keyword3
+\end{IEEEkeywords}
 
 \section{Introduction}
 Datapath circuits are a fundamental component of digital systems, responsible from moving and processing data.
@@ -406,21 +389,19 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the 
 \end{tcolorbox}
 
 \section{Formalization}
-In this section, we present the formalization of the bit heap data structure as well as the underlying hardware-level constructs and compression algorithms in Lean 4. 
+In this section, we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms.
 We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
-\sam{I'd be more concise here - "In this section, we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms."}
 \sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
 
-
-\subsection{Circuit}
-The building block of the bit heap data structure is a single bit. 
-In our formalization, the Circuit data structure represent a boolean expression, that is named by a natural-number index.
+\subsection{\Circ}
+The building block of the bit heap data structure is a single bit.
+In our formalization, the \Circ data structure represent a boolean expression, that is named by a natural-number index.
 \sam{Circuit is not a data structure, it is a language. Also you've got inconsistent presentation of Circuit (vs \texttt{Circuit}) - consistency is essential so I'd suggest creating a macro.}
 
-A \texttt{Circuit} describes a logical expression, that can be a binary variable, constant, or any binary operation over composition Circuit objects.
-The bits represented by \texttt{Circuit} are symbolic and do not hold any value.
-A Circuit is assigned a value under a bit environment $\sigma$,
-which maps the \texttt{Circuit} to Boolean values. 
+A \Circ describes a logical expression, that can be a binary variable, constant, or any binary operation over composition \Circ objects.
+The bits represented by \Circ are symbolic and do not hold any value.
+A \Circ is assigned a value under a bit environment $\sigma$,
+which maps the \Circ to Boolean values.
 \sam{The bit environment maps a symbolic bit to a boolean value - not an arbitrary \texttt{Circuit}. The mapping of higher-level expressions is handled by your semantics.}
 
 \[
@@ -456,8 +437,7 @@ Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need t
 \sam{Currently this just looks like a semantics of Boolean arithmetic - so it may not be necessary to spell it out so much.}
 \subsection{Bit Heap Data Structure}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
-A \texttt{Column} is a set of \texttt{Circuit} elements. 
-\sam{Inconsistent formatting of column.}
+A \Col is a set of \Circ elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
@@ -471,7 +451,7 @@ A \texttt{Column} is a set of \texttt{Circuit} elements.
 A \emph{column} is a set of circuits,
 and a \emph{bit heap of width $w$} is a vector of $w$ columns,
 \[
-  \mathtt{BitHeap}\;w \;\triangleq\; \mathtt{Vector}\;\mathtt{Column}\;w
+  \Heap\;w \;\triangleq\; \Vect\;\Col\;w
 \]
 \end{definition}
 \sam{You seem to give two definitions and they are not consistent - one shows a Vector the other looks like a set?}
@@ -566,8 +546,8 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \]
 \end{theorem}
 
-Since a \texttt{Column} is defined as a set, it cannot contain duplicates.
-Therefore, if the same bit is added to a \texttt{Column} at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the circuit as well.
+Since a \Col is defined as a set, it cannot contain duplicates.
+Therefore, if the same bit is added to a \Col at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the circuit as well.
 \sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".}
 Effectively the bit heap is optimized during its construction.
 \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
@@ -667,22 +647,17 @@ A line of research focuses on proving \acrfull{hls} tools correctt.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
 \section{Conclusion}
 
-%% Acknowledgments
-\begin{acks}                            %% acks environment is optional
-                                        %% contents suppressed with 'anonymous'
-  %% Commands \grantsponsor{<sponsorID>}{<name>}{<url>} and
-  %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
-  %% acknowledge financial support and will be used by metadata
-  %% extraction tools.
-  This material is based upon work supported by the
-  \grantsponsor{GS100000001}{National Science
-    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-  conclusions or recommendations expressed in this material are those
-  of the author and do not necessarily reflect the views of the
+%% Acknowledgments. IEEEtran has no \begin{acks} or \grantsponsor/\grantnum;
+%% IEEE uses an unnumbered section. Suppressed for anonymous review.
+\ifx\acmversion\acmversionanonymous
+\else
+\section*{Acknowledgments}
+  This material is based upon work supported by the National Science
+  Foundation under Grant No.~nnnnnnn and Grant No.~mmmmmmm.  Any opinions,
+  findings, and conclusions or recommendations expressed in this material are
+  those of the author and do not necessarily reflect the views of the
   National Science Foundation.
-\end{acks}
+\fi
 
 %% Bibliography
 \bibliography{references}

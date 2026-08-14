@@ -5,15 +5,25 @@
 \makeatletter
 \patchcmd{\@addmarginpar}{\ifodd\c@page}{\ifodd\c@page\@tempcnta\m@ne}{}{}
 \makeatother
+% Was \if@ACM@journal (acmart internal), which IEEEtran does not define.
+% \ifdraftmargins selects the widened-margin layout for review comments.
+% Declared outside the conditional below: TeX must see the \newif even on
+% branches that skip it, or the \if/\fi nesting breaks.
+\newif\ifdraftmargins
+\draftmarginstrue
+
 \ifx\paperversion\paperversiondraft
   \makeatletter
-  \if@ACM@journal
+  \ifdraftmargins
     \geometry{asymmetric}
     \paperwidth=\dimexpr \paperwidth + 3.5cm\relax
     \oddsidemargin=\dimexpr\oddsidemargin + 0cm\relax
     \evensidemargin=\dimexpr\evensidemargin + 0cm\relax
     \marginparwidth=\dimexpr \marginparwidth + 3cm\relax
     \setlength{\marginparwidth}{4.6cm}
+    % acmart set \textheight itself; IEEEtran sizes it for the un-widened
+    % page, which otherwise leaves the bottom third of each page empty.
+    \setlength{\textheight}{\dimexpr\paperheight - 2in\relax}
     % This makeatletter box helps to move notes to the right
     \makeatletter
     \long\def\@mn@@@marginnote[#1]#2[#3]{%
