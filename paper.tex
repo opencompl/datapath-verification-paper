@@ -365,7 +365,7 @@ using only as many adders to meet a fix target height.
 
 \subsubsection{Dadda's Algorithm}
 Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
-using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
+using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
 
 \begin{figure}[h]
   \centering
@@ -408,15 +408,20 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \acrfull{cpa} produces
 \section{Formalization}
 In this section, we present the formalization of the bit heap data structure as well as the underlying hardware-level constructs and compression algorithms in Lean 4. 
 We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
+\sam{I'd be more concise here - "In this section, we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms."}
+\sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
+
 
 \subsection{Circuit}
 The building block of the bit heap data structure is a single bit. 
 In our formalization, the Circuit data structure represent a boolean expression, that is named by a natural-number index.
+\sam{Circuit is not a data structure, it is a language. Also you've got inconsistent presentation of Circuit (vs \texttt{Circuit}) - consistency is essential so I'd suggest creating a macro.}
 
 A \texttt{Circuit} describes a logical expression, that can be a binary variable, constant, or any binary operation over composition Circuit objects.
 The bits represented by \texttt{Circuit} are symbolic and do not hold any value.
 A Circuit is assigned a value under a bit environment $\sigma$,
 which maps the \texttt{Circuit} to Boolean values. 
+\sam{The bit environment maps a symbolic bit to a boolean value - not an arbitrary \texttt{Circuit}. The mapping of higher-level expressions is handled by your semantics.}
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -427,6 +432,7 @@ which maps the \texttt{Circuit} to Boolean values.
 \Circ \ni c &::=& b_n \mid 0 \mid 1 \mid c \circledast c &
 \end{array}
 \]
+\sam{What is $\barwedge$? You need to define it. Secondly we're missing an inversion/negation operator?}
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
@@ -439,15 +445,19 @@ which maps the \texttt{Circuit} to Boolean values.
   &=& \mathcal{C}\sem{c_0}\sigma \circledast \mathcal{C}\sem{c_1}\sigma
 \end{array}
 \]
+\sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars? Width is also unused here.}
 
 We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
 Boolean into the natural number, so that $\lift{\mathcal{C}\sem{c}\sigma}$ is
 the numeric contribution of circuit $c$.
+\sam{Think you probably need a lot more explanation here - you just dump a lot of equations that will probably confuse the average DATE reviewer.
+Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need to say that $\sem{\cdot}_\sigma: \texttt{Circuit} \to \mathbb{B}$ (or whatever is the correct mapping).}
 
+\sam{Currently this just looks like a semantics of Boolean arithmetic - so it may not be necessary to spell it out so much.}
 \subsection{Bit Heap Data Structure}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
 A \texttt{Column} is a set of \texttt{Circuit} elements. 
-
+\sam{Inconsistent formatting of column.}
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
@@ -464,8 +474,9 @@ and a \emph{bit heap of width $w$} is a vector of $w$ columns,
   \mathtt{BitHeap}\;w \;\triangleq\; \mathtt{Vector}\;\mathtt{Column}\;w
 \]
 \end{definition}
-
-To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain environment.
+\sam{You seem to give two definitions and they are not consistent - one shows a Vector the other looks like a set?}
+\sam{I really feel like an example would be hugely valuable here!}
+To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain environment. \sam{environment or bit environment?}
 The value of the bit heap is computed in modular arithmetic. Therefore, all correctness statements below are stated as modulo $2^w$.
 
 \[
@@ -502,6 +513,7 @@ The value of the bit heap is computed in modular arithmetic. Therefore, all corr
   \bottomrule
   \end{tabular}
 \end{table*}
+\sam{This now feels like an excessive use of notation - coulde we not just write a double sum to avoid create $\mathcal{G}$ - I also think the mapping to $\mathbb{Z}$ is not correct - it should be $\mathbb{N}$ as the outer mod should just be applied when you modify the circuits (the positive residue I think this is called)?}
 
 The value of a bit heap is obtained by summing each column and combining the columns with Horner's method:
 \begin{equation}
@@ -518,12 +530,17 @@ Horner's method is structurally recursive on the list of columns, which makes it
 
 Our framework is based on modular arithmetic, so correctness statements for operations on a bit heap hold only modulo $2^w$.
 That means when a carry is produced on the last column, it is dropped.
+\sam{Repeated the point about moduler arithmetic - you said this earlier - the carry statement is new though - could this be combined?}
 
 Two theorems describe the primitive operations. Adding a bit $c$ at
 column $k$ increases the value by $2^{k}\lift{\mathcal{C}\sem{c}\sigma}$
-(\ref{thm:addBit}). Removing a bit $c$ from column $k$, provided
+(\ref{thm:addBit}). 
+\sam{Do we need to say something about mod $2^w$ here? An intuitive description would also help like for all bitheaps...}
+Removing a bit $c$ from column $k$, provided
 $c$ is present in that column, decreases it by the same amount
 (\ref{thm:removeBit}).
+
+\sam{Rename the theorems to something more concise e.g. addBit?}
 
 \begin{theorem}[\texttt{evalMod\_heap\_addBit}]
 \label{thm:addBit}
@@ -551,18 +568,23 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 
 Since a \texttt{Column} is defined as a set, it cannot contain duplicates.
 Therefore, if the same bit is added to a \texttt{Column} at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the circuit as well.
-Effectively this results in building the bit heap in an optimized way during construction.
+\sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".}
+Effectively the bit heap is optimized during its construction.
 \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
-
+\sam{How is thm:removeBit proved? Is it the same or different?}
 
 \subsection{Compression Algorithms}
 \label{sec:compression}
+
+\sam{I feel like the reader has lost the purpose here - why are we now compressing the bit heap? They've long forgotten its purpose - a running example would help a lot.}
 Compression reduces the height of a bit heap to two, after which a
-single \acrshort{cpa} produces the result \cite{application_specific_arithmetic}.
+single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
+\sam{You should just be using \\ac everywhere - as then the package figures out the first time you use an accronym and inserts the full definition.}
 The reduction is carried out by compressors, half adders ($2{:}2$),
 full adders ($3{:}2$), or in general any $N{:}M$ compressor with
 $N \ge M$. We formalize half and full adders, and build compressor trees
 from them. However, our framework can easily be extended for any compressor.
+\sam{Surely you're discussing FAs and HAs in the background? So this feels repetitive?}
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -575,6 +597,7 @@ Each compression step records the type of adder, the column it acts on, and the 
 The effects of a single step on the heap with the applicability conditions are shown in Table~\ref{tab:steps}.
 Both applicability conditions are forced by Theorem~\ref{thm:removeBit}, which requires bits to be present and that they are pairwise distinct.
 Writing $s(h)$ for the heap obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
+\sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?}
 
 \begin{theorem}[\texttt{halfAdder\_correct\_mod}, \texttt{fullAdder\_correct\_mod}]
 \label{thm:step-correct}
@@ -587,6 +610,7 @@ $\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the
 
 With proofs being similar for both half and full adder cases, the proofs rewrite the Theorems \ref{thm:addBit} and \ref{thm:removeBit} until the
 goal becomes an arithmetic identity over the Boolean values of bits, after which a case split on the boolean values closes the goal.
+\sam{Totally impenetrable to a reader - what does any of this mean?}
 
 A compression algorithm produces a chain of compressors. 
 Applicability is a condition on the heap the step is applied to, so it must be checked against the intermediate bit heap, not the original.
@@ -604,7 +628,7 @@ For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
   \mathcal{H}\sem{h}\sigma \;=\; \mathcal{H}\sem{S(h)}\sigma.
 \]
 \end{theorem}
-
+\sam{Didn't define $S(h)$?}
 \autoref{thm:chain-correct} is proven by induction on the chain, using Theorem~\ref{thm:step-correct} for the base case and the induction hypothesis for the tail of the chain.
 
 In our framework, we separate the correctness of the compression from the generation of the chain.
