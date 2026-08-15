@@ -16,9 +16,13 @@
   \makeatletter
   \ifdraftmargins
     \geometry{asymmetric}
-    \paperwidth=\dimexpr \paperwidth + 3.5cm\relax
-    \oddsidemargin=\dimexpr\oddsidemargin + 0cm\relax
-    \evensidemargin=\dimexpr\evensidemargin + 0cm\relax
+    % Widen the sheet on BOTH sides: 3.5cm of margin note space on the right,
+    % and 5cm on the left. Without the matching \oddsidemargin/\evensidemargin
+    % shift, the text block stays flush left and left-hand notes (which are
+    % typeset to the left of it) fall off the edge of the paper.
+    \paperwidth=\dimexpr \paperwidth + 8.5cm\relax
+    \oddsidemargin=\dimexpr\oddsidemargin + 5cm\relax
+    \evensidemargin=\dimexpr\evensidemargin + 5cm\relax
     \marginparwidth=\dimexpr \marginparwidth + 3cm\relax
     \setlength{\marginparwidth}{4.6cm}
     % acmart set \textheight itself; IEEEtran sizes it for the un-widened

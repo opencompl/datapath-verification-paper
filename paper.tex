@@ -127,6 +127,11 @@
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
+% Denotation of a BitExpr under the bit environment sigma. Column and heap
+% denotations keep their \mathcal{G}/\mathcal{H} prefixes to disambiguate.
+\newcommand{\csem}[1]{\sem{#1}_{\sigma}}
+\newcommand{\gsem}[1]{\mathcal{G}\sem{#1}_{\sigma}}
+\newcommand{\hsem}[1]{\mathcal{H}\sem{#1}_{\sigma}}
 \newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
 \newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
 \newcommand{\Heap}{\ensuremath{\texttt{BitHeap}}\xspace}
@@ -389,7 +394,7 @@ In our formalization, the \BitExpr data structure represent a boolean expression
 A \BitExpr describes a logical expression, that can be a binary variable, constant, or any binary operation over composition \BitExpr objects.
 The bits represented by \BitExpr are symbolic and do not hold any value.
 A \BitExpr is assigned a value under a bit environment $\sigma$,
-which maps the \BitExpr to Boolean values.
+which maps each symbolic bit to a Boolean value.
 \sam{The bit environment maps a symbolic bit to a boolean value - not an arbitrary \texttt{Circuit}. The mapping of higher-level expressions is handled by your semantics.}
 
 \[
@@ -402,23 +407,26 @@ which maps the \BitExpr to Boolean values.
 \end{array}
 \]
 \sam{What is $\barwedge$? You need to define it. Secondly we're missing an inversion/negation operator?}
+\osman{It is the NAND operation. do we also need to define $\wedge$ or $\vee$ as well? are they not standard? (though not so sure about $\barwedge$)}
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
-  \sigma \;=\; \mathbb{N} \to \mathbb{B}} \\[4pt]
-\mathcal{C}\sem{b_n}\sigma &=& \sigma(n)\\
-\mathcal{C}\sem{0}\sigma &=& \mathit{false}\\
-\mathcal{C}\sem{1}\sigma &=& \mathit{true}\\
-\mathcal{C}\sem{\neg c}\sigma &=& \neg \mathcal{C}\sem{c}\sigma\\
-\mathcal{C}\sem{c_0 \circledast c_1}\sigma
-  &=& \mathcal{C}\sem{c_0}\sigma \circledast \mathcal{C}\sem{c_1}\sigma
+  \sigma \;=\; \mathbb{N} \to \mathbb{B}
+  \qquad
+  \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[4pt]
+\csem{b_n} &=& \sigma(n)\\
+\csem{0} &=& \mathit{false}\\
+\csem{1} &=& \mathit{true}\\
+\csem{\neg c} &=& \neg \csem{c}\\
+\csem{c_0 \circledast c_1}
+  &=& \csem{c_0} \circledast \csem{c_1}
 \end{array}
 \]
 \sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars? Width is also unused here.}
 
 We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
-Boolean into the natural number, so that $\lift{\mathcal{C}\sem{c}\sigma}$ is
+Boolean into the natural number, so that $\lift{\csem{c}}$ is
 the numeric contribution of \BitExpr $c$.
 \sam{Think you probably need a lot more explanation here - you just dump a lot of equations that will probably confuse the average DATE reviewer.
 Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need to say that $\sem{\cdot}_\sigma: \texttt{Circuit} \to \mathbb{B}$ (or whatever is the correct mapping).}
@@ -430,7 +438,7 @@ A \Col is a set of \BitExpr elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
-\Heap_w \ni h &::=& \{ \gamma_0,\dots,\gamma_{w-1} \} &
+\Heap_w \ni h &::=& \langle  \gamma_0,\dots,\gamma_{w-1} \rangle  &
 \end{array}
 \]
 
@@ -443,20 +451,19 @@ and a \emph{bit heap of width $w$} is a vector of $w$ columns,
   \Heap\;w \;\triangleq\; \Vect\;\Col\;w
 \]
 \end{definition}
-\sam{You seem to give two definitions and they are not consistent - one shows a Vector the other looks like a set?}
 \sam{I really feel like an example would be hugely valuable here!}
-To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain environment. \sam{environment or bit environment?}
+To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain bit environment.
 The value of the bit heap is computed in modular arithmetic. Therefore, all correctness statements below are stated as modulo $2^w$.
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
-\mathcal{G}\sem{\gamma}\sigma
-  &=& \textstyle\sum_{c \in \gamma} \lift{\mathcal{C}\sem{c}\sigma}
-  & \mathcal{G}\sem{\cdot}\sigma : \Col \to \mathbb{N}\\[6pt]
-\mathcal{H}\sem{h}\sigma
-  &=& \bigl(\textstyle\sum_{k<w} 2^{k}\cdot\mathcal{G}\sem{h_k}\sigma\bigr)
+\gsem{\gamma}
+  &=& \textstyle\sum_{c \in \gamma} \lift{\csem{c}}
+  & \gsem{\cdot} : \Col \to \mathbb{N}\\[6pt]
+\hsem{h}
+  &=& \bigl(\textstyle\sum_{k<w} 2^{k}\cdot\gsem{h_k}\bigr)
       \bmod 2^{w}
-  & \mathcal{H}\sem{\cdot}\sigma : \Heap_w \to \mathbb{Z}
+  & \hsem{\cdot} : \Heap_w \to \mathbb{Z}
 \end{array}
 \]
 
@@ -487,14 +494,14 @@ The value of the bit heap is computed in modular arithmetic. Therefore, all corr
 The value of a bit heap is obtained by summing each column and combining the columns with Horner's method:
 \begin{equation}
 \begin{split}
-  \Bigl( \sum_{k=0}^{w-1} &\mathcal{G}\sem{h_k}\sigma \cdot x^{k} \Bigr) \bmod 2^{w}\\
-    &= \Bigl( \mathcal{G}\sem{h_0}\sigma + x \bigl( \mathcal{G}\sem{h_1}\sigma
-      + x ( \mathcal{G}\sem{h_2}\sigma + \cdots\\
-    &\qquad + x \, \mathcal{G}\sem{h_{w-1}}\sigma ) \bigr) \Bigr) \bmod 2^{w}
+  \Bigl( \sum_{k=0}^{w-1} &\gsem{h_k} \cdot x^{k} \Bigr) \bmod 2^{w}\\
+    &= \Bigl( \gsem{h_0} + x \bigl( \gsem{h_1}
+      + x ( \gsem{h_2} + \cdots\\
+    &\qquad + x \, \gsem{h_{w-1}} ) \bigr) \Bigr) \bmod 2^{w}
 \end{split}
 \end{equation}
 
-By setting $x = 2$, so that each column at index $k$ contributes its value $\mathcal{G}\sem{h_k}\sigma$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
+By setting $x = 2$, so that each column at index $k$ contributes its value $\gsem{h_k}$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
 Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
 Our framework is based on modular arithmetic, so correctness statements for operations on a bit heap hold only modulo $2^w$.
@@ -502,45 +509,47 @@ That means when a carry is produced on the last column, it is dropped.
 \sam{Repeated the point about moduler arithmetic - you said this earlier - the carry statement is new though - could this be combined?}
 
 Two theorems describe the primitive operations. Adding a bit $c$ at
-column $k$ increases the value by $2^{k}\lift{\mathcal{C}\sem{c}\sigma}$
+column $k$ increases the value by $2^{k}\lift{\csem{c}}$
 (\ref{thm:addBit}). 
 \sam{Do we need to say something about mod $2^w$ here? An intuitive description would also help like for all bitheaps...}
 Removing a bit $c$ from column $k$, provided
 $c$ is present in that column, decreases it by the same amount
 (\ref{thm:removeBit}).
 
-\sam{Rename the theorems to something more concise e.g. addBit?}
-
-\begin{theorem}[\texttt{addBit}]
+\begin{theorem}[Bit insertion]
 \label{thm:addBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$,
 \[
-  \mathcal{H}\sem{\mathtt{addBit}(k, c, h)}\sigma
+  \hsem{\mathtt{addBit}(k, c, h)}
   \;=\;
-  \bigl(\mathcal{H}\sem{h}\sigma
-        + 2^{k}\cdot\lift{\mathcal{C}\sem{c}\sigma}\bigr) \bmod 2^{w}.
+  \bigl(\hsem{h}
+        + 2^{k}\cdot\lift{\csem{c}}\bigr) \bmod 2^{w}.
 \]
 \end{theorem}
 
-\begin{theorem}[\texttt{removeBit}]
+\begin{theorem}[Bit removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \[
-  \mathcal{H}\sem{\mathtt{removeBit}(k, c, h)}\sigma
+  \hsem{\mathtt{removeBit}(k, c, h)}
   \;=\;
-  \bigl(\mathcal{H}\sem{h}\sigma
-        - 2^{k}\cdot\lift{\mathcal{C}\sem{c}\sigma}\bigr) \bmod 2^{w}.
+  \bigl(\hsem{h}
+        - 2^{k}\cdot\lift{\csem{c}}\bigr) \bmod 2^{w}.
 \]
 \end{theorem}
 
 Since a \Col is defined as a set, it cannot contain duplicates.
-Therefore, if the same bit is added to a \Col at index k, we propagete the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
+Therefore, if the same bit is added to a \Col at index k, the bit is propagated to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
 \sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".}
+\osman{what is the difference between something being done automatically and done by us in this context? when something is done by the code, is it done automatically or by?}
 Effectively the bit heap is optimized during its construction.
 \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
-\sam{How is thm:removeBit proved? Is it the same or different?}
+
+\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column. The hypothesis $c \in \gamma_k$ places $k$ within the heap's width and
+bounds the removed bit's contribution by the column's value, so the
+subtraction is well defined.
 
 \subsection{Compression Algorithms}
 \label{sec:compression}
@@ -573,7 +582,7 @@ Writing $s(h)$ for the heap obtained by applying step $s$ to $h$, we prove that 
 For all $h : \Heap_w$, $s : \Step$ and
 $\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in Table~\ref{tab:steps}, then
 \[
- \mathcal{H}\sem{h}\sigma \;=\; \mathcal{H}\sem{s(h)}\sigma.
+ \hsem{h} \;=\; \hsem{s(h)}.
 \]
 \end{theorem}
 
@@ -589,12 +598,12 @@ Applicability is a condition on the heap the step is applied to, so it must be c
 A chain $s :: S$ is well-formed for $h$ if $s$ is applicable to $h$ and $S$ is well-formed for $s(h)$.
 \end{definition}
 
-\begin{theorem}[\texttt{applyChain\_correct\_mod}]
+\begin{theorem}[\texttt{Chain Correctness}]
 \label{thm:chain-correct}
 For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
 \[
   \forall \sigma,\quad
-  \mathcal{H}\sem{h}\sigma \;=\; \mathcal{H}\sem{S(h)}\sigma.
+  \hsem{h} \;=\; \hsem{S(h)}.
 \]
 \end{theorem}
 \sam{Didn't define $S(h)$?}
