@@ -127,10 +127,9 @@
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
-% Denotation of a BitExpr under the bit environment sigma. Column and heap
-% denotations keep their \mathcal{G}/\mathcal{H} prefixes to disambiguate.
+% Denotation of a BitExpr under the bit environment sigma. The heap denotation
+% keeps its \mathcal{H} prefix to distinguish it from the bare BitExpr brackets.
 \newcommand{\csem}[1]{\sem{#1}_{\sigma}}
-\newcommand{\gsem}[1]{\mathcal{G}\sem{#1}_{\sigma}}
 \newcommand{\hsem}[1]{\mathcal{H}\sem{#1}_{\sigma}}
 \newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
 \newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
@@ -286,12 +285,12 @@ Datapath circuits are a fundamental component of digital systems, responsible fr
 
 Adders are used extensively in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
 
-In \acrfull{asic}, carry propagation is a major contributor to delay. 
+In \ac{asic}, carry propagation is a major contributor to delay. 
 In cases where multiple summands must be added, the naïve approach chains carry-propagate adders, growing the delay linearly with the number of bits and summands.
 Datapath synthesis methods address this issue by reducing multiple summands to two using carry-save arithmetic, avoiding multiple carry-propagation adders to compute the sum.
 The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
 
-Different techniques exist to verify datapath circuits, such as \acrfull{sca} and SAT-based methods.
+Different techniques exist to verify datapath circuits, such as \ac{sca} and SAT-based methods.
 A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large circuits (need to make this claim more precise and be careful).
 
 We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
@@ -343,7 +342,7 @@ Placeholder
 
 \subsubsection{Dadda's Algorithm}
 Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
-using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
+using \ac{fa} and \ac{ha}, after which a single \ac{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
 
 \begin{table}
   \centering
@@ -367,9 +366,9 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the 
 \begin{enumerate}
   \item Compute the smallest $L$ such that $m_L \geq h$, where the Dadda
         sequence (Table 1) is given by $m_0 = 2$ and $m_l = \lfloor \frac{3}{2} m_{l-1} \rfloor$.
-  \item Starting at level $l = L$, scan all columns from \acrfull{lsb} to \acrfull{msb}.
+  \item Starting at level $l = L$, scan all columns from \ac{lsb} to \ac{msb}.
         For each column whose height exceeds $m_{l-1}$, introduce the
-        fewest number of \acrshort{fa}s and at most one \acrshort{ha} to bring the height down to $m_{l-1}$.
+        fewest number of \ac{fa}s and at most one \ac{ha} to bring the height down to $m_{l-1}$.
         Carry outputs are added to the next column, but
         should be left uncompressed until the following level.
   \item Decrement $l$ and repeat until every column has height at most~2.
@@ -389,15 +388,10 @@ We also discuss the correctness of the composition of adders and how we relate b
 \end{figure}
 
 \subsection{\BitExpr}
-The building block of the bit heap data structure is a single bit.
-In our formalization, the \BitExpr data structure represent a boolean expression, that is named by a natural-number index.
-\sam{Circuit is not a data structure, it is a language. Also you've got inconsistent presentation of Circuit (vs \texttt{Circuit}) - consistency is essential so I'd suggest creating a macro.}
-
-A \BitExpr describes a logical expression, that can be a binary variable, constant, or any binary operation over composition \BitExpr objects.
-The bits represented by \BitExpr are symbolic and do not hold any value.
-A \BitExpr is assigned a value under a bit environment $\sigma$,
-which maps each symbolic bit to a Boolean value.
-\sam{The bit environment maps a symbolic bit to a boolean value - not an arbitrary \texttt{Circuit}. The mapping of higher-level expressions is handled by your semantics.}
+In this section, we present the \BitExpr language that represents boolean expressions, which form the building blocks of bit heaps.
+A boolean expression that is described by \BitExpr can be a binary variable, constant, or any binary operation over composition of \BitExpr objects.
+The bits represented by \BitExpr are symbolic and do not hold any value, and they are named by a natural-number index.
+A \BitExpr is assigned a value under a bit environment $\sigma$, which maps each symbolic bit to a Boolean value.
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -454,17 +448,17 @@ and a \emph{bit heap of width $w$} is a vector of $w$ columns,
 \end{definition}
 \sam{I really feel like an example would be hugely valuable here!}
 To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain bit environment.
-The value of the bit heap is computed in modular arithmetic. Therefore, all correctness statements below are stated as modulo $2^w$.
+The value of the bit heap is computed in modular arithmetic. 
+Therefore, all correctness statements below are stated as modulo $2^w$. 
 
 \[
-\begin{array}{r@{\;}c@{\;}l@{\qquad}l}
-\gsem{\gamma}
-  &=& \textstyle\sum_{c \in \gamma} \lift{\csem{c}}
-  & \gsem{\cdot} : \Col \to \mathbb{N}\\[6pt]
+\begin{array}{r@{\;}c@{\;}l}
+\multicolumn{3}{@{}l@{}}{%
+  \hsem{\cdot} \;:\; \Heap_w \to \mathbb{Z}} \\[4pt]
 \hsem{h}
-  &=& \bigl(\textstyle\sum_{k<w} 2^{k}\cdot\gsem{h_k}\bigr)
+  &=& \Bigl(\textstyle\sum_{k<w} 2^{k}
+      \sum_{c \in h_k} \lift{\csem{c}}\Bigr)
       \bmod 2^{w}
-  & \hsem{\cdot} : \Heap_w \to \mathbb{Z}
 \end{array}
 \]
 
@@ -491,31 +485,33 @@ The value of the bit heap is computed in modular arithmetic. Therefore, all corr
   \end{tabular}
 \end{table*}
 \sam{This now feels like an excessive use of notation - coulde we not just write a double sum to avoid create $\mathcal{G}$ - I also think the mapping to $\mathbb{Z}$ is not correct - it should be $\mathbb{N}$ as the outer mod should just be applied when you modify the circuits (the positive residue I think this is called)?}
-
-The value of a bit heap is obtained by summing each column and combining the columns with Horner's method:
+\osman{The evalMod function that we have actually returns an Int, as the part of the theorem statement for bit removal can temporarily go negative (I have explained why this is the case last week). However, I can make the evalMod function return a Nat with some Int/Nat cast conversions in the proofs. I'm more happy with that }
+The value of a bit heap is obtained by summing each column and combining the
+columns with Horner's method. Writing
+$v_k = \sum_{c \in h_k} \lift{\csem{c}}$ for the value of the column at
+index $k$:
 \begin{equation}
 \begin{split}
-  \Bigl( \sum_{k=0}^{w-1} &\gsem{h_k} \cdot x^{k} \Bigr) \bmod 2^{w}\\
-    &= \Bigl( \gsem{h_0} + x \bigl( \gsem{h_1}
-      + x ( \gsem{h_2} + \cdots\\
-    &\qquad + x \, \gsem{h_{w-1}} ) \bigr) \Bigr) \bmod 2^{w}
+  \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
+    &= \Bigl( v_0 + x \bigl( v_1
+      + x ( v_2 + \cdots\\
+    &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
 \end{split}
 \end{equation}
 
-By setting $x = 2$, so that each column at index $k$ contributes its value $\gsem{h_k}$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
+By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
 Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
-Our framework is based on modular arithmetic, so correctness statements for operations on a bit heap hold only modulo $2^w$.
-That means when a carry is produced on the last column, it is dropped.
-\sam{Repeated the point about moduler arithmetic - you said this earlier - the carry statement is new though - could this be combined?}
-
-Two theorems describe the primitive operations. Adding a bit $c$ at
-column $k$ increases the value by $2^{k}\lift{\csem{c}}$
-(\ref{thm:addBit}). 
-\sam{Do we need to say something about mod $2^w$ here? An intuitive description would also help like for all bitheaps...}
-Removing a bit $c$ from column $k$, provided
-$c$ is present in that column, decreases it by the same amount
-(\ref{thm:removeBit}).
+In essence, a bit heap is built by bit insertion and removal operations. 
+Inserting a bit effectively adds a bit to the \Col of the bit heap that lies in index k.
+Since a \Col is defined as a set, it cannot contain duplicates.
+\osman{I am not happy with the flow of this paragraph, and also the way it states the Column as a set. Currently it feels like we are forced to propagate carries because Columns are sets, but actually the design decision was on the opposite direction. With the way it is stated, one can just say: "then don't make it a set"}
+Therefore, if the same bit is added to a \Col at index k, the bit is propagated to the next column, 
+since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
+Effectively the bit heap is optimized during its construction. \sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".} \osman{what is the difference between something being done automatically and done by us in this context? when something is done by the code, is it done automatically or by?}
+Moreover, as we are working with fixed-size bit heaps, if a carry is produced on the last column, it is dropped.
+However, since the correctness is stated over mod $2^w$, dropping of a carry still obeys our correctness statement for bit insertion (\ref{thm:addBit}) which states that adding a bit $c$ at column $k$ increases the value by $2^{k}\lift{\csem{c}}$. 
+\autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
 
 \begin{theorem}[Bit insertion]
 \label{thm:addBit}
@@ -529,6 +525,11 @@ $\sigma : \mathbb{N} \to \mathbb{B}$,
 \]
 \end{theorem}
 
+On the other hand, removing a bit is simpler, with removing requiring a condition that the bit-to-remove exists in the column.
+Removing a bit $c$ from column $k$, provided $c$ is present in that column, decreases it by the same amount (\ref{thm:removeBit}).
+\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
+Rewriting the corresponding \BitExpr and \Col-level bit removal lemmas proves this statement. \osman{I think the meaning of \BitExpr and \Col level lemmas are far from obvious to the reader. How can I make this more reader friendly?}
+
 \begin{theorem}[Bit removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
@@ -541,23 +542,13 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \]
 \end{theorem}
 
-Since a \Col is defined as a set, it cannot contain duplicates.
-Therefore, if the same bit is added to a \Col at index k, the bit is propagated to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
-\sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".}
-\osman{what is the difference between something being done automatically and done by us in this context? when something is done by the code, is it done automatically or by?}
-Effectively the bit heap is optimized during its construction.
-\autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
-
-\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
-\sam{How is thm:removeBit proved? Is it the same or different?}
-
 \subsection{Compression Algorithms}
 \label{sec:compression}
 
 \sam{I feel like the reader has lost the purpose here - why are we now compressing the bit heap? They've long forgotten its purpose - a running example would help a lot.}
+In this section, we describe formalization of the compression algorithms, which  
 Compression reduces the height of a bit heap to two, after which a
 single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
-\sam{You should just be using \\ac everywhere - as then the package figures out the first time you use an accronym and inserts the full definition.}
 The reduction is carried out by compressors, half adders ($2{:}2$),
 full adders ($3{:}2$), or in general any $N{:}M$ compressor with
 $N \ge M$. We formalize half and full adders, and build compressor trees
@@ -591,6 +582,8 @@ goal becomes an arithmetic identity over the Boolean values of bits, after which
 \sam{Totally impenetrable to a reader - what does any of this mean?}
 
 A compression algorithm produces a chain of compressors. 
+We write $S(h)$ for application of a chain of compressors to bit heap $h$.
+The applicability conditions must be satisfied by each step of of a chain.
 Applicability is a condition on the heap the step is applied to, so it must be checked against the intermediate bit heap, not the original.
 
 \begin{definition}[Well-formed chain]
@@ -606,7 +599,6 @@ For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
   \hsem{h} \;=\; \hsem{S(h)}.
 \]
 \end{theorem}
-\sam{Didn't define $S(h)$?}
 \autoref{thm:chain-correct} is proven by induction on the chain, using Theorem~\ref{thm:step-correct} for the base case and the induction hypothesis for the tail of the chain.
 
 In our framework, we separate the correctness of the compression from the generation of the chain.
@@ -632,7 +624,7 @@ At the core of our formalization lies the correctness of Bit heap operations wit
 \section{Results}
 
 \section{Related Work}
-\citet{sca} presents a method based \acrfull{sca} approach to verify multiplication circuits, 
+\citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
 However, their verification tool itself remains to be unverified.
 
@@ -640,7 +632,7 @@ In their work, \citet{mertcan_acl2multipliers} prove correctness of integer mult
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
-A line of research focuses on proving \acrfull{hls} tools correctt. 
+A line of research focuses on proving \ac{hls} tools correctt. 
 \citet{graphiti} introduces Graphiti, a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
 \section{Conclusion}

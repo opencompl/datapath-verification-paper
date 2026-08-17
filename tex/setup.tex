@@ -13,11 +13,6 @@
 \draftmarginstrue
 
 \ifx\paperversion\paperversiondraft
-  % IEEEtran forces \flushbottom in two-column mode, which stretches every
-  % column to the bottom margin. On draft pages that are mostly floats (few
-  % lines of real text), the leftover space is injected into the inter-paragraph
-  % glue, opening large gaps mid-column. \raggedbottom parks the slack at the
-  % foot of the column instead. Draft only: camera-ready needs \flushbottom.
   \raggedbottom
   \makeatletter
   \ifdraftmargins
