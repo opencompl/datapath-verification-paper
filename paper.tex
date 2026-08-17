@@ -345,13 +345,6 @@ Placeholder
 Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
 using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
-  \caption{Dadda reduction for an unsigned $4 \times 4$ multiplier.}
-  \label{fig:4bit-dadda}
-\end{figure}
-
 \begin{table}
   \centering
   \caption{Elements of the Dadda sequence}
@@ -367,7 +360,7 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the 
   \end{tabular}
 \end{table}
 
-\begin{tcolorbox}[title=Dadda's Algorithm]
+\begin{tcolorbox}[title=Dadda's Algorithm, bottom=0pt, after skip=2pt]
 \textbf{Input:} A bit heap with maximum column height $h$.\\
 \textbf{Output:} A two-row bit heap.
 
@@ -387,6 +380,13 @@ using \acrfull{fa} and \acrfull{ha}, after which a single \ac{cpa} produces the 
 In this section, we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms.
 We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
 \sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
+  \caption{Dadda reduction for an unsigned $4 \times 4$ multiplier.}
+  \label{fig:4bit-dadda}
+\end{figure}
 
 \subsection{\BitExpr}
 The building block of the bit heap data structure is a single bit.
@@ -443,7 +443,6 @@ A \Col is a set of \BitExpr elements.
 \Heap_w \ni h &::=& \langle  \gamma_0,\dots,\gamma_{w-1} \rangle  &
 \end{array}
 \]
-
 
 \begin{definition}[Bit heap]
 \label{def:bitheap}
