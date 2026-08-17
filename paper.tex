@@ -407,7 +407,7 @@ which maps each symbolic bit to a Boolean value.
 \end{array}
 \]
 \sam{What is $\barwedge$? You need to define it. Secondly we're missing an inversion/negation operator?}
-\osman{It is the NAND operation. do we also need to define $\wedge$ or $\vee$ as well? are they not standard? (though not so sure about $\barwedge$)}
+\osman{It is the NAND operation. do we also need to define \wedge or \vee as well? are they not standard? (though not so sure about \barwedge)}
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
@@ -547,9 +547,8 @@ Therefore, if the same bit is added to a \Col at index k, the bit is propagated 
 Effectively the bit heap is optimized during its construction.
 \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
 
-\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column. The hypothesis $c \in \gamma_k$ places $k$ within the heap's width and
-bounds the removed bit's contribution by the column's value, so the
-subtraction is well defined.
+\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
+\sam{How is thm:removeBit proved? Is it the same or different?}
 
 \subsection{Compression Algorithms}
 \label{sec:compression}
