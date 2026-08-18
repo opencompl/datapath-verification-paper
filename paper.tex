@@ -377,10 +377,29 @@ Placeholder
 \end{tcolorbox}
 
 \section{Formalization}
-In this section, we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms.
-We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
-\sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
 
+In order to enable verified synthesis,
+we implement, and prove correctness of bitheaps, which is a data structure
+that is key to perform effective synthesis of multiplier circuits (TODO: cite sam's favourite book here).
+
+Toward this, we begin by defining a symbolic bit heap in lean, which is a vector of columns.
+Each column contains a bit expression, which is a symbolic represntation of the bit that is computed.
+We implement basic operations on the bit heap, including adding bits, removing bits, compressing a column,
+(etc. write the list). These then enable us to implement and prove the correctness of the construction of the
+dadda multipler (TODO: forward-cite the theorem there). 
+
+We now explain the individual components of our formalization, as well as key theorems that were proven
+along the way to a verified dadda multipler implementation.
+% Furthermore, our implementation is designed as a modular library, which allows us to reuse the implementation.
+% We use this ability to build better multiplier circuits to improve Lean's bitblaster, bv\_decide (forwward reference).
+% Formally, we define the bit heap as ... (lean encoding, what is Vector, what is blah, environments...)
+
+
+% In this section,
+% we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms.
+% We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
+% \sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
+% 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
@@ -388,11 +407,16 @@ We also discuss the correctness of the composition of adders and how we relate b
   \label{fig:4bit-dadda}
 \end{figure}
 
-\subsection{\BitExpr}
-In this section, we present the \BitExpr language that represents boolean expressions, which form the building blocks of bit heaps.
-A boolean expression that is described by \BitExpr can be a binary variable, constant, or any binary operation over composition of \BitExpr objects.
-The bits represented by \BitExpr are symbolic and do not hold any value, and they are named by a natural-number index.
-A \BitExpr is assigned a value under a bit environment $\sigma$, which maps each symbolic bit to a Boolean value.
+\subsection{Symbolic Bit Representations}
+We represent symbolic bits as \BitExpr, which is a language that represents boolean expressions.
+These are the elements that are stored in the bit heap.
+A \BitExpr can be a boolean variable, constant, and boolean operations of \BitExpr values.
+The bits represented by \BitExpr are symbolic. Internally,  \BitExpr variables are represented by a natural number index.
+In order to evalate a \BitExpr, we need the values of all the variables in the \BitExpr.
+These values are supplied by a bit environment $(\sigma : \N \to \B)$,
+which maps each bit variable to its boolean value. 
+The evaluation function $\csem{e}_\sigma : \BitExpr \to \B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
+producing a concrete boolean value. It is defined in the usual way by reduction on the language of \BitExpr.
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -421,9 +445,13 @@ A \BitExpr is assigned a value under a bit environment $\sigma$, which maps each
 \]
 \sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars? Width is also unused here.}
 
-We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
-Boolean into the natural number, so that $\lift{\csem{c}}$ is
-the numeric contribution of \BitExpr $c$.
+In order to avoid the ambiguity between booleans and their natural number representation, 
+we define a conversion function $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ that converts $\mathit{false}$ to $0$ and $\mathit{true}$ to $1$.
+This is used to define the evaluation of a bit heap, where the value of a bit heap is the sum of the values of the bits in each column, weighted by their respective powers of two.
+
+% We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
+% Boolean into the natural number, so that $\lift{\csem{c}}$ is
+% the numeric contribution of \BitExpr $c$.
 \sam{Think you probably need a lot more explanation here - you just dump a lot of equations that will probably confuse the average DATE reviewer.
 Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need to say that $\sem{\cdot}_\sigma: \texttt{Circuit} \to \mathbb{B}$ (or whatever is the correct mapping).}
 
@@ -444,12 +472,14 @@ A \Col is a set of \BitExpr elements.
 A \emph{column} is a set of circuits,
 and a \emph{bit heap of width $w$} is a vector of $w$ columns,
 \[
-  \Heap\;w \;\triangleq\; \Vect\;\Col\;w
+  \Heap\;w \;\triangleq\; \Vect(\;\Col\;w)
 \]
 \end{definition}
 \sam{I really feel like an example would be hugely valuable here!}
-To compute the value of the bit heap, we compute the weighted sum of the value held by columns, which is the sum of the values of the bits under a certain bit environment.
+To compute the value of the bit heap, we compute the weighted sum of the value held by columns,
+which is the sum of the values of the bits under a certain bit environment.
 The value of the bit heap is computed in modular arithmetic. 
+% why did we make this choice? why not allow an infinite bit heap that works over Z?
 Therefore, all correctness statements below are stated as modulo $2^w$. 
 
 \[
