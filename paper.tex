@@ -333,6 +333,9 @@ In arithmetic circuits, a main contributor to delay is carry propagation. In cas
 Compressor trees are built to address this issue by reducing multiple summands to two using carry-save arithmetic, 
 avoiding multiple carry-propagation adders to compute the sum. 
 
+Compression reduces the height of a bit heap to two, after which a single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
+The reduction is carried out by compressors, half adders ($2{:}2$), full adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
+
 Different compression algorithms exist, such as Wallace tree which greedily compresses the circuit and Dadda tree, 
 using only as many adders to meet a fix target height. 
 
@@ -341,8 +344,6 @@ using only as many adders to meet a fix target height.
 Placeholder
 
 \subsubsection{Dadda's Algorithm}
-Dadda's algorithm is a method for reducing the partial products of an $n$-bit multiplier to a two-row representation 
-using \ac{fa} and \ac{ha}, after which a single \ac{cpa} produces the final result \cite{application_specific_arithmetic} \cite{dadda_tree}.
 
 \begin{table}
   \centering
@@ -396,8 +397,7 @@ A \BitExpr is assigned a value under a bit environment $\sigma$, which maps each
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
-  \text{indices } \mathbb{N} \ni n,k \qquad
-  \text{width } \mathbb{N}^{+} \ni w \qquad
+  \text{indices }  n,k \in \mathbb{N}  \qquad
   \circledast \in \{\oplus,\wedge,\vee,\barwedge\}}\\[6pt]
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
@@ -408,7 +408,7 @@ A \BitExpr is assigned a value under a bit environment $\sigma$, which maps each
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
-  \sigma \;=\; \mathbb{N} \to \mathbb{B}
+  \sigma \;:\; \mathbb{N} \to \mathbb{B}
   \qquad
   \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[4pt]
 \csem{b_n} &=& \sigma(n)\\
@@ -434,6 +434,7 @@ A \Col is a set of \BitExpr elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
+ w \in \mathbb{N}^{+},  
 \Heap_w \ni h &::=& \langle  \gamma_0,\dots,\gamma_{w-1} \rangle  &
 \end{array}
 \]
@@ -546,12 +547,7 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \label{sec:compression}
 
 \sam{I feel like the reader has lost the purpose here - why are we now compressing the bit heap? They've long forgotten its purpose - a running example would help a lot.}
-In this section, we describe formalization of the compression algorithms, which  
-Compression reduces the height of a bit heap to two, after which a
-single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
-The reduction is carried out by compressors, half adders ($2{:}2$),
-full adders ($3{:}2$), or in general any $N{:}M$ compressor with
-$N \ge M$. We formalize half and full adders, and build compressor trees
+We formalize half and full adders, and build compressor trees
 from them. However, our framework can easily be extended for any compressor.
 \sam{Surely you're discussing FAs and HAs in the background? So this feels repetitive?}
 
@@ -580,6 +576,7 @@ $\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the
 With proofs being similar for both half and full adder cases, the proofs rewrite the Theorems \ref{thm:addBit} and \ref{thm:removeBit} until the
 goal becomes an arithmetic identity over the Boolean values of bits, after which a case split on the boolean values closes the goal.
 \sam{Totally impenetrable to a reader - what does any of this mean?}
+
 
 A compression algorithm produces a chain of compressors. 
 We write $S(h)$ for application of a chain of compressors to bit heap $h$.
