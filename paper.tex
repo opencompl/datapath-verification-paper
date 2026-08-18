@@ -353,9 +353,9 @@ Placeholder
   \setlength{\tabcolsep}{3.1pt}
   \begin{tabular}{lrrrrrrrrrrrrrrr}
     \toprule
-    $l$   & 0 & 1 & 2 & 3 & 4 & 5  & 6  & 7  & 8  & 9  & 10 & 11  & 12  & 13  & 14  \\
+    $l$   & 0 & 1 & 2 & 3 & 4 & 5  & 6  & 7  & 8  & 9  & 10 & 11  & 12  \\
     \midrule
-    $m_l$ & 2 & 3 & 4 & 6 & 9 & 13 & 19 & 28 & 42 & 63 & 94 & 141 & 211 & 316 & 474 \\
+    $m_l$ & 2 & 3 & 4 & 6 & 9 & 13 & 19 & 28 & 42 & 63 & 94 & 141 & 211 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -380,26 +380,16 @@ Placeholder
 
 In order to enable verified synthesis,
 we implement, and prove correctness of bitheaps, which is a data structure
-that is key to perform effective synthesis of multiplier circuits (TODO: cite sam's favourite book here).
+that is key to perform effective synthesis of multiplier circuits \cite{application_specific_arithmetic}
 
-Toward this, we begin by defining a symbolic bit heap in lean, which is a vector of columns.
-Each column contains a bit expression, which is a symbolic represntation of the bit that is computed.
-We implement basic operations on the bit heap, including adding bits, removing bits, compressing a column,
-(etc. write the list). These then enable us to implement and prove the correctness of the construction of the
-dadda multipler (TODO: forward-cite the theorem there). 
+Toward this, we begin by defining a symbolic bit heap in Lean 4, which is a vector of columns.
+Each column contains a bit expression, which is a symbolic representation of the bit that is computed.
+We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
+These then enable us to implement and prove the correctness of the construction of the compressor trees (Theorem~\ref{thm:chain-correct}). 
 
 We now explain the individual components of our formalization, as well as key theorems that were proven
-along the way to a verified dadda multipler implementation.
-% Furthermore, our implementation is designed as a modular library, which allows us to reuse the implementation.
-% We use this ability to build better multiplier circuits to improve Lean's bitblaster, bv\_decide (forwward reference).
-% Formally, we define the bit heap as ... (lean encoding, what is Vector, what is blah, environments...)
+along the way to a verified datapath synthesis flow.
 
-
-% In this section,
-% we present the formalization of the bit heap data structure in Lean 4 and prove the correctness of existing compression algorithms.
-% We also discuss the correctness of the composition of adders and how we relate bit heaps to bit-vector arithmetic.
-% \sam{I'd also add a short statement that because we're formalizing in Lean the reader will find that we're turning to recursive definitions a lot - as this allows for simpler proofs.}
-% 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
@@ -476,7 +466,7 @@ and a \Heap of width $w$ as a vector of $w$ columns.
 
 \paragraph{Evaluation of Bit Heaps}
 
-Since a bit heap reprsents a summation of weighted bits,
+Since a bit heap represents a summation of weighted bits,
 we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
 This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$.
 
@@ -516,23 +506,23 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \osman{The evalMod function that we have actually returns an Int, as the part of the theorem statement for bit removal can temporarily go negative (I have explained why this is the case last week). However, I can make the evalMod function return a Nat with some Int/Nat cast conversions in the proofs. I'm more happy with that }
 
 
-However, for the purposes of both implementation and proofs by induction,
+For the purposes of both implementation and proofs by induction,
 it is much better to define the evaluation of a bit heap using Horner's method,
 since it makes proofs cleaner, as it can be defined structurally recursively on the list of columns.
 
-% $v_k = \sum_{c \in h_k} \lift{\csem{c}}$ for the value of the column at
-% index $k$:
-% \begin{equation}
-% \begin{split}
-%   \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
-%     &= \Bigl( v_0 + x \bigl( v_1
-%       + x ( v_2 + \cdots\\
-%     &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
-% \end{split}
-% \end{equation}
+$v_k = \sum_{c \in h_k} \csem{c}$ for the value of the column at
+index $k$:
+\begin{equation}
+\begin{split}
+  \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
+    &= \Bigl( v_0 + x \bigl( v_1
+      + x ( v_2 + \cdots\\
+    &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
+\end{split}
+\end{equation}
 
-% By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
-% Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
+By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
+Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
 
 \paragraph{Constructing BitHeap}
@@ -559,7 +549,7 @@ These are asymptotically slower than a set, so we choose to use a set for the im
 % This loses all the nice invariants of the bit-heap we wanted to have in the first place!
 
 
-\paragraph{Insertion.}
+\paragraph{Insertion}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the \Col of the bit heap that lies in index k.
 As previously mentioned, if the bit $e$ already exists in column $k$,
 we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
@@ -572,8 +562,7 @@ if a carry is produced on the last column, it is dropped,
 which is exactly what we want for reasoning modulo $2^w$.
 Overall, this normalization design promotes both a simple API, a strong normal form,
 and an optimized implementation of the bit heap data structure.
-
-% \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
+\autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
 
 \begin{theorem}[Bit insertion]
 \label{thm:addBit}
@@ -587,7 +576,10 @@ $\sigma : \mathbb{N} \to \mathbb{B}$,
 \]
 \end{theorem}
 
-On the other hand, removing a bit is simpler, with removing requiring a condition that the bit-to-remove exists in the column.
+\paragraph{Removal}
+Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
+Removing a bit is simpler than inserting a bit, with only caveat being that the bit-to-remove must exist in the column.
+We encode this as a precondition for the removal operation, which is enforced by the type system.
 Removing a bit $c$ from column $k$, provided $c$ is present in that column, decreases it by the same amount (\ref{thm:removeBit}).
 \autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
 Rewriting the corresponding \BitExpr and \Col-level bit removal lemmas proves this statement. \osman{I think the meaning of \BitExpr and \Col level lemmas are far from obvious to the reader. How can I make this more reader friendly?}
@@ -603,6 +595,12 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
         - 2^{k}\cdot\lift{\csem{c}}\bigr) \bmod 2^{w}.
 \]
 \end{theorem}
+
+\subsection{From Bit Heaps to Bit-Vector Arithmetic}
+At the core of our formalization lies the correctness of bit heap operations with respect to the semantics of bitvector arithmetic.
+
+\texttt{ArithCircuit}, \texttt{toBitHeap}, \texttt{denote}, \texttt{toBitHeap\_correct}, \texttt{compressed\_toBitHeap\_correct}
+
 
 \subsection{Compression Algorithms}
 \label{sec:compression}
@@ -666,12 +664,6 @@ That means adding a new algorithm does not require any new proof.
 We use this to implement Wallace and Dadda trees against a single correctness theorem.
 
 For chains produced by a compression algorithm, we provide a checked application \texttt{applyChainSafe}, which tests applicability at each step and returns $\mathtt{none}$ on failure. 
-
-\subsection{From Bit Heaps to Bit-Vector Arithmetic}
-At the core of our formalization lies the correctness of Bit heap operations with respect to the semantics of bit-vector arithmetic.
-
-\texttt{ArithCircuit}, \texttt{toBitHeap}, \texttt{denote}, \texttt{toBitHeap\_correct}, \texttt{compressed\_toBitHeap\_correct}
-
 
 \section{Integration}
 
