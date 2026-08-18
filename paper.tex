@@ -413,9 +413,9 @@ These are the elements that are stored in the bit heap.
 A \BitExpr can be a boolean variable, constant, and boolean operations of \BitExpr values.
 The bits represented by \BitExpr are symbolic. Internally,  \BitExpr variables are represented by a natural number index.
 In order to evalate a \BitExpr, we need the values of all the variables in the \BitExpr.
-These values are supplied by a bit environment $(\sigma : \N \to \B)$,
+These values are supplied by a bit environment $(\sigma : \mathbb N \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
-The evaluation function $\csem{e}_\sigma : \BitExpr \to \B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
+The evaluation function $\csem{e} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
 producing a concrete boolean value. It is defined in the usual way by reduction on the language of \BitExpr.
 
 \[
@@ -445,15 +445,7 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \]
 \sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars? Width is also unused here.}
 
-In order to avoid the ambiguity between booleans and their natural number representation, 
-we define a conversion function $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ that converts $\mathit{false}$ to $0$ and $\mathit{true}$ to $1$.
-This is used to define the evaluation of a bit heap, where the value of a bit heap is the sum of the values of the bits in each column, weighted by their respective powers of two.
 
-% We write $\lift{\cdot} : \mathbb{B} \to \{0,1\}$ for the conversion of a
-% Boolean into the natural number, so that $\lift{\csem{c}}$ is
-% the numeric contribution of \BitExpr $c$.
-\sam{Think you probably need a lot more explanation here - you just dump a lot of equations that will probably confuse the average DATE reviewer.
-Secondly, you can probably simplify to just $\sem{\cdot}_\sigma$, and you need to say that $\sem{\cdot}_\sigma: \texttt{Circuit} \to \mathbb{B}$ (or whatever is the correct mapping).}
 
 \sam{Currently this just looks like a semantics of Boolean arithmetic - so it may not be necessary to spell it out so much.}
 \subsection{Bit Heap Data Structure}
@@ -469,26 +461,31 @@ A \Col is a set of \BitExpr elements.
 
 \begin{definition}[Bit heap]
 \label{def:bitheap}
-A \emph{column} is a set of circuits,
-and a \emph{bit heap of width $w$} is a vector of $w$ columns,
+
+Recall that a bit heap is a data structure that is used to represent a summation of weighted bits.
+Bits of the same weight are organized into columns, where column $k$ has weight $2^k$.
+In implementing the data structure,
+we define a \Col as a set of \BitExpr elements,
+and a \Heap of width $w$ as a vector of $w$ columns.
 \[
   \Heap\;w \;\triangleq\; \Vect(\;\Col\;w)
 \]
 \end{definition}
+
 \sam{I really feel like an example would be hugely valuable here!}
-To compute the value of the bit heap, we compute the weighted sum of the value held by columns,
-which is the sum of the values of the bits under a certain bit environment.
-The value of the bit heap is computed in modular arithmetic. 
-% why did we make this choice? why not allow an infinite bit heap that works over Z?
-Therefore, all correctness statements below are stated as modulo $2^w$. 
+
+\paragraph{Evaluation of Bit Heaps}
+
+Since a bit heap reprsents a summation of weighted bits,
+we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
+This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$.
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
-  \hsem{\cdot} \;:\; \Heap_w \to \mathbb{Z}} \\[4pt]
-\hsem{h}
-  &=& \Bigl(\textstyle\sum_{k<w} 2^{k}
-      \sum_{c \in h_k} \lift{\csem{c}}\Bigr)
+  \csem{\cdot} \;:\; \Heap_w \to \mathbb{Z}} \\[4pt]
+\csem{h}
+  &=& \Bigl(\textstyle\sum_{k<w} 2^{k} \sum_{c \in h_k} \csem{c}\Bigr)
       \bmod 2^{w}
 \end{array}
 \]
@@ -517,32 +514,66 @@ Therefore, all correctness statements below are stated as modulo $2^w$.
 \end{table*}
 \sam{This now feels like an excessive use of notation - coulde we not just write a double sum to avoid create $\mathcal{G}$ - I also think the mapping to $\mathbb{Z}$ is not correct - it should be $\mathbb{N}$ as the outer mod should just be applied when you modify the circuits (the positive residue I think this is called)?}
 \osman{The evalMod function that we have actually returns an Int, as the part of the theorem statement for bit removal can temporarily go negative (I have explained why this is the case last week). However, I can make the evalMod function return a Nat with some Int/Nat cast conversions in the proofs. I'm more happy with that }
-The value of a bit heap is obtained by summing each column and combining the
-columns with Horner's method. Writing
-$v_k = \sum_{c \in h_k} \lift{\csem{c}}$ for the value of the column at
-index $k$:
-\begin{equation}
-\begin{split}
-  \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
-    &= \Bigl( v_0 + x \bigl( v_1
-      + x ( v_2 + \cdots\\
-    &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
-\end{split}
-\end{equation}
 
-By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
-Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
-In essence, a bit heap is built by bit insertion and removal operations. 
-Inserting a bit effectively adds a bit to the \Col of the bit heap that lies in index k.
-Since a \Col is defined as a set, it cannot contain duplicates.
-\osman{I am not happy with the flow of this paragraph, and also the way it states the Column as a set. Currently it feels like we are forced to propagate carries because Columns are sets, but actually the design decision was on the opposite direction. With the way it is stated, one can just say: "then don't make it a set"}
-Therefore, if the same bit is added to a \Col at index k, the bit is propagated to the next column, 
-since $2^{k}c + 2^{k}c = 2^{k+1}c$, and the propagation repeats if the next column already contains the \BitExpr as well.
-Effectively the bit heap is optimized during its construction. \sam{To distinguish between what is done automatically namely the bit propagation try to avoid saying "we" - this makes it sound like a manual process. Instead say "the bit is automatically propagted to the next column".} \osman{what is the difference between something being done automatically and done by us in this context? when something is done by the code, is it done automatically or by?}
-Moreover, as we are working with fixed-size bit heaps, if a carry is produced on the last column, it is dropped.
-However, since the correctness is stated over mod $2^w$, dropping of a carry still obeys our correctness statement for bit insertion (\ref{thm:addBit}) which states that adding a bit $c$ at column $k$ increases the value by $2^{k}\lift{\csem{c}}$. 
-\autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
+However, for the purposes of both implementation and proofs by induction,
+it is much better to define the evaluation of a bit heap using Horner's method,
+since it makes proofs cleaner, as it can be defined structurally recursively on the list of columns.
+
+% $v_k = \sum_{c \in h_k} \lift{\csem{c}}$ for the value of the column at
+% index $k$:
+% \begin{equation}
+% \begin{split}
+%   \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
+%     &= \Bigl( v_0 + x \bigl( v_1
+%       + x ( v_2 + \cdots\\
+%     &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
+% \end{split}
+% \end{equation}
+
+% By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
+% Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
+
+
+\paragraph{Constructing BitHeap}
+
+A bit heap's API involves bit insertion and removal operations,
+which are used by higher-level operations such as compression to create circuits like multipler trees.
+
+% suppress all details, and just say that we provide an abstract API
+% explain the choices we had in the API design, and why we chose the API we chose.
+
+In order to support efficient insertion and deletion of bits, 
+a natural choice of data structure that provides $O(1)$ inserts and deletes is a (hash)-set.
+However, note that this means that we cannot add the same bit twice to a column.
+Instead, if a bit is added to a column that already contains it, the bit is propagated to the next column.
+
+Alternatively, we could use a multi-set like data structure, realized as either a raw list
+(which would provide $O(n)$ inserts and deletes),
+or a map from \BitExpr to its multiplicity (which has $O(\log n)$ inserts and deletes).
+These are asymptotically slower than a set, so we choose to use a set for the implementation of the bit heap.
+
+% However, this now means that a bit in a column $k$ can be added multiple times,
+% and could thus have a weight which is not exactly $2^k$, but any integer of the form $m \times 2^k$,
+% where $m$ is the multiplicity of the bit in that column.
+% This loses all the nice invariants of the bit-heap we wanted to have in the first place!
+
+
+\paragraph{Insertion.}
+Inserting a bit expression $e$ at column $k$ adds $e$ to the \Col of the bit heap that lies in index k.
+As previously mentioned, if the bit $e$ already exists in column $k$,
+we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
+Effectively, this implies that the bit heap is always in its canonical form,
+where the weight of a bit is always equal to the weight of the column it is in.
+This canonicalization also optimizes the bitheap during construction automatically,
+by re-weighting bits that are added multiple times to the same column, and propagating them to the next column.
+A neat side-effect of this is that since we work with fixed-size bit heaps,
+if a carry is produced on the last column, it is dropped,
+which is exactly what we want for reasoning modulo $2^w$.
+Overall, this normalization design promotes both a simple API, a strong normal form,
+and an optimized implementation of the bit heap data structure.
+
+% \autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
 
 \begin{theorem}[Bit insertion]
 \label{thm:addBit}
