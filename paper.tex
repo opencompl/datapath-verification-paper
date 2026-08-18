@@ -130,11 +130,13 @@
 % Denotation of a BitExpr under the bit environment sigma. The heap denotation
 % keeps its \mathcal{H} prefix to distinguish it from the bare BitExpr brackets.
 \newcommand{\csem}[1]{\sem{#1}_{\sigma}}
-\newcommand{\hsem}[1]{\mathcal{H}\sem{#1}_{\sigma}}
+\newcommand{\val}[1]{\mathrm{val}(#1)} 
+\newcommand{\bvsem}[1]{\mathcal{B}\llbracket #1 \rrbracket_{\rho}}
+\newcommand{\hsem}[1]{\mathcal{H}\llbracket #1 \rrbracket_{\sigma}}
 \newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
 \newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
 \newcommand{\Heap}{\ensuremath{\texttt{BitHeap}}\xspace}
-\newcommand{\Arith}{\ensuremath{\texttt{Arith}}\xspace}
+\newcommand{\Arith}{\ensuremath{\texttt{ArithCircuit}}\xspace}
 \newcommand{\Step}{\ensuremath{\texttt{Step}}\xspace}
 \newcommand{\Chain}{\ensuremath{\texttt{Chain}}\xspace}
 \newcommand{\Vect}{\ensuremath{\texttt{Vector}}\xspace}
@@ -578,7 +580,7 @@ $\sigma : \mathbb{N} \to \mathbb{B}$,
 
 \paragraph{Removal}
 Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
-Removing a bit is simpler than inserting a bit, with only caveat being that the bit-to-remove must exist in the column.
+This is simpler than inserting a bit, with only caveat being that the bit-to-remove must exist in the column.
 We encode this as a precondition for the removal operation, which is enforced by the type system.
 Removing a bit $c$ from column $k$, provided $c$ is present in that column, decreases it by the same amount (\ref{thm:removeBit}).
 \autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
@@ -596,11 +598,69 @@ $\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
 \]
 \end{theorem}
 
-\subsection{From Bit Heaps to Bit-Vector Arithmetic}
-At the core of our formalization lies the correctness of bit heap operations with respect to the semantics of bitvector arithmetic.
+\subsection{From Bit Heaps to Bitvector Arithmetic}
+So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
+In this section, we present how to synthesize bit heaps from arithmetic expressions, 
+and prove that the semantics of the resulting bit heap is equal to the semantics of the original arithmetic expression.
+We define a new language \Arith, which is a symbolic representation of arithmetic expressions with underlying Lean 4 \texttt{BitVec} semantics.
 
-\texttt{ArithCircuit}, \texttt{toBitHeap}, \texttt{denote}, \texttt{toBitHeap\_correct}, \texttt{compressed\_toBitHeap\_correct}
+An \Arith is a word-level expression, which can be a variable, a variadic addition of \Arith expressions, or a multiplication of two \Arith expressions.
+An \Arith is parametrized by a width $w$, \osman{afaik the correct term here should be "indexed" type theory, but I am not sure whether that's understandable by the DATE reviewers},
+and therefore width agreement is enforced by the type system.
 
+\begin{align*}
+  &i, b \in \mathbb{N} \qquad w \in \mathbb{N}^{+}\\
+  \mathtt{ArithCircuit}_w \ni a &::= \mathsf{var}(i, b)
+    \mid a \times a\\
+  &\phantom{{}::={}} \mid \mathsf{add}[a_0,\dots,a_{n-1}]
+\end{align*}
+
+An \Arith variable $\mathsf{var}(i,b)$ represents the $i$-th input word,
+with only the least-significant $b$ bits being live, and the remaining bits being zero.
+Carrying the live bits separately from the weight $w$ allows us to fit narrow operands into a wider datapath, 
+as this is commonly needed in multiplication to preserve the full precision of the result. 
+
+The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, which maps each variable to a bitvector value.
+For a single variable, we evaluate it by truncating the value of the variable to its live bits, and zero-extending it to the width of the \Arith expression.
+The addition and multiplication operations in \Arith are interpreted as the corresponding bitvector operations.
+
+\begin{align*}
+  \bvsem{\mathsf{var}(i,b)} &= \mathsf{zext}_{w}\big(\mathsf{trunc}_{\min(b,w)}(\rho\, i)\big)\\
+  \bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} &= \textstyle\sum_{t<n} \bvsem{a_t}\\
+  \bvsem{a_0 \times a_1} &= \bvsem{a_0} \cdot \bvsem{a_1}
+\end{align*}
+
+\paragraph{Bit Heap Construction from Arithmetic Expressions}
+
+Now that we have defined the \Arith language and BitHeap data structure, 
+we have all the tools to construct a bit heap from a BitVec arithmetic expression.
+We define a function $\mathsf{toBitHeap} : \mathtt{ArithCircuit}_w \to \Heap_w$ that constructs a bit heap from an addition or multiplication of \Arith expressions.
+
+The bit heap corresponding to the addition of \Arith expressions is constructed by merging the bit heaps of the individual summands, 
+which results in a rectangular bit heap with a height equal to the number of summands. 
+Each underlying \BitExpr of the bit heap is a single bit of the operands, with the weight of the bit being equal to its position in the operand.
+
+The bit heap corresponding to the multiplication of two \Arith expressions is constructed by generating the partial products of the two operands. 
+The boolean expression represented by the {\BitExpr}s of this bit heap depends on the partial product generation algorithm used.
+In our framework, we use the shift-add algorithm, which results in simple AND operations of the bits of the two operands.
+\osman{The running example will especially be helpful here}
+
+\paragraph{Correctness of Bit Heap Construction}
+
+We prove that the value of the bit heap constructed from an \Arith expression is equal to the value of the original \Arith expression.
+We implicitly convert the BitVec value to a natural number. 
+Similar to the correctness theorems around bit heaps, Theorem~\autoref{thm:tobitheap} is stated in modulo arithmetic,
+which fits nicely with the semantics of bitvectors, which are defined as natural numbers modulo $2^w$.
+
+\begin{theorem}[Bit Heap Construction]\label{thm:tobitheap}
+For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \mathbb{N} \to
+\mathtt{BitVec}\ w$, writing $\sigma_\rho$ for the bit environment induced
+by $\rho$,
+\[
+  \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a} .
+\]
+\end{theorem}
+ 
 
 \subsection{Compression Algorithms}
 \label{sec:compression}
@@ -608,7 +668,6 @@ At the core of our formalization lies the correctness of bit heap operations wit
 \sam{I feel like the reader has lost the purpose here - why are we now compressing the bit heap? They've long forgotten its purpose - a running example would help a lot.}
 We formalize half and full adders, and build compressor trees
 from them. However, our framework can easily be extended for any compressor.
-\sam{Surely you're discussing FAs and HAs in the background? So this feels repetitive?}
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -618,21 +677,21 @@ from them. However, our framework can easily be extended for any compressor.
 \]
 
 Each compression step records the type of adder, the column it acts on, and the bits it consumes. 
-The effects of a single step on the heap with the applicability conditions are shown in Table~\ref{tab:steps}.
-Both applicability conditions are forced by Theorem~\ref{thm:removeBit}, which requires bits to be present and that they are pairwise distinct.
+The effects of a single step on the heap with the applicability conditions are shown in Table~\autoref{tab:steps}.
+Both applicability conditions are forced by Theorem~\autoref{thm:removeBit}, which requires bits to be present and that they are pairwise distinct.
 Writing $s(h)$ for the heap obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
 \sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?}
 
 \begin{theorem}[\texttt{Half Adder Correctness}, \texttt{Full Adder Correctness}]
 \label{thm:step-correct}
 For all $h : \Heap_w$, $s : \Step$ and
-$\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in Table~\ref{tab:steps}, then
+$\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ is applicable to $h$ by obeying the conditions stated in Table~\autoref{tab:steps}, then
 \[
  \hsem{h} \;=\; \hsem{s(h)}.
 \]
 \end{theorem}
 
-With proofs being similar for both half and full adder cases, the proofs rewrite the Theorems \ref{thm:addBit} and \ref{thm:removeBit} until the
+With proofs being similar for both half and full adder cases, the proofs rewrite the Theorems \autoref{thm:addBit} and \autoref{thm:removeBit} until the
 goal becomes an arithmetic identity over the Boolean values of bits, after which a case split on the boolean values closes the goal.
 \sam{Totally impenetrable to a reader - what does any of this mean?}
 
@@ -655,10 +714,10 @@ For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
   \hsem{h} \;=\; \hsem{S(h)}.
 \]
 \end{theorem}
-\autoref{thm:chain-correct} is proven by induction on the chain, using Theorem~\ref{thm:step-correct} for the base case and the induction hypothesis for the tail of the chain.
+\autoref{thm:chain-correct} is proven by induction on the chain, using Theorem~\autoref{thm:step-correct} for the base case and the induction hypothesis for the tail of the chain.
 
 In our framework, we separate the correctness of the compression from the generation of the chain.
-Theorem~\ref{thm:chain-correct} proves that any well-formed chain preserves the value of the heap.
+Theorem~\autoref{thm:chain-correct} proves that any well-formed chain preserves the value of the heap.
 Therefore, any algorithm producing a well-formed chain is proven correct.
 That means adding a new algorithm does not require any new proof.
 We use this to implement Wallace and Dadda trees against a single correctness theorem.
