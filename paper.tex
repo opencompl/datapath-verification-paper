@@ -131,7 +131,8 @@
 % keeps its \mathcal{H} prefix to distinguish it from the bare BitExpr brackets.
 \newcommand{\csem}[1]{\sem{#1}_{\sigma}}
 \newcommand{\val}[1]{\mathrm{val}(#1)} 
-\newcommand{\bvsem}[1]{\mathcal{B}\llbracket #1 \rrbracket_{\rho}}
+% \newcommand{\bvsem}[1]{\mathcal{B}\llbracket #1 \rrbracket_{\rho}}
+\newcommand{\bvsem}[1]{\llbracket #1 \rrbracket_{\rho}}
 % \newcommand{\hsem}[1]{\mathcal{\textsc{}H}\llbracket #1 \rrbracket_{\sigma}}
 \newcommand{\hsem}[1]{\llbracket #1 \rrbracket_{\sigma}}
 \newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
@@ -674,7 +675,7 @@ The correctness of these operations follow from the correctness of the bit heap 
 The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i k^i$,
 which clearly matches the value of the bit-heap. Similarly, taking the union of the columns of the bit-heap
 preserves the value of the bit-heap, using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
-Similarly, partial products are proven equal using the appropriate identity.
+Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
 Overall, this proves that the bit heap faithfully represents the value of the original \Arith expression (\autoref{thm:tobitheap}).
 
 \begin{theorem}[Bit Heap Construction]\label{thm:tobitheap}
@@ -693,13 +694,11 @@ but with a much better circuit.
 \subsection{Compression Algorithms For Fast Arithmetic}
 \label{sec:compression}
 
-
 To synthesize the bitheap into a fast arithmetic circuit,
 the core idea is to repeatedly apply compressors (half and full adders),
 which reduce the height of the bitheap.
 When the bitheap is reduced to two rows, a single carry-propagate adder can be used to produce the final result.
-Note that this framework is extremely powerful, and can synthesize well-known, standard compression algorithms such as Wallace and Dadda trees.
-
+This framework can be used to synthesize well-known, standard compression algorithms such as Wallace and Dadda trees.
 
 Concretely, the Dadda algorithm produces a chain of compressors. 
 Formally, a chain of compressors is an ordered list of compression steps, where each step is a half or full adder.
@@ -730,7 +729,8 @@ and the induction hypothesis is used to prove that the other steps preserve the 
 
 This therefore shows that \emph{any chain} of well-formed compression steps preserves the value of the bit heap.
 We then use this to trivially prove the correctness of the Dadda algorithm.
-It is easy to prove that the Dadda algorithm produces a well-formed chain of compression steps.
+It is easy to prove that the Dadda algorithm produces a well-formed chain of compression steps. 
+\osman{we need to explain why this is the case, and this part might be connected to the Integration section.}
 However, see that our framework is general,
 and can be used to prove the correctness of any compression algorithm that produces a well-formed chain of compression steps.
 
