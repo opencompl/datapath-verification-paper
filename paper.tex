@@ -132,7 +132,8 @@
 \newcommand{\csem}[1]{\sem{#1}_{\sigma}}
 \newcommand{\val}[1]{\mathrm{val}(#1)} 
 \newcommand{\bvsem}[1]{\mathcal{B}\llbracket #1 \rrbracket_{\rho}}
-\newcommand{\hsem}[1]{\mathcal{H}\llbracket #1 \rrbracket_{\sigma}}
+% \newcommand{\hsem}[1]{\mathcal{\textsc{}H}\llbracket #1 \rrbracket_{\sigma}}
+\newcommand{\hsem}[1]{\llbracket #1 \rrbracket_{\sigma}}
 \newcommand{\BitExpr}{\ensuremath{\texttt{BitExpr}}\xspace}
 \newcommand{\Col}{\ensuremath{\texttt{Column}}\xspace}
 \newcommand{\Heap}{\ensuremath{\texttt{BitHeap}}\xspace}
@@ -564,19 +565,22 @@ if a carry is produced on the last column, it is dropped,
 which is exactly what we want for reasoning modulo $2^w$.
 Overall, this normalization design promotes both a simple API, a strong normal form,
 and an optimized implementation of the bit heap data structure.
-\autoref{thm:addBit} is proved by functional induction on \texttt{addBit}, following the carry propagation described above.
+The correctness of insertion says that adding a bit to the bit-heap at weight $k$ 
+increases the total value of the bit heap by $2^k$ times the value of the bit expression (\autoref{thm:addBit}).
 
 \begin{theorem}[Bit insertion]
-\label{thm:addBit}
-For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
-$\sigma : \mathbb{N} \to \mathbb{B}$,
-\[
-  \hsem{\mathtt{addBit}(k, c, h)}
-  \;=\;
+\label{thm:addBit} 
+For all bit heaps $h : \Heap_w$, bit expressions $c : \BitExpr$, weight $k : \mathbb{N}$,
+and environment $\sigma : \mathbb{N} \to \mathbb{B}$,
+
+  $\hsem{\mathtt{addBit}(k, c, h)}
+   =
   \bigl(\hsem{h}
-        + 2^{k}\cdot\lift{\csem{c}}\bigr) \bmod 2^{w}.
-\]
-\end{theorem}
+        + 2^{k}\cdot \csem{c} \bigr) \bmod 2^{w}.
+  $
+    \end{theorem}
+
+The proof follows by functional induction on \texttt{addBit}, following the carry propagation described above.
 
 \paragraph{Removal}
 Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
