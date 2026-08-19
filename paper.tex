@@ -670,19 +670,12 @@ This results in simple AND operations of the bits of the two operands.
 
 \osman{The running example will especially be helpful here}
 
-% \paragraph{Correctness of Bit Heap Construction}
-
-% We prove that the value of the bit heap constructed from an \Arith expression is equal to the value of the original \Arith expression.
-% We implicitly convert the BitVec value to a natural number. 
-% Similar to the correctness theorems around bit heaps, Theorem~\autoref{thm:tobitheap} is stated in modulo arithmetic,
-% which fits nicely with the semantics of bitvectors, which are defined as natural numbers modulo $2^w$.
-
 The correctness of these operations follow from the correctness of the bit heap operations.
 The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i k^i$,
 which clearly matches the value of the bit-heap. Similarly, taking the union of the columns of the bit-heap
 preserves the value of the bit-heap, using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
 Similarly, partial products are proven equal using the appropriate identity.
-Overall, this proves that the bit-heap faithfully represents the value of the original \Arith expression (\autoref{thm:tobitheap}).
+Overall, this proves that the bit heap faithfully represents the value of the original \Arith expression (\autoref{thm:tobitheap}).
 
 \begin{theorem}[Bit Heap Construction]\label{thm:tobitheap}
 For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \mathbb{N} \to
@@ -765,18 +758,30 @@ $\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ obeys the applicability conditions 
 This proofs rewrites the goal using the lemmas for adding and removing bits (\autoref{thm:addBit}, \autoref{thm:removeBit}) until the
 goal becomes an arithmetic identity over the Boolean values of bits.
 This is then discharged by case analysis on the booleans, and some arithmetic reasoning.
-\osman{@bollu: Inline a small example here, showing the goal state before the rewrites, after the rewrites, so people know WTF is being talked about.}
-\sam{Totally impenetrable to a reader - what does any of this mean?}
 
-% In our framework, we separate the correctness of the compression from the generation of the chain.
-% Theorem~\autoref{thm:chain-correct} proves that any well-formed chain preserves the value of the heap.
-% Therefore, any algorithm producing a well-formed chain is proven correct.
-% That means adding a new algorithm does not require any new proof.
-% We use this to implement Wallace and Dadda trees against a single correctness theorem.
-% For chains produced by a compression algorithm, we provide a checked application \texttt{applyChainSafe}, which tests applicability at each step and returns $\mathtt{none}$ on failure. 
+Concretely, consider the half adder step $\HA(k,i,j)$, which removes $i$ and $j$ from column $k$,
+and adds $i \oplus j$ at column $k$ and $i \wedge j$ at column $k{+}1$ (\autoref{tab:steps}).
+Writing $h'$ for the resulting heap, the theorem states that the value of the heap is preserved:
+\[
+  \hsem{h'} \;=\; \hsem{h}.
+\]
+Unfolding $h'$ by rewriting the \texttt{addBit} and \texttt{removeBit} functions as well as the theorems (\autoref{thm:addBit}, \autoref{thm:removeBit}), 
+we obtain an arithmetic expression:
+\[
+  \bigl(\hsem{h}
+    - 2^{k}\csem{i}
+    - 2^{k}\csem{j}
+    + 2^{k}\csem{i \oplus j}
+    + 2^{k+1}\csem{i \wedge j}\bigr) \bmod 2^{w}
+  \;=\; (\hsem{h}) \bmod 2^{w}.
+\]
+
+The proof is discharged by case analysis on the four possible values of $i$ and $j$.
+The full adder case follows the same pattern, with $\maj(i,j,l)$ instead of $i \wedge j$.
 
 This now completes the overall proof of correctness of the Dadda algorithm.
-We will use this to improve the performance of Lean's bitblaster, by synthesizing fast dadda multipler circuits.
+We will use this to synthesize fast and verified multiplier circuits in CIRCT framework,
+as well as improving the performance of Lean's bitblaster.
 The next sections will explain the integration into Lean's bitblaster and the results of the verified synthesis of multipliers.
 
 \section{Integration}
