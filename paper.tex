@@ -153,6 +153,7 @@
 \newcommand{\compile}[1]{\langle\!\langle #1 \rangle\!\rangle}
 
 \graphicspath{{./images/}}
+\usepackage{subcaption}
 
 % Define macros that are used in this paper
 %
@@ -300,14 +301,14 @@ A shortcoming of these methods is that not only the verification tool itself is 
 We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
 This correct-by-construction approach guarantees that the generated circuits are correct, and scales to large circuits.
 
-We formalize the bitheap data structure and compression algorithms, and integrate them into an existing industrial synthesis tool to provide formally verified datapath circuits.
+We formalize the bit heap data structure and compression algorithms, and integrate them into an existing industrial synthesis tool to provide formally verified datapath circuits.
 
 
 Our list of contributions is as follows:
 \begin{itemize} 
-  \item Formalization of bitheap data structure and efficient compression algorithms in a theorem prover
+  \item Formalization of bit heap data structure and efficient compression algorithms in a theorem prover
   \item Integration into an existing synthesis flow to provide formally verified datapath circuits to eliminate the SAT solver bottleneck
-  \item Integration of bitheap data structure into Lean 4's formally verified bit blaster to improve the solvers capabilities
+  \item Integration of bit heap data structure into Lean 4's formally verified bit blaster to improve the solvers capabilities
   \item Verified synthesis of existing datapath benchmark suite 
 \end{itemize}
 
@@ -382,15 +383,13 @@ Placeholder
 
 \section{Formalization}
 
-\sam[In order to enable verified synthesis,]{To enable verified synthesis,}
-we implement, and prove \sam[correctness of bitheaps]{the correctness of the bitheap data structure}, which is a data structure
-that is key to perform effective synthesis of multiplier circuits \cite{application_specific_arithmetic}
-\sam{Inconsistent usage of bitheap vs bit heap?!!? I also would not say multipliers as that makes people think we just synth multiplication - perhaps N-ary bitvector summation?}
+To enable verified synthesis, we implement, and prove correctness of bit heaps, which is a data structure
+that is key to perform effective synthesis of N-ary bitvector summation \cite{application_specific_arithmetic}
 
 Toward this, we begin by defining a symbolic bit heap in Lean 4, which is a vector of columns.
 Each column contains a bit expression, which is a symbolic representation of the bit that is computed.
 We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
-\sam[These]{These operations (good to be specific otherwise the reader has to guess at these what?)} then enable us to implement and prove the correctness of the construction of the compressor trees (Theorem~\ref{thm:chain-correct}). 
+These operations then enable us to implement and prove the correctness of the construction of the compressor trees (Theorem~\ref{thm:chain-correct}). 
 
 We now explain the individual components of our formalization, as well as key theorems that were proven
 along the way to a verified datapath synthesis flow.
@@ -403,11 +402,11 @@ along the way to a verified datapath synthesis flow.
 \end{figure}
 
 \subsection{Symbolic Bit Representations}
-We represent symbolic bits as \BitExpr, which is a language that represents \sam[boolean]{Boolean} expressions.
+We represent symbolic bits as \BitExpr, which is a language that represents Boolean expressions.
 These are the elements that are stored in the bit heap.
-A \BitExpr can be a \sam[boolean]{Boolean (as named after a person)} variable, constant, or \sam[boolean]{Boolean} operations on \BitExpr values.
-\sam[The bits represented by \BitExpr are symbolic]{You just mentioned constant bits? This is confusing for the reader}. Internally,  \BitExpr variables are represented by a natural number index.
-In order to evalate a \BitExpr, we need the values of all the variables in the \BitExpr.
+A \BitExpr can be a Boolean variable, constant, or Boolean operations on \BitExpr values.
+Internally, \BitExpr variables are represented by a natural number index.
+In order to evaluate a \BitExpr, we need the values of all the variables in the \BitExpr.
 These values are supplied by a bit environment $(\sigma : \mathbb N \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
 The evaluation function $\csem{e} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
@@ -421,7 +420,7 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
-\sam{What is $\barwedge$? You need to define it. Secondly we're missing an inversion/negation operator?}
+\sam{What is $\barwedge$? You need to define it.}
 \osman{It is the NAND operation. do we also need to define $\wedge$ or $\vee$ as well? are they not standard? (though not so sure about $\barwedge$)}
 
 \[
@@ -438,11 +437,8 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
   &=& \csem{c_0} \circledast \csem{c_1}
 \end{array}
 \]
-\sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars? Width is also unused here.}
+\sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars?} \osman{@sam: You mean you don't like $c_0$, $c_1$s? }
 
-
-
-\sam{Currently this just looks like a semantics of Boolean arithmetic - so it may not be necessary to spell it out so much.}
 \subsection{Bit Heap Data Structure}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
 A \Col is a set of \BitExpr elements.
@@ -470,7 +466,6 @@ and a \Heap of width $w$ as a vector of $w$ columns.
 \sam{I really feel like an example would be hugely valuable here! Definitions should be concise and clear, this is overly verbose and not helpful in my opinion.}
 
 \paragraph{Evaluation of Bit Heaps}
-\sam{Capitalization all over the place Bit Heap, Bit heap, bit heap, bitheap...}
 Since a bit heap represents a summation of weighted bits,
 we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
 This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$.
@@ -529,32 +524,23 @@ index $k$:
 By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
 Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
 
-
-\paragraph{Constructing BitHeap}
+\paragraph{Constructing Bit Heaps}
 
 A bit heap's API involves bit insertion and removal operations,
-which are used by higher-level operations such as compression to create circuits like \sam[multiplier trees]{This seems to be the first time we've used the phrase multiplier tree...}.
-
-% suppress all details, and just say that we provide an abstract API
-% explain the choices we had in the API design, and why we chose the API we chose.
+which are used by higher-level operations such as compression to create circuits like compressor trees.
 
 In order to support efficient insertion and deletion of bits, 
 a natural choice of data structure that provides $O(1)$ inserts and deletes is a (hash)-set.
 However, note that this means that we cannot add the same bit twice to a column.
-Instead, if a bit is added to a column that already contains it, the bit is propagated to the next column.
+Instead, if a bit is added to a column that already contains it, the bit is propagated to the next column, as we explain below.
 \sam{This needs a little more explanation $x + x = x<<1$.}
+\osman{@sam: since we give this explanation in the next section, can we just say "as we explain below"?}
 
-Alternatively, we could use a multi-set like data structure, realized as either a raw list
-(which would provide $O(n)$ inserts and deletes),
-or a map from \BitExpr to its multiplicity (which has $O(\log n)$ inserts and deletes).
-These are asymptotically slower than a set, so we choose to use a set for the implementation of the bit heap.
-\sam{It seems unnecessary to justify why $O(1)$ is better - I'd ditch discussion of alternative representations.}
-
-% However, this now means that a bit in a column $k$ can be added multiple times,
-% and could thus have a weight which is not exactly $2^k$, but any integer of the form $m \times 2^k$,
-% where $m$ is the multiplicity of the bit in that column.
-% This loses all the nice invariants of the bit-heap we wanted to have in the first place!
-
+% Alternatively, we could use a multi-set like data structure, realized as either a raw list
+% (which would provide $O(n)$ inserts and deletes),
+% or a map from \BitExpr to its multiplicity (which has $O(\log n)$ inserts and deletes).
+% These are asymptotically slower than a set, so we choose to use a set for the implementation of the bit heap.
+% \sam{It seems unnecessary to justify why $O(1)$ is better - I'd ditch discussion of alternative representations.}
 
 \paragraph{Insertion}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the \Col of the bit heap that lies in index k.
@@ -562,20 +548,20 @@ As previously mentioned, if the bit $e$ already exists in column $k$,
 we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
 Effectively, this implies that the bit heap is always in its canonical form,
 where the weight of a bit is always equal to the weight of the column it is in.
-This canonicalization also optimizes the bitheap during construction automatically,
+This canonicalization also optimizes the bit heap during construction automatically,
 by re-weighting bits that are added multiple times to the same column, and propagating them to the next column.
-\sam[A neat side-effect of this]{The carry-truncation doesn't really seem like a side effect of automated propagation - that's just because we don't insert anything beyond the width?} is that since we work with fixed-size bit heaps,
-if a carry is produced on the last column, it is dropped,
-which is exactly what we want for reasoning modulo $2^w$.
+If a carry is propagated from the last column, 
+it is dropped since we work with fixed-size bit heaps.
+This is exactly what we want for reasoning modulo $2^w$.
 Overall, this normalization design promotes both a simple API, a strong normal form,
 and an optimized implementation of the bit heap data structure.
-The correctness of insertion says that adding a bit to the bit-heap at weight $k$ 
+The correctness of insertion says that adding a bit to the bit heap at weight $k$ 
 increases the total value of the bit heap by $2^k$ times the value of the bit expression (\autoref{thm:addBit}).
 
 \begin{theorem}[Bit insertion]
 \label{thm:addBit} 
 For all bit heaps $h : \Heap_w$, bit expressions $c : \BitExpr$, weight $k : \mathbb{N}$,
-and environment $\sigma : \mathbb{N} \to \mathbb{B}$,
+and environment $\sigma : \mathcal{V} \to \mathbb{B}$,
 
   $\hsem{\mathtt{addBit}(k, c, h)}
    =
@@ -588,17 +574,17 @@ The proof follows by functional induction on \texttt{addBit}, following the carr
 
 \paragraph{Removal}
 Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
-This is simpler than inserting a bit, with only caveat being that the bit-to-remove must exist in the column.
-We encode this as a precondition for the removal operation, \sam[which is enforced by the type system]{To non-Lean/PL people this is going to be a big WHAT??? - the reviewers will probably not know much more than basic type theory let alone adding preconditions!!!}.
-Removing a bit $c$ from column $k$, provided $c$ is present in that column, decreases it by the same amount (\sam[\ref{thm:removeBit}]{Guess you mean autoref here? number in brackets usually refers to equations.}).
-\autoref{thm:removeBit} does not need induction, since the removal of a bit only affects a single column.
-Rewriting the corresponding \BitExpr and \Col-level bit removal lemmas proves this statement. \osman{I think the meaning of \BitExpr and \Col level lemmas are far from obvious to the reader. How can I make this more reader friendly?}
+Removal is only meaningful if the bit is present in the \Col; therefore, we require that the bit to be removed is present in the column.
+This is encoded as an explicit hypothesis of the correctness theorem for bit removal, \autoref{thm:removeBit}.
+Under this hypothesis, removing a bit $c$ from column $k$ decreases the value of the bit heap by $2^k \csem{c}$.
+The proof does not require induction, since the removal of a bit only affects a single column.
+Rewriting the corresponding bit-removal lemmas at the level of a single \Col proves this statement.
 \sam{Is this proof stategy? To discuss}
 
 \begin{theorem}[Bit removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
-$\sigma : \mathbb{N} \to \mathbb{B}$ with $c \in h_k$,
+$\sigma : \mathcal{V} \to \mathbb{B}$ with $c \in h_k$,
 \[
   \hsem{\mathtt{removeBit}(k, c, h)}
   \;=\;
@@ -611,25 +597,19 @@ So far, we have defined the bit heap data structure and its operations, and prov
 This gives us the foundational API to optimize bitvector arithmetic expressions,
 which we will explain next.
 
-
-\subsection{From Bit Heaps to Word-Level Arithmetic}
-\sam{Shouldn't this be the other way around? From word-level arithmetic to bit heaps?}
-Our goal is to synthesize fast circuits for word-level arithmetic expressions.
-We represnt such arithmetic expressions as \Arith, a minimal symbolic
+\subsection{From Word-Level Arithmetic to Bit Heaps}
+Our goal is to synthesize efficient and provably correct circuits for word-level arithmetic expressions.
+We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
-First, we define the syntax and semantcs of \Arith,
-and then we prove that the semantics of the resulting bit heap \sam[is]{are} equal to the semantics of the original \Arith expression.
-
-% In this section, we present how to synthesize bit heaps from arithmetic expressions, 
-% and prove that the semantics of the resulting bit heap is equal to the semantics of the original arithmetic expression.
-% We define a new language \Arith, which is a symbolic representation of arithmetic expressions with underlying Lean 4 \texttt{BitVec} semantics.
+This conversion then allows us to apply compression techniques that reduce the delay of the circuit (\autoref{sec:compression}).
+First, we define the syntax and semantics of \Arith,
+and then we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith expression.
 
 An \Arith is a word-level expression, which can be a variable,
 a variadic addition of \Arith expressions,
 or a multiplication of two \Arith expressions.
-% An \Arith is parametrized by a width $w$, \osman{afaik the correct term here should be "indexed" type theory, but I am not sure whether that's understandable by the DATE reviewers},
-% and therefore width agreement is enforced by the type system.
+This allows us to represent nested arithmetic expressions, such as multiply-accumulate.
 
 \begin{align*}
   &i, b \in \mathbb{N} \qquad w \in \mathbb{N}^{+}\\
@@ -637,16 +617,38 @@ or a multiplication of two \Arith expressions.
     \mid a \times a\\
   &\phantom{{}::={}} \mid \mathsf{add}[a_0,\dots,a_{n-1}]
 \end{align*}
-\sam{At present the definition allows for chaining multiplications $(a\times a) \times (a \times a)$ we should restrict the grammar to only allow multiplication of variables.}
 
 An \Arith variable $\mathsf{var}(i,b)$ represents the $i$-th input word,
 with only the least-significant $b$ bits being live, and the remaining bits being zero.
-\sam{Why not just call it a bitvector of width $b$? - a question of signage naturally arises here?}
+\sam{Why not just call it a bitvector of width $b$? - a question of signage naturally arises here?} \osman{@sam: I think it would be wrong to call it a bitvector of width $b$ since it is a bitvec of width $w$ with just upper bits padded with zeroes.
+I added an image to make it clear. LMK if the image is unnecessary.}
 Carrying the live bits separately from the weight $w$ allows us to fit narrow operands into a wider datapath, 
-as this is commonly needed in multiplication to preserve the full precision of the result. 
+as this is commonly needed in multiplication to preserve the full precision of the result (\autoref{fig:livebits}). 
 
-\sam{First time using $\mathtt{BitVec}$}
-The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, which maps each variable to a word.
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{\linewidth}
+    \centering
+    \includegraphics[width=0.55\linewidth]{zero-extension-code.pdf}
+    \caption{Zero-extended wire}
+    \label{fig:livebits-code}
+  \end{subfigure}
+  \\[1em]
+  \begin{subfigure}{\linewidth}
+    \centering
+    \includegraphics[width=0.85\linewidth]{zero-extension-image.pdf}
+    \caption{The resulting bit heap.}
+    \label{fig:livebits-bits}
+  \end{subfigure}
+  \caption{Live bits and zero-extension. A $4$-bit operand placed in an $8$-bit datapath has
+  $b = 4$ live bits, with the remaining $w - b = 4$ bits zero. In \Arith this is written
+  $\mathsf{var}(i, 4)$ with width $w = 8$.}
+  \label{fig:livebits}
+\end{figure}
+
+\sam{First time using $\mathtt{BitVec}$} \osman{@sam: added a description of what it is. Do you think the term bitvector needs more explanation?}
+The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
+where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
 For a single variable, we evaluate it by truncating the value of the variable to its live bits, and zero-extending it to the width of the \Arith expression.
 The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations.
 
@@ -658,22 +660,18 @@ The addition and multiplication operations in \Arith are interpreted as the corr
 
 \paragraph{Bit Heap Construction from Arithmetic Expressions}
 
-% Now that we have defined the \Arith language and BitHeap data structure, 
-% we have all the tools to construct a bit heap from a BitVec arithmetic expression.
-% We define a function $\mathsf{toBitHeap} : \mathtt{ArithCircuit}_w \to \Heap_w$ that constructs a bit heap from an addition or multiplication of \Arith expressions.
-
 In order to construct the bit heap from an \Arith expression, we work recursively.
-Firstly, for a \sam[word-variable]{not used before or defined?}, we construct a bit heap with a single row, with one bit expression per live bit of the variable.
+Firstly, for an \Arith variable, we construct a bit heap with a single row, with one bit expression per live bit of the variable.
 
-Secondly, the bit heap for addition is constructed by taking the union of the columns of the bit heaps of the summands.
-Inutitively, this is because the bit-heap's value is a sum of the values of the bits in the heap.
-Thus, to add two bit heaps together, we can simply union the columns.
-This results in a rectangular bit heap with a height equal to the number of summands. 
-\sam{I think this is incorrect - set union will not preserve the multiplicity of bits - bits should be promoted e.g. x[3:0] + x[3:0] would be auto-computed not a union!}
-% Each underlying \BitExpr of the bit heap is a single bit of the operands, with the weight of the bit being equal to its position in the operand.
+Secondly, the bit heap for addition is constructed by inserting the bits of each summand's heap into a single bit heap.
+Intuitively, this is because the bit heap's value is a sum of the values of its bits.
+Since insertion follows the propagation rule described above, adding a summand to itself promotes every bit to the next column,
+resulting in a single-row bit heap where the summand is shifted up by one, i.e. $x+x = 2x$.
+If instead the summands do not share any bits, the rows are stacked, 
+resulting in a rectangular bit heap with height equal to the number of summands.
 
-Finally, the bitheap for multiplication generates partial products of the two operands.
-Note that this reuses the bit-heap construction for addition, as multiplication is defined as a sum of the partial products.
+Finally, the bit heap for multiplication generates partial products of the two operands.
+Note that this reuses the bit heap construction for addition, as multiplication is defined as a sum of the partial products.
 In our framework, we use the shift-add algorithm to build partial products.
 This results in simple AND operations of the bits of the two operands. 
 \sam{I think maths/code will allow for greater precision as the current wordy description is too vague.}
@@ -681,10 +679,10 @@ This results in simple AND operations of the bits of the two operands.
 \osman{The running example will especially be helpful here}
 
 The correctness of these operations follow from the correctness of the bit heap operations.
-The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i k^i$,
-\sam{Wy are you using $k^i$ here - I think you mean $2^i$?}
-which \sam[clearly matches the value of the bit-heap]{Is proven trivially - we need to talk in terms of proofs.}. Similarly, taking the union of the columns of the bit-heap
-preserves the value of the bit-heap, using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
+The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i 2^i$,
+which clearly matches the value of the bit heap and proved trivially.
+Similarly, taking the union of the columns of the bit heap preserves the value of the bit heap, 
+using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
 Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
 Overall, this proves that the bit heap faithfully represents the value of the original \Arith expression (\autoref{thm:tobitheap}).
 
@@ -697,35 +695,35 @@ by $\rho$,
 \]
 \end{theorem}
 
-\sam[Now that we have constructed a bit-heap, we can build an optimized arithmetic circuit,
+\sam[Now that we have constructed a bit heap, we can build an optimized arithmetic circuit,
 by using compression algorithms that efficiently express the same value as the original bit heap,
 but with a much better circuit.]{We should be more clear about our purpose - we want to synthesize efficient and provably correct circuits from \Arith - this should be made more clear throughout this section.}
+
 
 \subsection{Compression Algorithms For Fast Arithmetic}
 \label{sec:compression}
 
-To synthesize the bitheap into a fast arithmetic circuit,
+To synthesize the bit heap into a fast arithmetic circuit,
 the core idea is to repeatedly apply compressors (half and full adders),
-which reduce the height of the bitheap.
-When the bitheap is reduced to two rows, a single carry-propagate adder can be used to produce the final result.
-This framework can be used to synthesize well-known, standard compression algorithms such as Wallace and Dadda trees.
-\sam{citations for Wallace and Dadda?}
+which reduce the height of the bit heap.
+When the bit heap is reduced to two rows, a single carry-propagate adder can be used to produce the final result.
+This framework can be used to synthesize well-known, standard compression algorithms such as Wallace and Dadda trees \cite{dadda_tree,wallace_tree}.
 
-Concretely, \sam[the Dadda]{isn't this true for any compression algorithm?} algorithm produces a chain of compressors. 
+Concretely, any compression algorithm produces a chain of compressors. 
 Formally, a chain of compressors is an ordered list of compression steps, where each step is a half or full adder.
 We will notate this as $S \equiv s_0 :: s_0 \dots :: s_{n-1}$ for a chain of $n$ steps.
 We write $h \xrightarrow{S} h'$ for the application of a chain $S$ to a bit heap $h$, producing a new bit heap $h'$.
 This can be broken down into a sequence of applications $h = h_0 \xrightarrow{s_0} h_1 \xrightarrow{s_1} \dots \xrightarrow{s_{n-1}}  h'$.
 We call a chain \emph{well formed}, iff, at each step $h_i \xrightarrow{s_i} h_{i+1}$, the applicability conditions of the step $s_{i}$
 are satisfied by the intermediate bit heap $h_i$.
-\sam[Recall]{Give a backward reference} that the applicability conditions ensure that the bits consumed by the step $s_i$ are present in the bit heap $h_i$,
+Recall that the applicability conditions (\autoref{tab:steps}) ensure that the bits consumed by the step $s_i$ are present in the bit heap $h_i$,
 and that the consumed bits are pairwise distinct.
-This well-formedness condition allows us to prove the key \sam[\emph{chain correctness}]{Inconsistent with texttt version below?} lemma, 
-which states that any well-formed chain preserves the value of the bit-heap.
+This well-formedness condition allows us to prove the key chain correctness theorem (\autoref{thm:chain-correct}), 
+which states that any well-formed chain preserves the value of the bit heap.
 
 \sam{The order feels off here - we are talking about chaining adders before we've defined the adders themselves and how they operate on the bit heap?}
 
-\begin{theorem}[\texttt{Chain Correctness}]
+\begin{theorem}[Chain Correctness]
 \label{thm:chain-correct}
 For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
 \[
@@ -735,7 +733,7 @@ For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
 \end{theorem}
 
   
-Chain correctess is proven by induction on the length of the chain.
+Chain correctess (\autoref{thm:chain-correct}) is proven by induction on the length of the chain.
 The base case, when the chain has length $0$, is trivial, since the heap is unchanged.
 For the induction step, the new step $s_{i+1}$'s correctness is justified separately for half adders and full adders (\autoref{thm:step-correct}),
 and the induction hypothesis is used to prove that the other steps preserve the value of the heap.
@@ -762,10 +760,10 @@ A chain is a sequence of steps, which is either empty or a step followed by a ch
 Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
 \sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?}
 
-\begin{theorem}[\texttt{Half Adder Correctness}, \texttt{Full Adder Correctness}]
+\begin{theorem}[Half Adder Correctness, Full Adder Correctness]
 \label{thm:step-correct}
 For all $h, h' : \Heap_w$, $s : \Step$, $h \xrightarrow{s} h'$, and
-$\sigma : \mathbb{N} \to \mathbb{B}$, if $s$ obeys the applicability conditions (\autoref{tab:steps}), then $\hsem{h} \;=\; \hsem{h'}$.
+$\sigma : \mathcal{V} \to \mathbb{B}$, if $s$ obeys the applicability conditions (\autoref{tab:steps}), then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
 
 This proofs rewrites the goal using the lemmas for adding and removing bits (\autoref{thm:addBit}, \autoref{thm:removeBit}) until the
@@ -780,19 +778,21 @@ Writing $h'$ for the resulting heap, the theorem states that the value of the he
 \]
 Unfolding $h'$ by rewriting the \texttt{addBit} and \texttt{removeBit} functions as well as the theorems (\autoref{thm:addBit}, \autoref{thm:removeBit}), 
 we obtain an arithmetic expression:
-\[
+\begin{equation*}
+\begin{split}
   \bigl(\hsem{h}
-    - 2^{k}\csem{i}
-    - 2^{k}\csem{j}
-    + 2^{k}\csem{i \oplus j}
-    + 2^{k+1}\csem{i \wedge j}\bigr) \bmod 2^{w}
-  \;=\; (\hsem{h}) \bmod 2^{w}.
-\]
+    &- 2^{k}\csem{i}
+     - 2^{k}\csem{j}\\
+    &+ 2^{k}\csem{i \oplus j}
+     + 2^{k+1}\csem{i \wedge j}\bigr) \bmod 2^{w}\\
+  &\;=\; \hsem{h} \bmod 2^{w}.
+\end{split}
+\end{equation*}
 
 The proof is discharged by case analysis on the four possible values of $i$ and $j$.
 The full adder case follows the same pattern, with $\maj(i,j,l)$ instead of $i \wedge j$.
 
-This now completes the overall proof of correctness of the Dadda algorithm.
+This now completes the overall proof of correctness of compression algorithms.
 We will use this to synthesize fast and verified multiplier circuits in CIRCT framework,
 as well as improving the performance of Lean's bitblaster.
 The next sections will explain the integration into Lean's bitblaster and the results of the verified synthesis of multipliers.
