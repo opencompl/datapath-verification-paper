@@ -16,6 +16,17 @@
   \raggedbottom
   \makeatletter
   \ifdraftmargins
+    % IEEEtran's own two-column measure. \geometry recomputes \textwidth from
+    % its defaults, which silently narrows the text block (516pt -> 430pt) and
+    % changes line breaking relative to the submission build. Capture the class
+    % values first and restore them after, so the draft differs from the
+    % submission ONLY by the extra margin-note space, never by column width.
+    % IEEEtran's native conference measure. These cannot be read from
+    % \textwidth here: loading the geometry package has already overwritten it
+    % with geometry's own default (430pt), so the class values are hard-coded.
+    \newdimen\ieee@textwidth   \ieee@textwidth=516pt
+    \newdimen\ieee@textheight  \ieee@textheight=672pt
+    \newdimen\ieee@columnsep   \ieee@columnsep=12pt
     \geometry{asymmetric}
     % Widen the sheet on BOTH sides: 3.5cm of margin note space on the right,
     % and 5cm on the left. Without the matching \oddsidemargin/\evensidemargin
@@ -26,9 +37,20 @@
     \evensidemargin=\dimexpr\evensidemargin + 5cm\relax
     \marginparwidth=\dimexpr \marginparwidth + 3cm\relax
     \setlength{\marginparwidth}{4.6cm}
-    % acmart set \textheight itself; IEEEtran sizes it for the un-widened
-    % page, which otherwise leaves the bottom third of each page empty.
-    \setlength{\textheight}{\dimexpr\paperheight - 2in\relax}
+    % Restore IEEEtran's measure. \geometry finalises the page layout in an
+    % \AtBeginDocument hook, so restoring here in the preamble would simply be
+    % overwritten; the restore must run in a later hook of our own.
+    % \geometry finalises the layout in \AtBeginDocument, and IEEEtran resets
+    % the column dimensions there too, so an ordinary \AtBeginDocument hook is
+    % overwritten. \AfterEndPreamble runs after both.
+    \AfterEndPreamble{%
+      \setlength{\textwidth}{\ieee@textwidth}%
+      \setlength{\textheight}{\ieee@textheight}%
+      \setlength{\columnsep}{\ieee@columnsep}%
+      \setlength{\columnwidth}{\dimexpr(\textwidth-\columnsep)/2\relax}%
+      \setlength{\hsize}{\columnwidth}%
+      \setlength{\linewidth}{\columnwidth}%
+    }
     % This makeatletter box helps to move notes to the right
     \makeatletter
     \long\def\@mn@@@marginnote[#1]#2[#3]{%
