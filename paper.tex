@@ -671,10 +671,10 @@ If instead the summands do not share any bits, the rows are stacked,
 resulting in a rectangular bit heap with height equal to the number of summands.
 
 Finally, the bit heap for multiplication generates partial products of the two operands.
-Note that this reuses the bit heap construction for addition, as multiplication is defined as a sum of the partial products.
 In our framework, we use the shift-add algorithm to build partial products.
-This results in simple AND operations of the bits of the two operands. 
-\sam{I think maths/code will allow for greater precision as the current wordy description is too vague.}
+This results in simple AND operations of the bits of the two operands, i.e.
+$\big(\sum_{i} x_i 2^{i}\big)\cdot\big(\sum_{j} y_j 2^{j}\big) = \sum_{i}\sum_{j} (x_i \wedge y_j)\, 2^{i+j}$,
+where each partial product $x_i \wedge y_j$ is inserted at column $i+j$ of the bit heap.
 
 \osman{The running example will especially be helpful here}
 
