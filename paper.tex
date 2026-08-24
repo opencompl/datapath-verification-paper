@@ -416,7 +416,7 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
   \text{indices }  n,k \in \mathbb{N}  \qquad
-  \circledast \in \{\oplus,\wedge,\vee,\barwedge\}}\\[6pt]
+  \circledast \in \{\wedge,\vee,\oplus\}}\\[6pt]
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
@@ -689,7 +689,7 @@ For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \mathbb{N} \to
 \mathtt{BitVec}\ w$, writing $\sigma_\rho$ for the bit environment induced
 by $\rho$,
 \[
-  \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a} .
+  \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a}.
 \]
 \end{theorem}
 
@@ -724,8 +724,7 @@ Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ t
 
 \begin{theorem}[Half/Full Adder Correctness]
 \label{thm:step-correct}
-For all $h : \Heap_w$, $s : \Step$, and
-$\sigma : \mathcal{V} \to \mathbb{B}$, if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
+For all $h : \Heap_w$, and $s : \Step$ if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
 \sam{Bit confused by $\sigma$ now it is $ \mathcal{V} \to \mathbb{B}$ and $\mathbb{N} \to \mathbb{B}$ earlier?}
 
@@ -797,6 +796,19 @@ It is easy to prove that the Dadda algorithm produces a well-formed chain of com
 \osman{we need to explain why this is the case, and this part might be connected to the Integration section.}
 However, see that our framework is general,
 and can be used to prove the correctness of any compression algorithm that produces a well-formed chain of compression steps.
+
+\begin{theorem}[Bit Heap Compression]
+\label{thm:tobitheap-compression}
+For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \mathbb{N} \to
+\mathtt{BitVec}\ w$, and $S: \Chain$ is well-formed for $h$,
+\[
+  \forall \sigma,\quad
+  \hsem{S(\mathsf{toBitHeap}(a))} \;=\; \bvsem{a}.
+\]
+\end{theorem}
+
+Finally, we prove that compression of word-level arithmetic expressions preserves the value (\autoref{thm:tobitheap-compression}).
+The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
 
 This now completes the overall proof of correctness of compression algorithms.
 We will use this to synthesize fast and verified multiplier circuits in CIRCT framework,
