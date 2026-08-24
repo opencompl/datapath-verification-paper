@@ -533,8 +533,6 @@ In order to support efficient insertion and deletion of bits,
 a natural choice of data structure that provides $O(1)$ inserts and deletes is a (hash)-set.
 However, note that this means that we cannot add the same bit twice to a column.
 Instead, if a bit is added to a column that already contains it, the bit is propagated to the next column, as we explain below.
-\sam{This needs a little more explanation $x + x = x<<1$.}
-\osman{@sam: since we give this explanation in the next section, can we just say "as we explain below"?}
 
 % Alternatively, we could use a multi-set like data structure, realized as either a raw list
 % (which would provide $O(n)$ inserts and deletes),
@@ -695,10 +693,9 @@ by $\rho$,
 \]
 \end{theorem}
 
-\sam[Now that we have constructed a bit heap, we can build an optimized arithmetic circuit,
+Now that we have constructed a bit heap, we can build an optimized arithmetic circuit,
 by using compression algorithms that efficiently express the same value as the original bit heap,
-but with a much better circuit.]{We should be more clear about our purpose - we want to synthesize efficient and provably correct circuits from \Arith - this should be made more clear throughout this section.}
-\osman{I added a sentence for that in the opening paragraph of this subsection.}
+but with a much better circuit.
 
 \subsection{Compression Algorithms For Fast Arithmetic}
 \label{sec:compression}
@@ -725,11 +722,12 @@ Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ t
 \sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?} 
 \osman{@sam: because $k < w$ is not an explicit precondition. In fact, it can be derived from the other hypotheses (we actually do that in the code, see theorem is\_elem\_in\_bounds).}
 
-\begin{theorem}[Half Adder Correctness, Full Adder Correctness]
+\begin{theorem}[Half/Full Adder Correctness]
 \label{thm:step-correct}
-For all $h, h' : \Heap_w$, $s : \Step$, $h \xrightarrow{s} h'$, and
-$\sigma : \mathcal{V} \to \mathbb{B}$, if $s$ obeys the applicability conditions (\autoref{tab:steps}), then $\hsem{h} \;=\; \hsem{h'}$.
+For all $h : \Heap_w$, $s : \Step$, and
+$\sigma : \mathcal{V} \to \mathbb{B}$, if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
+\sam{Bit confused by $\sigma$ now it is $ \mathcal{V} \to \mathbb{B}$ and $\mathbb{N} \to \mathbb{B}$ earlier?}
 
 This proof rewrites the goal using the lemmas for adding and removing bits (\autoref{thm:addBit}, \autoref{thm:removeBit}) until the
 goal becomes an arithmetic identity over the Boolean values of bits.
