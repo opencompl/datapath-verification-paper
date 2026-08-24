@@ -230,7 +230,7 @@
 \begin{document}
 
 %% Title information
-\title{Datapath Verification in Lean 4}
+\title{Verified Synthesis of Datapath Circuits}
 
 %% Author information
 %% Contents and number of authors suppressed with 'anonymous'.
@@ -390,20 +390,13 @@ These operations then enable us to implement and prove the correctness of the co
 We now explain the individual components of our formalization, as well as key theorems that were proven
 along the way to a verified datapath synthesis flow.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
-  \caption{Dadda reduction for an unsigned $4 \times 4$ multiplier.}
-  \label{fig:4bit-dadda}
-\end{figure}
-
 \subsection{Symbolic Bit Representations}
 We represent symbolic bits as \BitExpr, which is a language that represents Boolean expressions.
 These are the elements that are stored in the bit heap.
 A \BitExpr can be a Boolean variable, constant, or Boolean operations on \BitExpr values.
 Internally, \BitExpr variables are represented by a natural number index.
 In order to evaluate a \BitExpr, we need the values of all the variables in the \BitExpr.
-These values are supplied by a bit environment $(\sigma : \mathbb N \to \mathbb B)$,
+These values are supplied by a bit environment $(\sigma : \mathbb Var \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
 The evaluation function $\csem{e} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
 producing a concrete boolean value. It is defined in the usual way by reduction on the language of \BitExpr.
@@ -411,7 +404,7 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
-  \text{indices }  n \in \mathbb{N}  \qquad
+  b \in Var  \qquad
   \circledast \in \{\wedge,\vee,\oplus\}}\\[6pt]
 
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
@@ -421,10 +414,10 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
-  \sigma \;:\; \mathbb{N} \to \mathbb{B}
+  \sigma \;:\; Var \to \mathbb{B}
   \qquad
   \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[4pt]
-\csem{b_n} &=& \sigma(n)\\
+\csem{b} &=& \sigma(b)\\
 \csem{0} &=& \mathit{false}\\
 \csem{1} &=& \mathit{true}\\
 \csem{\neg c} &=& \neg \csem{c}\\
@@ -432,7 +425,6 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
   &=& \csem{c_0} \circledast \csem{c_1}
 \end{array}
 \]
-\sam{It would be more conventional to just define a set of Variables - rather than a index - is this strictly necessary? Can we just define a set of Vars?} \osman{@sam: You mean you don't like $c_0$, $c_1$s? }
 
 \subsection{Bit Heap Data Structure}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
@@ -454,10 +446,50 @@ In implementing the data structure,
 we define a \Col as a set of \BitExpr elements,
 and a \Heap of width $w$ as a vector of $w$ columns.
 \[
-  \Heap\;w \;\triangleq\; \Vect(\;\Col\;w)
+  \Heap\;w \;\triangleq\; \Vect(\Col\;w)
 \]
+\autoref{fig:bitheap-example} illustrates this for a $3 \times 3$ unsigned multiplication.
 \end{definition}
 
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.52\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{partialproducts.pdf}
+    \caption{Partial products of $a \times b$.}
+    \label{fig:partialproducts}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{0.44\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{basic-bh.pdf}
+    \caption{The resulting bit heap.}
+    \label{fig:basic-bh}
+  \end{subfigure}
+  \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
+  $a_i b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
+  \label{fig:bitheap-example}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.52\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{partialproducts_dot.pdf}
+    \caption{Partial products of $a \times b$.}
+    \label{fig:partialproducts}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{0.44\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{basic-bh_dots.pdf}
+    \caption{The resulting bit heap.}
+    \label{fig:basic-bh}
+  \end{subfigure}
+  \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
+  $a_i b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
+  \label{fig:bitheap-example}
+\end{figure}
 \sam{I really feel like an example would be hugely valuable here! Definitions should be concise and clear, this is overly verbose and not helpful in my opinion.}
 
 \paragraph{Evaluation of Bit Heaps}
@@ -467,8 +499,7 @@ This is defined by adding up all the bits across all the columns, with bits at c
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
-\multicolumn{3}{@{}l@{}}{%
-  \csem{\cdot} \;:\; \Heap_w \to \mathbb{N}} \\[4pt]
+\csem{\cdot} &:& \Heap_w \to \mathbb{N} \\[4pt]
 \csem{h}
   &=& \Bigl(\textstyle\sum_{k<w} 2^{k} \sum_{c \in h_k} \csem{c}\Bigr)
       \bmod 2^{w}
@@ -523,8 +554,8 @@ which are used by higher-level operations such as compression to create circuits
 
 In order to support efficient insertion and deletion of bits, 
 a natural choice of data structure that provides $O(1)$ inserts and deletes is a (hash)-set.
-However, note that this means that we cannot add the same bit twice to a column.
-Instead, if a bit is added to a column that already contains it, the bit is propagated to the next column, as we explain below.
+However, whilst this means we cannot add the same bit twice to a column,
+this actually benefits us as we explain below
 
 % Alternatively, we could use a multi-set like data structure, realized as either a raw list
 % (which would provide $O(n)$ inserts and deletes),
@@ -634,7 +665,6 @@ as this is commonly needed in multiplication to preserve the full precision of t
   \label{fig:livebits}
 \end{figure}
 
-\sam{First time using $\mathtt{BitVec}$} \osman{@sam: added a description of what it is. Do you think the term bitvector needs more explanation?}
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
 where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
 For a single variable, we evaluate it by truncating the value of the variable to its live bits, and zero-extending it to the width of the \Arith expression.
@@ -664,8 +694,6 @@ This results in simple AND operations of the bits of the two operands, i.e.
 $\big(\sum_{i} x_i 2^{i}\big)\cdot\big(\sum_{j} y_j 2^{j}\big) = \sum_{i}\sum_{j} (x_i \wedge y_j)\, 2^{i+j}$,
 where each partial product $x_i \wedge y_j$ is inserted at column $i+j$ of the bit heap.
 
-\osman{The running example will especially be helpful here}
-
 The correctness of these operations follow from the correctness of the bit heap operations.
 The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i 2^i$,
 which clearly matches the value of the bit heap and proved trivially.
@@ -682,7 +710,7 @@ by $\rho$,
   \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a}.
 \]
 \end{theorem}
-
+ 
 Now that we have constructed a bit heap, we can build an optimized arithmetic circuit,
 by using compression algorithms that efficiently express the same value as the original bit heap,
 but with a much better circuit.
@@ -796,6 +824,13 @@ For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \mathbb{N} \to
 
 Finally, we prove that compression of word-level arithmetic expressions preserves the value (\autoref{thm:tobitheap-compression}).
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
+  \caption{Dadda reduction for an unsigned $4 \times 4$ multiplier.}
+  \label{fig:4bit-dadda}
+\end{figure}
 
 This now completes the overall proof of correctness of compression algorithms.
 We will use this to synthesize fast and verified multiplier circuits in CIRCT framework,
