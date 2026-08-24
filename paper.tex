@@ -296,7 +296,7 @@ Datapath synthesis methods address this issue by reducing multiple summands to t
 The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
 
 Different techniques exist to verify datapath circuits, such as \ac{sca} and SAT-based methods.
-A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large circuits (need to make this claim more precise and be careful).
+A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large and complex circuits.
 
 We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
 This correct-by-construction approach guarantees that the generated circuits are correct, and scales to large circuits.
@@ -344,42 +344,38 @@ The reduction is carried out by compressors, half adders ($2{:}2$), full adders 
 Different compression algorithms exist, such as Wallace tree which greedily compresses the circuit and Dadda tree, 
 using only as many adders to meet a fix target height. 
 
-\subsubsection{Wallace Tree}
+% \subsubsection{Dadda's Algorithm}
 
-Placeholder
+% \begin{table}
+%   \centering
+%   \caption{Elements of the Dadda sequence}
+%   \label{tab:dadda-sequence}
+%   \small
+%   \setlength{\tabcolsep}{3.1pt}
+%   \begin{tabular}{lrrrrrrrrrrrrrrr}
+%     \toprule
+%     $l$   & 0 & 1 & 2 & 3 & 4 & 5  & 6  & 7  & 8  & 9  & 10 & 11  & 12  \\
+%     \midrule
+%     $m_l$ & 2 & 3 & 4 & 6 & 9 & 13 & 19 & 28 & 42 & 63 & 94 & 141 & 211 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-\subsubsection{Dadda's Algorithm}
+% \begin{tcolorbox}[title=Dadda's Algorithm, bottom=0pt, after skip=2pt]
+% \textbf{Input:} A bit heap with maximum column height $h$.\\
+% \textbf{Output:} A two-row bit heap.
 
-\begin{table}
-  \centering
-  \caption{Elements of the Dadda sequence}
-  \label{tab:dadda-sequence}
-  \small
-  \setlength{\tabcolsep}{3.1pt}
-  \begin{tabular}{lrrrrrrrrrrrrrrr}
-    \toprule
-    $l$   & 0 & 1 & 2 & 3 & 4 & 5  & 6  & 7  & 8  & 9  & 10 & 11  & 12  \\
-    \midrule
-    $m_l$ & 2 & 3 & 4 & 6 & 9 & 13 & 19 & 28 & 42 & 63 & 94 & 141 & 211 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{tcolorbox}[title=Dadda's Algorithm, bottom=0pt, after skip=2pt]
-\textbf{Input:} A bit heap with maximum column height $h$.\\
-\textbf{Output:} A two-row bit heap.
-
-\begin{enumerate}
-  \item Compute the smallest $L$ such that $m_L \geq h$, where the Dadda
-        sequence (Table 1) is given by $m_0 = 2$ and $m_l = \lfloor \frac{3}{2} m_{l-1} \rfloor$.
-  \item Starting at level $l = L$, scan all columns from \ac{lsb} to \ac{msb}.
-        For each column whose height exceeds $m_{l-1}$, introduce the
-        fewest number of \ac{fa}s and at most one \ac{ha} to bring the height down to $m_{l-1}$.
-        Carry outputs are added to the next column, but
-        should be left uncompressed until the following level.
-  \item Decrement $l$ and repeat until every column has height at most~2.
-\end{enumerate}
-\end{tcolorbox}
+% \begin{enumerate}
+%   \item Compute the smallest $L$ such that $m_L \geq h$, where the Dadda
+%         sequence (Table 1) is given by $m_0 = 2$ and $m_l = \lfloor \frac{3}{2} m_{l-1} \rfloor$.
+%   \item Starting at level $l = L$, scan all columns from \ac{lsb} to \ac{msb}.
+%         For each column whose height exceeds $m_{l-1}$, introduce the
+%         fewest number of \ac{fa}s and at most one \ac{ha} to bring the height down to $m_{l-1}$.
+%         Carry outputs are added to the next column, but
+%         should be left uncompressed until the following level.
+%   \item Decrement $l$ and repeat until every column has height at most~2.
+% \end{enumerate}
+% \end{tcolorbox}
 
 \section{Formalization}
 
@@ -415,13 +411,12 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
-  \text{indices }  n,k \in \mathbb{N}  \qquad
+  \text{indices }  n \in \mathbb{N}  \qquad
   \circledast \in \{\wedge,\vee,\oplus\}}\\[6pt]
+
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
-\sam{What is $\barwedge$? You need to define it.}
-\osman{It is the NAND operation. do we also need to define $\wedge$ or $\vee$ as well? are they not standard? (though not so sure about $\barwedge$)}
 
 \[
 \begin{array}{r@{\;}c@{\;}l}
@@ -473,7 +468,7 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
-  \csem{\cdot} \;:\; \Heap_w \to \mathbb{Z}} \\[4pt]
+  \csem{\cdot} \;:\; \Heap_w \to \mathbb{N}} \\[4pt]
 \csem{h}
   &=& \Bigl(\textstyle\sum_{k<w} 2^{k} \sum_{c \in h_k} \csem{c}\Bigr)
       \bmod 2^{w}
@@ -490,21 +485,18 @@ This is defined by adding up all the bits across all the columns, with bits at c
   Step & Applicability & Effect \\
   \midrule
   $\HA(k,i,j)$
-    & $i,j \in \gamma_k$, $i \neq j$
+    & $i,j \in \gamma_k$, $i \neq j$, $k\le w$
     & remove $i,j$ from $\gamma_k$;\;
       add $i \oplus j$ at $\gamma_k$;\;
       add $i \wedge j$ at $\gamma_{k{+}1}$ \\[2pt]
   $\FA(k,i,j,l)$
-    & $i,j,l \in \gamma_k$, pairwise distinct
+    & $i,j,l \in \gamma_k$, pairwise distinct, $k\le w$
     & remove $i,j,l$ from $\gamma_k$;\;
       add $i \oplus j \oplus l$ at $\gamma_k$;\;
       add $\maj(i,j,l)$ at $\gamma_{k{+}1}$ \\
   \bottomrule
   \end{tabular}
 \end{table*}
-\sam{This now feels like an excessive use of notation - coulde we not just write a double sum to avoid create $\mathcal{G}$ - I also think the mapping to $\mathbb{Z}$ is not correct - it should be $\mathbb{N}$ as the outer mod should just be applied when you modify the circuits (the positive residue I think this is called)?}
-\osman{The evalMod function that we have actually returns an Int, as the part of the theorem statement for bit removal can temporarily go negative (I have explained why this is the case last week). However, I can make the evalMod function return a Nat with some Int/Nat cast conversions in the proofs. I'm more happy with that }
-
 
 For the purposes of both implementation and proofs by induction,
 it is much better to define the evaluation of a bit heap using Horner's method,
@@ -618,8 +610,6 @@ This allows us to represent nested arithmetic expressions, such as multiply-accu
 
 An \Arith variable $\mathsf{var}(i,b)$ represents the $i$-th input word,
 with only the least-significant $b$ bits being live, and the remaining bits being zero.
-\sam{Why not just call it a bitvector of width $b$? - a question of signage naturally arises here?} \osman{@sam: I think it would be wrong to call it a bitvector of width $b$ since it is a bitvec of width $w$ with just upper bits padded with zeroes.
-I added an image to make it clear. LMK if the image is unnecessary.}
 Carrying the live bits separately from the weight $w$ allows us to fit narrow operands into a wider datapath, 
 as this is commonly needed in multiplication to preserve the full precision of the result (\autoref{fig:livebits}). 
 
@@ -719,14 +709,11 @@ Formally, we define a \Step as either a half adder or a full adder, which takes 
 % The effects of a single step on the heap with the applicability conditions are shown in Table~\autoref{tab:steps}.
 % Both applicability conditions are forced by Theorem~\autoref{thm:removeBit}, which requires bits to be present and that they are pairwise distinct.
 Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
-\sam{In the applicability conditions, you don't reference that k< width? And why not just phrase the effect in terms of addBit and removeBit?} 
-\osman{@sam: because $k < w$ is not an explicit precondition. In fact, it can be derived from the other hypotheses (we actually do that in the code, see theorem is\_elem\_in\_bounds).}
 
 \begin{theorem}[Half/Full Adder Correctness]
 \label{thm:step-correct}
 For all $h : \Heap_w$, and $s : \Step$ if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
-\sam{Bit confused by $\sigma$ now it is $ \mathcal{V} \to \mathbb{B}$ and $\mathbb{N} \to \mathbb{B}$ earlier?}
 
 This proof rewrites the goal using the lemmas for adding and removing bits (\autoref{thm:addBit}, \autoref{thm:removeBit}) until the
 goal becomes an arithmetic identity over the Boolean values of bits.
@@ -780,7 +767,7 @@ which states that any well-formed chain preserves the value of the bit heap.
 For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
 \[
   \forall \sigma,\quad
-  \hsem{h} \;=\; \hsem{S(h)}.
+  \hsem{S(h)} \;=\; \hsem{h} .
 \]
 \end{theorem}
 
