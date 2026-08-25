@@ -341,8 +341,8 @@ avoiding multiple carry-propagation adders to compute the sum.
 Compression reduces the height of a bit heap to two, after which a single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
 The reduction is carried out by compressors, half adders ($2{:}2$), full adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 
-Different compression algorithms exist, such as Wallace tree which greedily compresses the circuit and Dadda tree, 
-using only as many adders to meet a fix target height. 
+% Different compression algorithms exist, such as Wallace tree which greedily compresses the circuit and Dadda tree, 
+% using only as many adders to meet a fix target height. 
 
 % \subsubsection{Dadda's Algorithm}
 
@@ -462,35 +462,34 @@ and a \Heap of width $w$ as a vector of $w$ columns.
   \hfill
   \begin{subfigure}{0.44\linewidth}
     \centering
-    \includegraphics[width=0.95\linewidth]{basic-bh.pdf}
-    \caption{The resulting bit heap.}
-    \label{fig:basic-bh}
-  \end{subfigure}
-  \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
-  $a_i b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
-  \label{fig:bitheap-example}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}{0.52\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{partialproducts_dot.pdf}
-    \caption{Partial products of $a \times b$.}
-    \label{fig:partialproducts}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}{0.44\linewidth}
-    \centering
     \includegraphics[width=0.95\linewidth]{basic-bh_dots.pdf}
     \caption{The resulting bit heap.}
     \label{fig:basic-bh}
   \end{subfigure}
   \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
-  $a_i b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
+  $a_i \wedge b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
   \label{fig:bitheap-example}
 \end{figure}
-\sam{I really feel like an example would be hugely valuable here! Definitions should be concise and clear, this is overly verbose and not helpful in my opinion.}
+
+% \begin{figure}[h]
+%   \centering
+%   \begin{subfigure}{0.52\linewidth}
+%     \centering
+%     \includegraphics[width=\linewidth]{partialproducts_dot.pdf}
+%     \caption{Partial products of $a \times b$.}
+%     \label{fig:partialproducts}
+%   \end{subfigure}
+%   \hfill
+%   \begin{subfigure}{0.44\linewidth}
+%     \centering
+%     \includegraphics[width=0.95\linewidth]{basic-bh_dots.pdf}
+%     \caption{The resulting bit heap.}
+%     \label{fig:basic-bh}
+%   \end{subfigure}
+%   \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
+%   $a_i \wedge b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
+%   \label{fig:bitheap-example}
+% \end{figure}
 
 \paragraph{Evaluation of Bit Heaps}
 Since a bit heap represents a summation of weighted bits,
