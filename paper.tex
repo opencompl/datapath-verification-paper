@@ -398,7 +398,7 @@ Internally, \BitExpr variables are represented by a natural number index.
 In order to evaluate a \BitExpr, we need the values of all the variables in the \BitExpr.
 These values are supplied by a bit environment $(\sigma : \mathbb Var \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
-The evaluation function $\csem{e} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
+The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
 producing a concrete boolean value. It is defined in the usual way by reduction on the language of \BitExpr.
 
 \[
@@ -843,6 +843,45 @@ The next sections will explain the integration into Lean's bitblaster and the re
 \subsection{Bit Blaster}
 
 \section{Results}
+\begin{table}
+  \centering
+  \caption{Per-benchmark results at 32-bit operand width. Area is the and-inverter count of the synthesised AIG; depth is the longest path in logic levels. $^{\dagger}$ marks signed benchmarks.}
+  \label{tab:verified-full-32}
+  \small
+  \begin{tabular}{lrrrrrr}
+    \toprule
+    & \multicolumn{2}{c}{Area} & \multicolumn{2}{c}{Depth} & \multicolumn{2}{c}{Verified /} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+    Benchmark & Datapath & Verified & Datapath & Verified & Area & Depth \\
+    \midrule
+    AddMop & 813 & 996 & 21 & 21 & 1.23 & 1.00 \\
+    AddMulSgn$^{\dagger}$ & 15626 & 22360 & 52 & 69 & 1.43 & 1.33 \\
+    AddMulUns & 11034 & 12712 & 48 & 57 & 1.15 & 1.19 \\
+    AddThree & 747 & 856 & 17 & 18 & 1.15 & 1.06 \\
+    AddThreeSgn$^{\dagger}$ & 750 & 859 & 17 & 18 & 1.15 & 1.06 \\
+    AlphaBlend & 18049 & 24410 & 53 & 64 & 1.35 & 1.21 \\
+    CarrySaveCompare & 9785 & 12106 & 52 & 51 & 1.24 & 0.98 \\
+    CarrySaveSelect & 7236 & 10868 & 47 & 52 & 1.50 & 1.11 \\
+    DotProduct & 17503 & 23861 & 53 & 57 & 1.36 & 1.08 \\
+    DotProductSgn$^{\dagger}$ & 17487 & 42885 & 52 & 61 & 2.45 & 1.17 \\
+    Fma & 9289 & 12225 & 45 & 56 & 1.32 & 1.24 \\
+    FmaSgn$^{\dagger}$ & 9275 & 22069 & 45 & 61 & 2.38 & 1.36 \\
+    FmaShare & 10347 & 13039 & 49 & 53 & 1.26 & 1.08 \\
+    FmaShareSgn$^{\dagger}$ & 11050 & 23295 & 49 & 61 & 2.11 & 1.24 \\
+    Fmaa & 12869 & 14107 & 47 & 64 & 1.10 & 1.36 \\
+    FmaaSgn$^{\dagger}$ & 13043 & 48219 & 47 & 80 & 3.70 & 1.70 \\
+    MulAddSgn$^{\dagger}$ & 9514 & 22069 & 45 & 61 & 2.32 & 1.36 \\
+    MulAddUns & 9444 & 12548 & 45 & 57 & 1.33 & 1.27 \\
+    MulThree & 8187 & 10409 & 67 & 78 & 1.27 & 1.16 \\
+    MulThreeSgn$^{\dagger}$ & 8187 & 10409 & 67 & 78 & 1.27 & 1.16 \\
+    SqrSgn$^{\dagger}$ & 8858 & 19420 & 45 & 49 & 2.19 & 1.09 \\
+    SqrUns & 4598 & 10399 & 39 & 44 & 2.26 & 1.13 \\
+    \midrule
+    Geometric mean & & & & & 1.56 & 1.19 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 
 \section{Related Work}
 \citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
