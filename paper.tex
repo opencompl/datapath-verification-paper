@@ -630,39 +630,17 @@ An \Arith is a word-level expression, which can be a variable,
 a variadic addition of \Arith expressions,
 or a multiplication of two \Arith expressions.
 This allows us to represent nested arithmetic expressions, such as multiply-accumulate.
+An \Arith variable $\mathsf{var}(i)$ represents the $i$-th input word.
+We also support zero-extension of the variables, that allows us to fit narrow operands into a wider datapath,
+as this is commonly needed in multiplication to preserve the full precision of the result 
 
 \begin{align*}
-  &i, b \in \mathbb{N} \qquad w \in \mathbb{N}^{+}\\
-  \mathtt{ArithCircuit}_w \ni a &::= \mathsf{var}(i, b)
-    \mid a \times a\\
-  &\phantom{{}::={}} \mid \mathsf{add}[a_0,\dots,a_{n-1}]
+  i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
+  \mathtt{ArithCircuit}_w \ni a &::= \mathsf{var}(i)\\
+  &\phantom{{}::={}} \mid \mathsf{zext}_{w}(a, e)\\
+  &\phantom{{}::={}} \mid \mathsf{add}[a_0,\dots,a_{n-1}]\\
+  &\phantom{{}::={}} \mid \mathsf{mul}[a, a]\\
 \end{align*}
-
-An \Arith variable $\mathsf{var}(i,b)$ represents the $i$-th input word,
-with only the least-significant $b$ bits being live, and the remaining bits being zero.
-Carrying the live bits separately from the weight $w$ allows us to fit narrow operands into a wider datapath, 
-as this is commonly needed in multiplication to preserve the full precision of the result (\autoref{fig:livebits}). 
-
-\begin{figure}[h]
-  \centering
-  \begin{subfigure}{\linewidth}
-    \centering
-    \includegraphics[width=0.55\linewidth]{zero-extension-code.pdf}
-    \caption{Zero-extended wire}
-    \label{fig:livebits-code}
-  \end{subfigure}
-  \\[1em]
-  \begin{subfigure}{\linewidth}
-    \centering
-    \includegraphics[width=0.85\linewidth]{zero-extension-image.pdf}
-    \caption{The resulting bit heap.}
-    \label{fig:livebits-bits}
-  \end{subfigure}
-  \caption{Live bits and zero-extension. A $4$-bit operand placed in an $8$-bit datapath has
-  $b = 4$ live bits, with the remaining $w - b = 4$ bits zero. In \Arith this is written
-  $\mathsf{var}(i, 4)$ with width $w = 8$.}
-  \label{fig:livebits}
-\end{figure}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
 where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
@@ -670,7 +648,8 @@ For a single variable, we evaluate it by truncating the value of the variable to
 The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations.
 
 \begin{align*}
-  \bvsem{\mathsf{var}(i,b)} &= \mathsf{zext}_{w}\big(\mathsf{trunc}_{\min(b,w)}(\rho\, i)\big)\\
+  \bvsem{\mathsf{var}(i)} &= \rho\, i\\
+  \bvsem{\mathsf{zext}_{w}(a')} &= \mathsf{zext}_{w}\big(\bvsem{a'}\big)\\
   \bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} &= \textstyle\sum_{t<n} \bvsem{a_t}\\
   \bvsem{a_0 \times a_1} &= \bvsem{a_0} \cdot \bvsem{a_1}
 \end{align*}
