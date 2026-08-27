@@ -269,12 +269,21 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
+Datapath circuits are the core computational units of the digital designs;
+being the most timing-critical part of the design, they are aggressively optimized.
 %  2. State the problem you tackle.
+These aggresive optimizations, such as application of compression trees, make datapath circuits hard to verify.
 %  3. Summarize (in one sentence) why nobody else has adequately answered the research question yet.
+While different methods to verify datapath circuits exist,
+they fall short of verifying complex circuits with large bit widths.
 %  4. Explain, in one sentence, how you tackled the research question.
+We tackle the verification problem at the synthesis step rather than post-synthesis, 
+proposing a verified-synthesis pipeline built on the interactive theorem prover Lean~4 and integrated into CIRCT.
 %  5. In one sentence, how did you go about doing the research that follows from your big idea.
+We formalize bit heap data structure in Lean 4, use it to synthesize compression trees,
+and formally reason about the correctness of these optimizations and datapath synthesis as a whole.
 %  6. As a single sentence, what’s the key impact of your research?
-
+Our framework synthesizes datapath circuits in seconds with formal verification guarantees.
 % (http://www.easterbrook.ca/steve/2010/01/how-to-write-a-scientific-abstract-in-six-easy-steps/)
 
 \end{abstract}
@@ -282,7 +291,7 @@
 %% IEEE keywords. The ACM CCS concept block has no IEEE equivalent and was
 %% dropped; IEEE venues use index terms instead.
 \begin{IEEEkeywords}
-keyword1, keyword2, keyword3
+Formal Verification, Datapath, Theorem Provers
 \end{IEEEkeywords}
 
 \section{Introduction}
