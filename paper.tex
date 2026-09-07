@@ -125,6 +125,8 @@
 \newacronym{sca}{SCA}{Symbolic Computer Algebra}
 \newacronym{hls}{HLS}{High-level Synthesis}
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
+\newacronym{cse}{CSE}{Common Subexpression Elimination}
+\newacronym{aig}{AIG}{AND-Inverter Graph}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
 % Denotation of a BitExpr under the bit environment sigma. The heap denotation
@@ -273,37 +275,46 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
-Datapath circuits are the core computational units of \sam[the]{} digital designs;
+Datapath circuits are the core computational units of digital designs;
 being the most timing-critical part of the design, they are aggressively optimized.
 %  2. State the problem you tackle.
-These aggresive optimizations, such as application of compression trees, make datapath circuits hard to verify.
+These aggressive optimizations, such as application of compressor trees, make datapath circuits hard to verify.
 %  3. Summarize (in one sentence) why nobody else has adequately answered the research question yet.
-Two dominant methods to verify datapath circuits exist.
-Firstly, SAT-based methods convert the verification problem into a booleans satisfiability problem.
-However, this fails to scale to large bit widths due to state-space explosion.
-On the otherhand, SCA methods convert the verification problem into an algebraic equivalence checking problem.
-However, these fail due to the inherent undeciability of algebraic equivalence checking.
+Existing methods tackle the verification after synthesis:
+SAT-based methods do not scale to large bit widths, 
+and computer-algebra methods must first recover the circuit structure that optimizations destroyed, 
+and therefore struggle with complex circuits.
 %  4. Explain, in one sentence, how you tackled the research question.
-Our insight is that these methods attempt to tackle the verification problem at the wrong stage.
-They are all post-synthesis, where the structure of the circuit optimization has already been lost.
-Instead, we propose a pre-synthesis approach, where we build a formally verified
-synthesis pipeline built on \sam[the]{} interactive theorem proving.
-This eliminates the need for an expensive post-synthesis verification,
-instead leveraging the ability to implement correct-by-construction algorithms in a theorem prover.
+We tackle the verification problem at a different step.
+Rather than verifying a circuit post-synthesis, 
+we construct it in an interactive theorem prover, 
+synthesizing correct-by-construction circuits through structural information available at the synthesis step.
+% Our insight is that these methods attempt to tackle the verification problem at the wrong stage.
+% They are all post-synthesis, where the structure of the circuit optimization has already been lost.
+% Instead, we propose a pre-synthesis approach, where we build a formally verified
+% synthesis pipeline built on interactive theorem proving.
+% This eliminates the need for an expensive post-synthesis verification,
+% instead leveraging the ability to implement correct-by-construction algorithms in a theorem prover.
 %  5. In one sentence, how did you go about doing the research that follows from your big idea.
-For this approach, we phrase circuit synthesis as a bit-heap compression problem.
-We formalize \sam{the} bit heap data structure and its operations in the Lean theorem prover,
-synthesize compression trees with this data structure,
-and prove the correctness of these optimizations and \sam[the]{} datapath synthesis as a whole.
-% Has real numbers
-Furthermore, our framework produces circuits that are consumed by the CIRCT framework, 
-that when applied to real world circuit designs, are \SynthesisSpeedupGeomean{} faster
-in synthesis plus verification time \sam[on]{grammar feels off} state-of-the-art verificiation tools,
-while only being \PerformanceSlowdownGeomean{} slower than the state of the art synthesis.
+For this approach, we formalize bit heaps and their compression in Lean 4, 
+construct Dadda trees over this formalization, 
+and prove the correctness of these optimizations and datapath synthesis as a whole.
+Furthermore, our pipeline produces circuits that are consumed by the CIRCT framework, 
+that when applied to real-world circuit designs, are \SynthesisSpeedupGeomean{} faster
+total synthesis and verification time than the state-of-the-art verification tools.
+% For this approach, we phrase circuit synthesis as a bit-heap compression problem.
+% We formalize the bit heap data structure and its operations in the Lean theorem prover,
+% synthesize compression trees with this data structure,
+% and prove the correctness of these optimizations and datapath synthesis as a whole.
+% Furthermore, our framework produces circuits that are consumed by the CIRCT framework, 
+% that when applied to real world circuit designs, are \SynthesisSpeedupGeomean{} faster
+% in synthesis plus verification time \sam[on]{grammar feels off} state-of-the-art verificiation tools,
+% while only being \PerformanceSlowdownGeomean{} slower than the state of the art synthesis.
 %  6. As a single sentence, what’s the key impact of your research?
-This demonstrates that our approach provides orders of magnitude speedup on verification,
-while not \sam[sacrificing performance]{Runtime performance yes - circuit quality which feels like a measure of perf for a synthesis tool - I would not claim.}. 
-Overall, our approach lays down the foundations for fast, performant datapath circuit synthesis.\sam{Surely the focus is correct/verified not fast and performant - what does performant mean here - before it meant runtime now it means circuit quality?}
+Overall, our approach lays down the foundations of verified datapath circuit synthesis.
+% This demonstrates that our approach provides orders of magnitude speedup on verification,
+% while not \sam[sacrificing performance]{Runtime performance yes - circuit quality which feels like a measure of perf for a synthesis tool - I would not claim.}. 
+% Overall, our approach lays down the foundations for fast, performant datapath circuit synthesis.\sam{Surely the focus is correct/verified not fast and performant - what does performant mean here - before it meant runtime now it means circuit quality?}
 % (http://www.easterbrook.ca/steve/2010/01/how-to-write-a-scientific-abstract-in-six-easy-steps/)
 
 \end{abstract}
@@ -318,31 +329,32 @@ Formal Verification, Datapath, Theorem Provers
 Datapath circuits are a fundamental component of digital systems, responsible from moving and processing data.
 
 Adders are used extensively in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
-
-In \ac{asic}, carry propagation is a major contributor to delay. 
+Improving the way multiple-summand addition is computed greatly improves the delay of the circuit, since in \ac{asic}, carry propagation is a major contributor to delay. 
 In cases where multiple summands must be added, the naïve approach chains carry-propagate adders, growing the delay linearly with the number of bits and summands.
 Datapath synthesis methods address this issue by reducing multiple summands to two using carry-save arithmetic, avoiding multiple carry-propagation adders to compute the sum.
 The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
 
 Different techniques exist to verify datapath circuits, such as \ac{sca} and SAT-based methods.
 A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large and complex circuits.
+SAT-based methods convert the verification problem into a booleans satisfiability problem.
+However, this fails to scale to large bit widths due to state-space explosion.
+On the otherhand, SCA methods convert the verification problem into an algebraic equivalence checking problem.
+However, these fail due to the inherent undeciability of algebraic equivalence checking.
 
 We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
 This correct-by-construction approach guarantees that the generated circuits are correct, and scales to large circuits.
 
 We formalize the bit heap data structure and compression algorithms, and integrate them into an existing industrial synthesis tool to provide formally verified datapath circuits.
 
-
 Our list of contributions is as follows:
 \begin{itemize} 
   \item Formalization of bit heap data structure and efficient compression algorithms in a theorem prover
   \item Integration into an existing synthesis flow to provide formally verified datapath circuits to eliminate the SAT solver bottleneck
-  \item Integration of bit heap data structure into Lean 4's formally verified bit blaster to improve the solvers capabilities
   \item Verified synthesis of existing datapath benchmark suite 
 \end{itemize}
 
 \section{Background}
-In digital arithmetic, an integer or fixed-point number is represented as follows:
+In digital arithmetic, an unsigned integer or fixed-point number is represented as follows:
 \[
   X = \sum_{i=0}^{n-1} 2^i \cdot x_i 
 \]
@@ -499,26 +511,6 @@ and a \Heap of width $w$ as a vector of $w$ columns.
   $a_i \wedge b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
   \label{fig:bitheap-example}
 \end{figure}
-
-% \begin{figure}[h]
-%   \centering
-%   \begin{subfigure}{0.52\linewidth}
-%     \centering
-%     \includegraphics[width=\linewidth]{partialproducts_dot.pdf}
-%     \caption{Partial products of $a \times b$.}
-%     \label{fig:partialproducts}
-%   \end{subfigure}
-%   \hfill
-%   \begin{subfigure}{0.44\linewidth}
-%     \centering
-%     \includegraphics[width=0.95\linewidth]{basic-bh_dots.pdf}
-%     \caption{The resulting bit heap.}
-%     \label{fig:basic-bh}
-%   \end{subfigure}
-%   \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
-%   $a_i \wedge b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
-%   \label{fig:bitheap-example}
-% \end{figure}
 
 \paragraph{Evaluation of Bit Heaps}
 Since a bit heap represents a summation of weighted bits,
@@ -847,8 +839,32 @@ The next sections will explain the integration into Lean's bitblaster and the re
 \section{Integration}
 
 \subsection{Datapath Synthesis Engine}
+We integrate our verified synthesizer into CIRCT compiler framework, and make our contributions open-source.
+CIRCT's \texttt{circt-synth} flow lowers the word-level \texttt{comb} dialect to an
+\ac{aig}; within that flow, a datapath engine rewrites datapath operations into
+compressor trees in a dedicated pass.
+We replace exactly this pass and leave the rest of the flow untouched, so that our
+pipeline is a drop-in alternative to CIRCT's and the two are directly comparable.
 
-\subsection{Bit Blaster}
+The pass matches two-operand \texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ and composition of these operations (e.g. $a*b+c$). 
+Two-operand additions are already carry-propagate adders and are left alone, whereas
+variadic multiplications are decomposed into binary ones by an existing CIRCT pass beforehand.
+
+For each matched expression, our tool builds the corresponding bit heap and compresses
+it with the Dadda algorithm.
+The resulting chain is replayed through the well-formedness checker; a successful check
+discharges the hypotheses of Theorem~\ref{thm:tobitheap-compression}, which guarantees
+that the compressed heap denotes the same value as the original expression.
+The pass then emits the chain as gates, leaving two compressed rows and a single
+carry-propagate adder that CIRCT's existing synthesizer implements.
+
+We discharge this tail with a SAT solver, checking the netlist CIRCT ultimately produces
+against the circuit prescribed by our verified core.
+The only unproved steps that remain are the final carry-propagate adder and the local
+optimizations, such as \ac{cse}, that CIRCT applies afterwards.
+Because the two circuits differ only in this tail, the check is far cheaper than
+equivalence checking a multiplier against its specification: the solver never has to
+relate two independently constructed compressor trees.
 
 \section{Results}
 
@@ -892,7 +908,110 @@ The next sections will explain the integration into Lean's bitblaster and the re
   \end{tabular}
 \end{table}
 
+\begin{table}
+  \centering
+  \caption{Total time to obtain a trusted netlist at 8-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+  \label{tab:verify-time-8}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Benchmark & \textsc{Standard} & \textsc{Verified} \\
+    \midrule
+    AddMop & 0.66 & 0.22 \\
+    AddMulSgn$^{\dagger}$ & $\times$ & 18.12 \\
+    AddMulUns & $\times$ & 9.46 \\
+    AddThree & 0.64 & 0.23 \\
+    AddThreeSgn$^{\dagger}$ & 0.14 & 0.20 \\
+    AlphaBlend & $\times$ & 123.98 \\
+    CarrySaveCompare & 0.51 & 0.32 \\
+    CarrySaveSelect & 2.31 & 0.60 \\
+    DotProduct & $\times$ & 1.53 \\
+    DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    Fma & 70.48 & 0.65 \\
+    FmaSgn$^{\dagger}$ & 55.81 & 5.91 \\
+    FmaShare & 13.43 & 1.16 \\
+    FmaShareSgn$^{\dagger}$ & 15.75 & 4.85 \\
+    Fmaa & $\times$ & 0.46 \\
+    FmaaSgn$^{\dagger}$ & $\times$ & 22.43 \\
+    MulAddSgn$^{\dagger}$ & 248.05 & 3.80 \\
+    MulAddUns & 174.39 & 0.45 \\
+    MulThree & 10.05 & 2.03 \\
+    MulThreeSgn$^{\dagger}$ & 9.98 & 2.10 \\
+    SqrSgn$^{\dagger}$ & 0.18 & 0.34 \\
+    SqrUns & 0.16 & 0.27 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
+\begin{table}
+  \centering
+  \caption{Total time to obtain a trusted netlist at 16-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+  \label{tab:verify-time-16}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Benchmark & \textsc{Standard} & \textsc{Verified} \\
+    \midrule
+    AddMop & 0.44 & 0.24 \\
+    AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    AddMulUns & $\times$ & $\times$ \\
+    AddThree & 0.21 & 0.22 \\
+    AddThreeSgn$^{\dagger}$ & 0.17 & 0.22 \\
+    AlphaBlend & $\times$ & $\times$ \\
+    CarrySaveCompare & $\times$ & 5.57 \\
+    CarrySaveSelect & $\times$ & 2.77 \\
+    DotProduct & $\times$ & 58.02 \\
+    DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    Fma & $\times$ & 3.66 \\
+    FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    FmaShare & $\times$ & 36.59 \\
+    FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    Fmaa & $\times$ & 2.20 \\
+    FmaaSgn$^{\dagger}$ & $\times$ & 175.88 \\
+    MulAddSgn$^{\dagger}$ & $\times$ & 20.57 \\
+    MulAddUns & $\times$ & 1.59 \\
+    MulThree & $\times$ & 22.86 \\
+    MulThreeSgn$^{\dagger}$ & $\times$ & 22.72 \\
+    SqrSgn$^{\dagger}$ & 14.65 & 26.24 \\
+    SqrUns & 11.78 & 19.95 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
+  \centering
+  \caption{Total time to obtain a trusted netlist at 32-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+  \label{tab:verify-time-32}
+  \small
+  \begin{tabular}{lrr}
+    \toprule
+    Benchmark & \textsc{Standard} & \textsc{Verified} \\
+    \midrule
+    AddMop & 1.15 & 0.35 \\
+    AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    AddMulUns & $\times$ & $\times$ \\
+    AddThree & 0.35 & 0.29 \\
+    AddThreeSgn$^{\dagger}$ & 0.35 & 0.31 \\
+    AlphaBlend & $\times$ & $\times$ \\
+    CarrySaveCompare & $\times$ & 169.87 \\
+    CarrySaveSelect & $\times$ & 29.72 \\
+    DotProduct & $\times$ & $\times$ \\
+    DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    Fma & $\times$ & 54.21 \\
+    FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    FmaShare & $\times$ & $\times$ \\
+    FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    Fmaa & $\times$ & 22.87 \\
+    FmaaSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    MulAddSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    MulAddUns & $\times$ & 21.48 \\
+    MulThree & $\times$ & $\times$ \\
+    MulThreeSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    SqrSgn$^{\dagger}$ & $\times$ & $\times$ \\
+    SqrUns & $\times$ & $\times$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \section{Related Work}
 \citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
