@@ -600,13 +600,12 @@ increases the total value of the bit heap by $2^k$ times the value of the bit ex
 \label{thm:addBit} 
 For all bit heaps $h : \Heap_w$, bit expressions $c : \BitExpr$, weight $k : \mathbb{N}$,
 and environment $\sigma : \mathcal{V} \to \mathbb{B}$,
-
-  $\hsem{\mathtt{addBit}(k, c, h)}
-   =
-  \bigl(\hsem{h}
-        + 2^{k}\cdot \csem{c} \bigr) \bmod 2^{w}.
-  $
-    \end{theorem}
+$\hsem{\mathtt{addBit}(k, c, h)}
+ =
+\bigl(\hsem{h}
+      + 2^{k}\cdot \csem{c} \bigr) \bmod 2^{w}.
+$
+\end{theorem}
 
 The proof follows by functional induction on \texttt{addBit}, following the carry propagation described above.
 
@@ -653,11 +652,9 @@ We also support zero-extension of the variables, that allows us to fit narrow op
 as this is commonly needed in multiplication to preserve the full precision of the result 
 
 \begin{align*}
-  i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
-  \mathtt{ArithCircuit}_w \ni a &::= \mathsf{var}(i)\\
-  &\phantom{{}::={}} \mid \mathsf{zext}_{w}(a, e)\\
-  &\phantom{{}::={}} \mid \mathsf{add}[a_0,\dots,a_{n-1}]\\
-  &\phantom{{}::={}} \mid \mathsf{mul}[a, a]\\
+&i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
+&\mathtt{ArithCircuit}_w \ni a ::= \\
+&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]\\
 \end{align*}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
