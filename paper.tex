@@ -547,8 +547,7 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \end{table*}
 
 For the purposes of both implementation and proofs by induction,
-it is much better to define the evaluation of a bit heap using Horner's method,
-since it makes proofs cleaner, as it can be defined structurally recursively on the list of columns.
+it is much better to define the evaluation of a bit heap using Horner's method.
 
 $v_k = \sum_{c \in h_k} \csem{c}$ for the value of the column at
 index $k$:
@@ -562,7 +561,8 @@ index $k$:
 \end{equation}
 
 By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
-Horner's method is structurally recursive on the list of columns, which makes it convenient for induction in Lean.
+Horner's method cleanly separates the contribution of each column $v_k$,
+and is structurally recursive on the list of columns, which makes it ameanable to inductive reasoning.
 
 \paragraph{Constructing Bit Heaps}
 
