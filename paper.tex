@@ -660,14 +660,13 @@ as this is commonly needed in multiplication to preserve the full precision of t
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
 where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
 For a single variable, we evaluate it by truncating the value of the variable to its live bits, and zero-extending it to the width of the \Arith expression.
-The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations.
-
+The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations:
 \begin{align*}
-  \bvsem{\mathsf{var}(i)} &= \rho\, i\\
-  \bvsem{\mathsf{zext}_{w}(a')} &= \mathsf{zext}_{w}\big(\bvsem{a'}\big)\\
-  \bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} &= \textstyle\sum_{t<n} \bvsem{a_t}\\
-  \bvsem{a_0 \times a_1} &= \bvsem{a_0} \cdot \bvsem{a_1}
+  &\bvsem{\mathsf{var}(i)} = \rho\, i \qquad \bvsem{\mathsf{zext}_{w}(a')} = \mathsf{zext}_{w}\big(\bvsem{a'}\big)\\
+  &\bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} = \textstyle\sum_{t<n} \bvsem{a_t}\\
+  &\bvsem{a_0 \times a_1} = \bvsem{a_0} \cdot \bvsem{a_1}
 \end{align*}
+\newpage % start the next paragraph in a new page to look nicer.
 
 \paragraph{Bit Heap Construction from Arithmetic Expressions}
 
