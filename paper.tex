@@ -831,24 +831,31 @@ The next sections will explain the integration into CIRCT and the results of the
 \section{Integration}
 
 \subsection{Datapath Synthesis Engine}
-We integrate our verified synthesizer into CIRCT compiler framework, and make our contributions open-source.
+We integrate our verified synthesizer into \sam{the} CIRCT compiler framework, and make our contributions open-source.
+\sam{This is the first time we mention CIRCT - it should probably be discussed in the background?}
 CIRCT's \texttt{circt-synth} flow lowers the word-level \texttt{comb} dialect to an
 \ac{aig}; within that flow, a datapath engine rewrites datapath operations into
 compressor trees in a dedicated pass.
+\sam{Unfortunately, people will be unfamiliar with the dialect concept and certainly won't know comb - so this will need more description. Similarly, datapath operations is perhaps a bit confusing - really its arithmetic operations that are rewritten to be implemented with compressor trees?}
 We replace exactly this pass and leave the rest of the flow untouched, so that our
 pipeline is a drop-in alternative to CIRCT's and the two are directly comparable.
 
 The pass matches two-operand \texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ and composition of these operations (e.g. $a*b+c$). 
+\sam{Should probably say something about $(a+b)*c$ - which you don't handle right? We could distinguish this by saying we match arbitrary sums of products.}
 Two-operand additions are already carry-propagate adders and are left alone, whereas
 variadic multiplications are decomposed into binary ones by an existing CIRCT pass beforehand.
 
 For each matched expression, our tool builds the corresponding bit heap and compresses
 it with the Dadda algorithm.
+\sam{Should make it clear that we hand off the SOP expression to Lean here.}
 The resulting chain is replayed through the well-formedness checker; a successful check
-discharges the hypotheses of Theorem~\ref{thm:tobitheap-compression}, which guarantees
-that the compressed heap denotes the same value as the original expression.
+\sam[discharges the hypotheses of]{discharges the proof obligations required to apply} Theorem~\ref{thm:tobitheap-compression}, which guarantees
+that the compressed \sam{bit} heap denotes the same value as the original expression.
 The pass then emits the chain as gates, leaving two compressed rows and a single
 carry-propagate adder that CIRCT's existing synthesizer implements.
+
+\sam{If we have the space then I think inserting a high-level flow diagram from input SystemVerilog to output AIG would be helpful to show how our flow differs? 
+Secondly, I think we need to be clear about what steps are verified - e.g., the front-end from Verilog is not and neither is the hand-off to Lean or the return.}
 
 We discharge this tail with a SAT solver, checking the netlist CIRCT ultimately produces
 against the circuit prescribed by our verified core.
@@ -857,32 +864,38 @@ optimizations, such as \ac{cse}, that CIRCT applies afterwards.
 Because the two circuits differ only in this tail, the check is far cheaper than
 equivalence checking a multiplier against its specification: the solver never has to
 relate two independently constructed compressor trees.
+\sam{This last paragraph covers a lot of steps in very little detail and the ordering is off. We need to say how CIRCTs remaining flow lowers non-compressor tree operations to produce an AIG - 
+if we have the flow diagram then we can specifically annotate what technique we are using to verify the different stages.}
 
 \section{Results}
 We evaluate our results on two metrics, the circuit quality and the time needed to verify the circuits.
 We compare our results against the CIRCT datapath pass that we replace.
+\sam{We should provide some evidence that we really isolate the hard part with our Lean synthesizer. 
+Namely, a reviewer might ask well what happens if you decompose the original CIRCT problem into two separate SMT problems using an identical cutpoint as you've used.
+We can handle this query by showing that even for a simple multiplier this step does not converge with an SMT solver.}
 
 We use a benchmark consisting of 22 datapath designs\osman{need to appropriately cite the benchmark},
 spanning multi-operand addition and multiplication, dot-products and fused multiply-add variants in signed and unsigned forms.
 We instantiate each design at 8, 16, 32-bit operand widths.
 
-We synthesize the designs using both the unverified CIRCT path and our verified synthesizer.
-Both are technology mapped to the ASAP 7nm library \cite{asap7} using ABC, and we report the total cell area and critical-path delay.
-For the verification of the unverified path and the tail of our verified circuit, we use Bitwuzla SMT solver.
+We synthesize the designs using both the unverified CIRCT path and our verified synthesizer. \sam{Claiming we use a verified synthesizer is an overstatement - we only verify part of the flow.}
+Both are technology mapped to the ASAP 7nm library \cite{asap7} using ABC\sam{cite?}, and we report the total cell area and critical-path delay.
+For the verification of the unverified path and the tail of our verified circuit, we use Bitwuzla SMT solver.\sam{cite}
 
 \autoref{tab:verified-full-32-asap7} reports area and delay at 32-bits, normalized to the results of the unverified CIRCT path.
-The circuits our pass produces are close to CIRCT's: the geometric mean is $1.17\times$ in area and $1.14\times$ in delay at 32-bits, 
-with the gap being stable for other bit widths as well.  ($1.21\times$ / $1.12\times$ at 16 bits, $1.21\times$ / $1.10\times$ at 8 bits).
+The \sam[circuits]{netlists?} our pass produces are close to CIRCT's: the geometric mean is $1.17\times$ in area and $1.14\times$ in delay at 32-bits, 
+with the gap being stable for other bit widths as well ($1.21\times$ / $1.12\times$ at 16 bits, $1.21\times$ / $1.10\times$ at 8 bits).
 
 The existing gap in circuit quality is not an inherent limitation of our workflow.
-CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations. 
+CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations. \sam{cite?}
 This is also revealed on our performance on signed benchmarks.
 
 \autoref{tab:verify-time-32} reports how both of flows perform on total verification time. 
 For the unverified path, we verify the resulting \ac{aig} against the word-level Verilog design,
 and for the verified path, we verify the tail of the circuit -final-stage adder and simple optimizations, against the netlist generated by our Lean framework.
+\sam{the Lean framework does not really generate a netlist because you've left adders in it? Snapshot is a nice way to describe this.}
 
-The results show that we are not only faster in verification, but also able to verify some of the circuits that the standard flow cannot verify at all.
+The results show that we are not only \sam[faster]{be precise - how much faster when both solvers succeed?} in verification, but also able to verify \sam[some]{be precise how many? Make it a macro and update it later} of the circuits that the standard flow cannot verify at all.
 At 8-bit width the standard flow already fails on 7 of 22 designs, while our flow completes all but one, notably a signed benchmark (DotProductSgn).
 The advantage widens with operand width, at 16 bits the standard flow certifies only the five designs, whereas ours certifies 16.
 
