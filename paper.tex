@@ -461,7 +461,7 @@ In order to evaluate a \BitExpr, we need the values of all the variables in the 
 These values are supplied by a bit environment $(\sigma : \mathbb Var \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
 The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
-producing a concrete boolean value. It is defined in the usual way by reduction on the language of \BitExpr.
+producing a concrete boolean value. It is defined in the usual way by recursion on the language of \BitExpr.
 
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -479,12 +479,8 @@ producing a concrete boolean value. It is defined in the usual way by reduction 
   \sigma \;:\; Var \to \mathbb{B}
   \qquad
   \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[4pt]
-\csem{b} &=& \sigma(b)\\
-\csem{0} &=& \mathit{false}\\
-\csem{1} &=& \mathit{true}\\
-\csem{\neg c} &=& \neg \csem{c}\\
-\csem{c_0 \circledast c_1}
-  &=& \csem{c_0} \circledast \csem{c_1}
+\csem{b} &=& \sigma(b) \quad \csem{0} = \mathit{false} \quad \csem{1} = \mathit{true}\\
+\csem{\neg c} &=& \neg \csem{c} \quad \csem{c_0 \circledast c_1} = \csem{c_0} \circledast \csem{c_1}
 \end{array}
 \]
 
