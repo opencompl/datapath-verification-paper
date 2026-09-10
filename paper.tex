@@ -443,24 +443,21 @@ In order to evaluate a \BitExpr, we need the values of all the variables in the 
 These values are supplied by a bit environment $(\sigma : \mathbb Var \to \mathbb B)$,
 which maps each bit variable to its boolean value. 
 The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
-producing a concrete boolean value. It is defined in the usual way by recursion on the language of \BitExpr.
-
+producing a concrete boolean value. It is defined in the usual way by recursion on the language of \BitExpr:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
   b \in Var  \qquad
-  \circledast \in \{\wedge,\vee,\oplus\}}\\[6pt]
-
+  \circledast \in \{\wedge,\vee,\oplus\}}\\[2pt]
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
-
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \multicolumn{3}{@{}l@{}}{%
   \sigma \;:\; Var \to \mathbb{B}
   \qquad
-  \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[4pt]
+  \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[2pt]
 \csem{b} &=& \sigma(b) \quad \csem{0} = \mathit{false} \quad \csem{1} = \mathit{true}\\
 \csem{\neg c} &=& \neg \csem{c} \quad \csem{c_0 \circledast c_1} = \csem{c_0} \circledast \csem{c_1}
 \end{array}
@@ -494,11 +491,10 @@ and a \Heap of width $w$ as a vector of $w$ columns.
 \paragraph{Evaluation of Bit Heaps}
 Since a bit heap represents a summation of weighted bits,
 we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
-This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$.
-
+This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$:
 \[
 \begin{array}{r@{\;}c@{\;}l}
-\csem{\cdot} &:& \Heap_w \to \mathbb{N} \\[4pt]
+\csem{\cdot} &:& \Heap_w \to \mathbb{N} \\[2pt]
 \csem{h}
   &=& \Bigl(\textstyle\sum_{k<w} 2^{k} \sum_{c \in h_k} \csem{c}\Bigr)
       \bmod 2^{w}
@@ -625,12 +621,11 @@ or a multiplication of two \Arith expressions.
 This allows us to represent nested arithmetic expressions, such as multiply-accumulate.
 An \Arith variable $\mathsf{var}(i)$ represents the $i$-th input word.
 We also support zero-extension of the variables, that allows us to fit narrow operands into a wider datapath,
-as this is commonly needed in multiplication to preserve the full precision of the result 
-
+as this is commonly needed in multiplication to preserve the full precision of the result:
 \begin{align*}
 &i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
-&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{sext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]\\
+&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{sext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]
 \end{align*}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
@@ -693,8 +688,7 @@ This framework can be used to synthesize well-known, standard compression algori
 In this section, we prove the correctness of compression algorithms, starting from a single compressor step.
 
 Concretely, any compression algorithm produces a sequence of compression steps.
-Formally, we define a \Step as either a half adder or a full adder, which takes the column index and the bits it consumes as arguments.
-
+Formally, we define a \Step as either a half adder or a full adder, which takes the column index and the bits it consumes as arguments:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Step \ni s &::=& \HA(k,c,c) \mid \FA(k,c,c,c) &
@@ -739,8 +733,7 @@ The full adder case follows the same pattern, with $\maj(i,j,l)$ instead of $i \
 Having established that each individual step preserves the value of the heap, we now consider
 sequences of steps.
 Formally, a chain of compressors is an ordered list of compression steps, where each step is a half or full adder,
-and is either empty or a step followed by a chain.
-
+and is either empty or a step followed by a chain:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Chain \ni S &::=& [\,] \mid s :: S &
@@ -863,7 +856,7 @@ The netlists our pass produces are close to CIRCT's: the geometric mean is $1.17
 with the gap being stable for other bit widths as well ($1.21\times$ / $1.12\times$ at 16 bits, $1.21\times$ / $1.10\times$ at 8 bits).
 
 The existing gap in circuit quality is not an inherent limitation of our workflow.
-CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations. \sam{cite?}
+CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations \cite{application_specific_arithmetic}. \sam{cite?}
 This is also revealed on our performance on signed benchmarks.
 
 \autoref{tab:verify-time-16} reports how both of flows perform on total verification time. 
@@ -872,7 +865,6 @@ and for the verified path, we verify the tail of the circuit -final-stage adder 
 
 The results show that we are able to verify circuits that the standard flow cannot verify\osman{funny thing, we are not faster on the ones that the standard flow can already verify},
 with out flow verifying 11 more circuits than the standard flow, we show the effectiveness of our approach on verification.
-The results show that we are able to verify 11 circuits that the standard flow cannot verify at 16-bits. 
 
 \begin{table}
   \centering
