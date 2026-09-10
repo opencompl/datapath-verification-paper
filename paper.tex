@@ -276,20 +276,18 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
-Datapath circuits are core computational units of digital designs, and one of the most timing-critical part of the design,
-that are responsible from transforming, and manipulating data.
+Datapath circuits are the core computational units of digital designs and and one of the most timing-critical parts of the design.
 %  2. State the problem you tackle.
-To address the performance requirements, datapath circuits are aggressively optimized, such as application of compressor trees,
-and these optimizations make datapath circuits hard to verify.
+To meet the performance requirements, datapath circuits are aggressively optimized by synthesis tools.
+These automatic datapath optimizations, like the deployment of compressor trees, make it hard to verify that the synthesized netlist implements the correct computation.
 %  3. Summarize (in one sentence) why nobody else has adequately answered the research question yet.
-Existing methods provide post-hoc solutions for verification of such circuits, however, they fall short of providing correctness guarantees for real-world circuits.
-SAT-based methods do not scale to large bit widths, 
-and computer-algebra methods must first recover the circuit structure that optimizations destroyed, 
-and therefore struggle with complex circuits.
+Existing methods largely focus on verifying this post-synthesis netlist but either do not scale to large bit widths or
+struggle to recover the circuit structure that optimizations destroyed.
 %  4. Explain, in one sentence, how you tackled the research question.
-We tackle the verification problem at the synthesis step
-through constructing the circuit in an interactive theorem prover, 
-synthesizing correct-by-construction circuits through structural information available at the synthesis step.
+We however, tackle the verification problem during synthesis. 
+Rather than verifying the netlist post-synthesis, 
+we construct it in an interactive theorem prover, 
+synthesizing a provably correct-by-construction netlist.
 % Our insight is that these methods attempt to tackle the verification problem at the wrong stage.
 % They are all post-synthesis, where the structure of the circuit optimization has already been lost.
 % Instead, we propose a pre-synthesis approach, where we build a formally verified
@@ -297,11 +295,10 @@ synthesizing correct-by-construction circuits through structural information ava
 % This eliminates the need for an expensive post-synthesis verification,
 % instead leveraging the ability to implement correct-by-construction algorithms in a theorem prover.
 %  5. In one sentence, how did you go about doing the research that follows from your big idea.
-For this approach, we formalize bit heaps and their compression in Lean 4, 
-construct Dadda trees over this formalization, 
-and prove the correctness of these optimizations and datapath synthesis as a whole.
-Furthermore, our pipeline produces circuits consumed by the CIRCT framework, which, 
-when applied to real-world circuit designs, verifies 11 circuits that state-of-the-art verification tools cannot verify. 
+We formalize the bit heap data structure and two compressor tree construction algorithms in Lean 4,
+letting us prove the correctness of key synthesis steps for any design we might encounter.
+We integrate our formalized datapath synthesis engine with the CIRCT framework, which, 
+when applied to datapath benchmarks, verifies 11 circuits that state-of-the-art verification tools cannot. 
 % For this approach, we phrase circuit synthesis as a bit-heap compression problem.
 % We formalize the bit heap data structure and its operations in the Lean theorem prover,
 % synthesize compression trees with this data structure,
@@ -311,7 +308,7 @@ when applied to real-world circuit designs, verifies 11 circuits that state-of-t
 % in synthesis plus verification time \sam[on]{grammar feels off} state-of-the-art verificiation tools,
 % while only being \PerformanceSlowdownGeomean{} slower than the state of the art synthesis.
 %  6. As a single sentence, what’s the key impact of your research?
-Overall, our approach lays down the foundations of verified datapath circuit synthesis.
+% Overall, our approach lays down the foundations of verified datapath circuit synthesis.
 % This demonstrates that our approach provides orders of magnitude speedup on verification,
 % while not \sam[sacrificing performance]{Runtime performance yes - circuit quality which feels like a measure of perf for a synthesis tool - I would not claim.}. 
 % Overall, our approach lays down the foundations for fast, performant datapath circuit synthesis.\sam{Surely the focus is correct/verified not fast and performant - what does performant mean here - before it meant runtime now it means circuit quality?}
