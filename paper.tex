@@ -868,6 +868,43 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 
 \begin{table}
   \centering
+  \caption{Synthesis quality and verification time at 16 bits. Area and delay are post-mapping ASAP7 numbers relative to CIRCT's Datapath dialect ($<1.00$ favours the verified lowering). Verification time compares proving the result against the original Verilog (\textsc{Standard}) with proving only the comb-to-AIG tail against the Lean snapshot (\textsc{Verified}). $\times$: solver timeout; $^{\dagger}$: signed benchmark.}
+  \label{tab:qor-and-time-16}
+  \small
+  \begin{tabular}{lrrrr}
+    \toprule
+    & \multicolumn{2}{c}{Verified\,/\,Datapath} & \multicolumn{2}{c}{Time to verify (s)} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+    Benchmark & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
+    \midrule
+    AddMop & 1.00 & 1.06 & 0.44 & 0.24 \\
+    AddMulSgn$^{\dagger}$ & 1.19 & 1.45 & $\times$ & $\times$ \\
+    AddMulUns & 1.02 & 1.21 & $\times$ & $\times$ \\
+    AddThree & 1.00 & 0.94 & 0.21 & 0.22 \\
+    AddThreeSgn$^{\dagger}$ & 1.00 & 0.94 & 0.17 & 0.22 \\
+    AlphaBlend & 0.97 & 1.13 & $\times$ & $\times$ \\
+    CarrySaveCompare & 1.02 & 0.98 & $\times$ & 5.57 \\
+    CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.77 \\
+    DotProduct & 1.01 & 1.02 & $\times$ & 58.02 \\
+    DotProductSgn$^{\dagger}$ & 1.69 & 1.06 & $\times$ & $\times$ \\
+    Fma & 1.01 & 1.05 & $\times$ & 3.66 \\
+    FmaSgn$^{\dagger}$ & 1.68 & 1.21 & $\times$ & $\times$ \\
+    FmaShare & 1.01 & 1.17 & $\times$ & 36.59 \\
+    FmaShareSgn$^{\dagger}$ & 1.51 & 1.34 & $\times$ & $\times$ \\
+    Fmaa & 1.00 & 0.95 & $\times$ & 2.20 \\
+    FmaaSgn$^{\dagger}$ & 2.50 & 1.40 & $\times$ & 175.88 \\
+    MulAddSgn$^{\dagger}$ & 1.61 & 1.22 & $\times$ & 20.57 \\
+    MulAddUns & 1.01 & 1.07 & $\times$ & 1.59 \\
+    MulThree & 1.01 & 1.14 & $\times$ & 22.86 \\
+    MulThreeSgn$^{\dagger}$ & 1.01 & 1.14 & $\times$ & 22.72 \\
+    SqrSgn$^{\dagger}$ & 1.87 & 1.19 & 14.65 & 26.24 \\
+    SqrUns & 1.48 & 1.13 & 11.78 & 19.95 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}
+  \centering
   \caption{Per-benchmark area and delay at 32-bit operand width after technology
   mapping to ASAP7, reported by Mockturtle's mapper. Both columns are normalised to the
   unverified CIRCT datapath pass, so $1.00$ is parity and values below $1.00$
