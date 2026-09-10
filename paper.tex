@@ -323,7 +323,12 @@ Formal Verification, Datapath, Theorem Provers
 \end{IEEEkeywords}
 
 \section{Introduction}
-Datapath circuits are a fundamental component of digital systems, responsible from moving and processing data.
+Datapath circuits are a fundamental component of digital systems, responsible from performing computations on incoming data.
+Thanks to advances in automatic datapath synthesis~\cite{Zimmermann2003OptimizedSum-of-products,Zimmermann2009DatapathDesign},
+most datapath circuits can now be implemented using bitvector-level arithmetic.
+Modern synthesis tools can map entire arithmetic expressions to highly optimized gate-level circuits, or netlists, that effectively
+remove the computation of intermediate results. 
+In this paper, we prove that this automatic datapath synthesis produces functionally correct netlists.     
 
 Adders are used extensively in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
 Improving the way multiple-summand addition is computed greatly improves the delay of the circuit, since in \ac{asic}, carry propagation is a major contributor to delay. 
