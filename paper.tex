@@ -127,6 +127,7 @@
 \newacronym{asic}{ASIC}{application-specific integrated circuits}
 \newacronym{cse}{CSE}{Common Subexpression Elimination}
 \newacronym{aig}{AIG}{AND-Inverter Graph}
+\newacronym{sop}{SOP}{Sum-of-Products}
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
 % Denotation of a BitExpr under the bit environment sigma. The heap denotation
@@ -574,12 +575,6 @@ a natural choice of data structure that provides $O(1)$ inserts and deletes is a
 However, whilst this means we cannot add the same bit twice to a column,
 this actually benefits us as we explain below
 
-% Alternatively, we could use a multi-set like data structure, realized as either a raw list
-% (which would provide $O(n)$ inserts and deletes),
-% or a map from \BitExpr to its multiplicity (which has $O(\log n)$ inserts and deletes).
-% These are asymptotically slower than a set, so we choose to use a set for the implementation of the bit heap.
-% \sam{It seems unnecessary to justify why $O(1)$ is better - I'd ditch discussion of alternative representations.}
-
 \paragraph{Insertion}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the \Col of the bit heap that lies in index k.
 As previously mentioned, if the bit $e$ already exists in column $k$,
@@ -654,7 +649,7 @@ as this is commonly needed in multiplication to preserve the full precision of t
 \begin{align*}
 &i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
-&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]\\
+&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{sext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]\\
 \end{align*}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
@@ -782,6 +777,16 @@ and that the consumed bits are pairwise distinct.
 This well-formedness condition allows us to prove the key chain correctness theorem (\autoref{thm:chain-correct}),
 which states that any well-formed chain preserves the value of the bit heap.
 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.72\textwidth]{flow-diagram.png}
+  \caption{The baseline \texttt{circt-synth} flow (top) and ours (bottom). Both share
+  CIRCT's front-end passes and its \texttt{comb}-to-\ac{aig} lowering; we replace only the
+  compressor-tree pass, whose result is guaranteed by \autoref{thm:tobitheap-compression},
+  and check the remaining tail against the baseline netlist with a SAT solver.}
+  \label{fig:flow-comparison}
+\end{figure*}
+
 \begin{theorem}[Chain Correctness]
 \label{thm:chain-correct}
 For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
@@ -817,51 +822,43 @@ For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \mathbb{N} \to
 Finally, we prove that compression of word-level arithmetic expressions preserves the value (\autoref{thm:tobitheap-compression}).
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
 
-% \begin{figure}[h]
-%   \centering
-%   \includegraphics[width=0.4\linewidth]{4bit-dadda.png}
-%   \caption{Dadda reduction for an unsigned $4 \times 4$ multiplier.}
-%   \label{fig:4bit-dadda}
-% \end{figure}
-
 This now completes the overall proof of correctness of compression algorithms.
 We will use this to synthesize fast and verified multiplier circuits in CIRCT framework.
 The next sections will explain the integration into CIRCT and the results of the verified synthesis of multipliers.
 
 \section{Integration}
-\sam{No need for subsection now if we're not doing two case studies!}
 
-\subsection{Datapath Synthesis Engine}
-We integrate our verified synthesizer into \sam{the} CIRCT compiler framework, and make our contributions open-source.
+We integrate our verified synthesizer into the CIRCT compiler framework, and make our contributions open-source.
 \sam{This is the first time we mention CIRCT - it should probably be discussed in the background?}
 CIRCT's \texttt{circt-synth} flow lowers the word-level \texttt{comb} dialect to an
-\ac{aig}; within that flow, a datapath engine rewrites datapath operations into
+\ac{aig}; within that flow, a datapath engine rewrites arithmetic operations into
 compressor trees in a dedicated pass.
 \sam{Unfortunately, people will be unfamiliar with the dialect concept and certainly won't know comb - so this will need more description. Similarly, datapath operations is perhaps a bit confusing - really its arithmetic operations that are rewritten to be implemented with compressor trees?}
 We replace exactly this pass and leave the rest of the flow untouched, so that our
 pipeline is a drop-in alternative to CIRCT's and the two are directly comparable.
+\autoref{fig:flow-comparison} shows the two flows side by side, and marks which stages
+are verified in Lean and which are discharged by the SAT check on the tail.
 
-The pass matches two-operand \texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ and composition of these operations (e.g. $a*b+c$). 
-\sam{Should probably say something about $(a+b)*c$ - which you don't handle right? We could distinguish this by saying we match arbitrary sums of products.}
-Two-operand additions are already carry-propagate adders and are left alone, whereas
+The pass matches arbitrary sums of products, that is, expressions built from two-operand
+\texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ (e.g. $a*b+c*d+e$),
+but it does not match forTwo-operand additions are already carry-propagate adders and are left alone, whereas
 variadic multiplications are decomposed into binary ones by an existing CIRCT pass beforehand.
 
-For each matched expression, our tool builds the corresponding bit heap and compresses
+For each matched \ac{sop} expression, our tool builds the corresponding bit heap and compresses
 it with the Dadda algorithm.
-\sam{Should make it clear that we hand off the SOP expression to Lean here.}
 The resulting chain is replayed through the well-formedness checker; a successful check
-\sam[discharges the hypotheses of]{discharges the proof obligations required to apply} Theorem~\ref{thm:tobitheap-compression}, which guarantees
-that the compressed \sam{bit} heap denotes the same value as the original expression.
+discharges the proof obligations required to apply Theorem~\ref{thm:tobitheap-compression}, which guarantees
+that the compressed bit heap denotes the same value as the original expression.
 The pass then emits the chain as gates, leaving two compressed rows and a single
 carry-propagate adder that CIRCT's existing synthesizer implements.
 
-\sam{If we have the space then I think inserting a high-level flow diagram from input SystemVerilog to output AIG would be helpful to show how our flow differs? 
-Secondly, I think we need to be clear about what steps are verified - e.g., the front-end from Verilog is not and neither is the hand-off to Lean or the return.}
+\sam{Secondly, I think we need to be clear about what steps are verified - e.g., the front-end from Verilog is not and neither is the hand-off to Lean or the return.}
 
 We discharge this tail with a SAT solver, checking the netlist CIRCT ultimately produces
 against the circuit prescribed by our verified core.
 The only unproved steps that remain are the final carry-propagate adder and the local
 optimizations, such as \ac{cse}, that CIRCT applies afterwards.
+Since the  
 Because the two circuits differ only in this tail, the check is far cheaper than
 equivalence checking a multiplier against its specification: the solver never has to
 relate two independently constructed compressor trees.
@@ -875,35 +872,35 @@ We compare our results against the CIRCT datapath pass that we replace.
 Namely, a reviewer might ask well what happens if you decompose the original CIRCT problem into two separate SMT problems using an identical cutpoint as you've used.
 We can handle this query by showing that even for a simple multiplier this step does not converge with an SMT solver.}
 
-We use a benchmark consisting of 22 datapath designs\osman{need to appropriately cite the benchmark},
+We use a benchmark consisting of 22 datapath designs\footnote{\url{https://github.com/cowardsa/DatapathBench}},
 spanning multi-operand addition and multiplication, dot-products and fused multiply-add variants in signed and unsigned forms.
 We instantiate each design at 8, 16, 32-bit operand widths.
 
-We synthesize the designs using both the unverified CIRCT path and our verified synthesizer. \sam{Claiming we use a verified synthesizer is an overstatement - we only verify part of the flow.}
-Both are technology mapped to the ASAP 7nm library \cite{asap7} using ABC\sam{cite?}, and we report the total cell area and critical-path delay.
-For the verification of the unverified path and the tail of our verified circuit, we use Bitwuzla SMT solver.\sam{cite}
+We synthesize the designs using both the unverified CIRCT path and our verified datapath generator.
+Both are technology mapped to the ASAP 7nm library \cite{asap7} using Mockturtle, and we report the total cell area and critical-path delay.
+For the verification of the unverified path and the tail of our verified circuit, we use Bitwuzla SMT solver \cite{bitwuzla}
 
 \autoref{tab:verified-full-32-asap7} reports area and delay at 32-bits, normalized to the results of the unverified CIRCT path.
-The \sam[circuits]{netlists?} our pass produces are close to CIRCT's: the geometric mean is $1.17\times$ in area and $1.14\times$ in delay at 32-bits, 
+The netlists our pass produces are close to CIRCT's: the geometric mean is $1.17\times$ in area and $1.14\times$ in delay at 32-bits, 
 with the gap being stable for other bit widths as well ($1.21\times$ / $1.12\times$ at 16 bits, $1.21\times$ / $1.10\times$ at 8 bits).
 
 The existing gap in circuit quality is not an inherent limitation of our workflow.
 CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations. \sam{cite?}
 This is also revealed on our performance on signed benchmarks.
 
-\autoref{tab:verify-time-32} reports how both of flows perform on total verification time. 
+\autoref{tab:verify-time-16} reports how both of flows perform on total verification time. 
 For the unverified path, we verify the resulting \ac{aig} against the word-level Verilog design,
 and for the verified path, we verify the tail of the circuit -final-stage adder and simple optimizations, against the netlist generated by our Lean framework.
 \sam{the Lean framework does not really generate a netlist because you've left adders in it? Snapshot is a nice way to describe this.}
 
-The results show that we are not only \sam[faster]{be precise - how much faster when both solvers succeed?} in verification, but also able to verify \sam[some]{be precise how many? Make it a macro and update it later} of the circuits that the standard flow cannot verify at all.
-At 8-bit width the standard flow already fails on 7 of 22 designs, while our flow completes all but one, notably a signed benchmark (DotProductSgn).
-The advantage widens with operand width, at 16 bits the standard flow certifies only the five designs, whereas ours certifies 16.
+The results show that we are able to verify circuits that the standard flow cannot verify\osman{funny thing, we are not faster on the ones that the standard flow can already verify},
+with out flow verifying 11 more circuits than the standard flow, we show the effectiveness of our approach on verification.
+The results show that we are able to verify 11 circuits that the standard flow cannot verify at 16-bits. 
 
 \begin{table}
   \centering
   \caption{Per-benchmark area and delay at 32-bit operand width after technology
-  mapping to ASAP7, reported by ABC's mapper. Both columns are normalised to the
+  mapping to ASAP7, reported by Mockturtle's mapper. Both columns are normalised to the
   unverified CIRCT datapath pass, so $1.00$ is parity and values below $1.00$
   favour our flow. Geometric means are taken over all 22 benchmarks.
   $^{\dagger}$ marks signed benchmarks.}
@@ -943,41 +940,41 @@ The advantage widens with operand width, at 16 bits the standard flow certifies 
   \end{tabular}
 \end{table}
 
-\begin{table}
-  \centering
-  \caption{Total time to obtain a trusted netlist at 8-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
-  \label{tab:verify-time-8}
-  \small
-  \begin{tabular}{lrr}
-    \toprule
-    Benchmark & \textsc{Standard} & \textsc{Verified} \\
-    \midrule
-    AddMop & 0.66 & 0.22 \\
-    AddMulSgn$^{\dagger}$ & $\times$ & 18.12 \\
-    AddMulUns & $\times$ & 9.46 \\
-    AddThree & 0.64 & 0.23 \\
-    AddThreeSgn$^{\dagger}$ & 0.14 & 0.20 \\
-    AlphaBlend & $\times$ & 123.98 \\
-    CarrySaveCompare & 0.51 & 0.32 \\
-    CarrySaveSelect & 2.31 & 0.60 \\
-    DotProduct & $\times$ & 1.53 \\
-    DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    Fma & 70.48 & 0.65 \\
-    FmaSgn$^{\dagger}$ & 55.81 & 5.91 \\
-    FmaShare & 13.43 & 1.16 \\
-    FmaShareSgn$^{\dagger}$ & 15.75 & 4.85 \\
-    Fmaa & $\times$ & 0.46 \\
-    FmaaSgn$^{\dagger}$ & $\times$ & 22.43 \\
-    MulAddSgn$^{\dagger}$ & 248.05 & 3.80 \\
-    MulAddUns & 174.39 & 0.45 \\
-    MulThree & 10.05 & 2.03 \\
-    MulThreeSgn$^{\dagger}$ & 9.98 & 2.10 \\
-    SqrSgn$^{\dagger}$ & 0.18 & 0.34 \\
-    SqrUns & 0.16 & 0.27 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-\osman{I'm dumping all the data we have here, we can choose which ones we want}
+% \begin{table}
+%   \centering
+%   \caption{Total time to obtain a trusted netlist at 8-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+%   \label{tab:verify-time-8}
+%   \small
+%   \begin{tabular}{lrr}
+%     \toprule
+%     Benchmark & \textsc{Standard} & \textsc{Verified} \\
+%     \midrule
+%     AddMop & 0.66 & 0.22 \\
+%     AddMulSgn$^{\dagger}$ & $\times$ & 18.12 \\
+%     AddMulUns & $\times$ & 9.46 \\
+%     AddThree & 0.64 & 0.23 \\
+%     AddThreeSgn$^{\dagger}$ & 0.14 & 0.20 \\
+%     AlphaBlend & $\times$ & 123.98 \\
+%     CarrySaveCompare & 0.51 & 0.32 \\
+%     CarrySaveSelect & 2.31 & 0.60 \\
+%     DotProduct & $\times$ & 1.53 \\
+%     DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     Fma & 70.48 & 0.65 \\
+%     FmaSgn$^{\dagger}$ & 55.81 & 5.91 \\
+%     FmaShare & 13.43 & 1.16 \\
+%     FmaShareSgn$^{\dagger}$ & 15.75 & 4.85 \\
+%     Fmaa & $\times$ & 0.46 \\
+%     FmaaSgn$^{\dagger}$ & $\times$ & 22.43 \\
+%     MulAddSgn$^{\dagger}$ & 248.05 & 3.80 \\
+%     MulAddUns & 174.39 & 0.45 \\
+%     MulThree & 10.05 & 2.03 \\
+%     MulThreeSgn$^{\dagger}$ & 9.98 & 2.10 \\
+%     SqrSgn$^{\dagger}$ & 0.18 & 0.34 \\
+%     SqrUns & 0.16 & 0.27 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+% \osman{I'm dumping all the data we have here, we can choose which ones we want}
 \begin{table}
   \centering
   \caption{Total time to obtain a trusted netlist at 16-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
@@ -1013,40 +1010,40 @@ The advantage widens with operand width, at 16 bits the standard flow certifies 
   \end{tabular}
 \end{table}
 
-\begin{table}
-  \centering
-  \caption{Total time to obtain a trusted netlist at 32-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
-  \label{tab:verify-time-32}
-  \small
-  \begin{tabular}{lrr}
-    \toprule
-    Benchmark & \textsc{Standard} & \textsc{Verified} \\
-    \midrule
-    AddMop & 1.15 & 0.35 \\
-    AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    AddMulUns & $\times$ & $\times$ \\
-    AddThree & 0.35 & 0.29 \\
-    AddThreeSgn$^{\dagger}$ & 0.35 & 0.31 \\
-    AlphaBlend & $\times$ & $\times$ \\
-    CarrySaveCompare & $\times$ & 169.87 \\
-    CarrySaveSelect & $\times$ & 29.72 \\
-    DotProduct & $\times$ & $\times$ \\
-    DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    Fma & $\times$ & 54.21 \\
-    FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    FmaShare & $\times$ & $\times$ \\
-    FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    Fmaa & $\times$ & 22.87 \\
-    FmaaSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    MulAddSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    MulAddUns & $\times$ & 21.48 \\
-    MulThree & $\times$ & $\times$ \\
-    MulThreeSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    SqrSgn$^{\dagger}$ & $\times$ & $\times$ \\
-    SqrUns & $\times$ & $\times$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}
+%   \centering
+%   \caption{Total time to obtain a trusted netlist at 32-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+%   \label{tab:verify-time-32}
+%   \small
+%   \begin{tabular}{lrr}
+%     \toprule
+%     Benchmark & \textsc{Standard} & \textsc{Verified} \\
+%     \midrule
+%     AddMop & 1.15 & 0.35 \\
+%     AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     AddMulUns & $\times$ & $\times$ \\
+%     AddThree & 0.35 & 0.29 \\
+%     AddThreeSgn$^{\dagger}$ & 0.35 & 0.31 \\
+%     AlphaBlend & $\times$ & $\times$ \\
+%     CarrySaveCompare & $\times$ & 169.87 \\
+%     CarrySaveSelect & $\times$ & 29.72 \\
+%     DotProduct & $\times$ & $\times$ \\
+%     DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     Fma & $\times$ & 54.21 \\
+%     FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     FmaShare & $\times$ & $\times$ \\
+%     FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     Fmaa & $\times$ & 22.87 \\
+%     FmaaSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     MulAddSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     MulAddUns & $\times$ & 21.48 \\
+%     MulThree & $\times$ & $\times$ \\
+%     MulThreeSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     SqrSgn$^{\dagger}$ & $\times$ & $\times$ \\
+%     SqrUns & $\times$ & $\times$ \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
 \section{Related Work}
 \citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
