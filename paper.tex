@@ -1023,9 +1023,16 @@ The results show that we are able to verify 11 circuits that the standard flow c
 % \end{table}
 
 \section{Related Work}
+FloPoCo~\cite{application_specific_arithmetic} is an open-source datapath generator, written in C++,
+that produces arithmetic circuits in VHDL.
+It builds these circuits on the same bit heap abstraction and compression techniques that we formalize in this paper.
+However, the tool provides no formal correctness guarantees, and its circuits have to be validated by testing.
+
 \citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
-However, their verification tool itself remains to be unverified.
+\citet{trace} extend this line beyond multipliers with TRACE, an \ac{sca} engine that combines
+different substitution orders with polynomial compression techniques, namely phase optimization
+and conflict analysis, and verifies adders and multiply-accumulate units as well.
 
 In their work, \citet{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
@@ -1034,6 +1041,8 @@ Similar to our approach, their implementation of the tool in a theorem prover gu
 A line of research focuses on proving \ac{hls} tools correctt. 
 \citet{graphiti} introduces Graphiti, a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
+
+
 \section{Conclusion}
 
 %% Acknowledgments. IEEEtran has no \begin{acks} or \grantsponsor/\grantnum;

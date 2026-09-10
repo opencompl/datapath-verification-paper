@@ -1,135 +1,99 @@
-@inproceedings{mertcan_acl2multipliers,
-author = {Temel, Mertcan and Slobodova, Anna and Hunt, Warren A.},
-title = {Automated and Scalable Verification of Integer Multipliers},
-year = {2020},
-isbn = {978-3-030-53287-1},
-publisher = {Springer-Verlag},
-address = {Berlin, Heidelberg},
-url = {https://doi.org/10.1007/978-3-030-53288-8_23},
-doi = {10.1007/978-3-030-53288-8_23},
-abstract = {The automatic formal verification of multiplier designs has been pursued since the introduction of BDDs. We present a new rewriter-based method for efficient and automatic verification of signed and unsigned integer multiplier designs. We have proved the soundness of this method using the ACL2 theorem prover, and we can verify integer multiplier designs with various architectures automatically, including Wallace, Dadda, and 4-to-2 compressor trees, designed with Booth encoding and various types of final stage adders. Our experiments have shown that our approach scales well in terms of time and memory. With our method, we can confirm the correctness of -bit multiplier designs within minutes.},
-booktitle = {Computer Aided Verification: 32nd International Conference, CAV 2020, Los Angeles, CA, USA, July 21–24, 2020, Proceedings, Part I},
-pages = {485–507},
-numpages = {23},
-keywords = {ACL2, Formal methods, Hardware verification, Multipliers},
-location = {Los Angeles, CA, USA}
+@IEEEtranBSTCTL{bstctl,
+  CTLuse_forced_etal   = "yes",
+  CTLmax_names_forced_etal = "3",
+  CTLnames_show_etal   = "1",
+  CTLuse_url           = "no",
+  CTLdash_repeated_names = "no"
 }
 
-@ARTICLE{wallace_tree,
-  author={Wallace, C. S.},
-  journal={IEEE Transactions on Electronic Computers}, 
-  title={A Suggestion for a Fast Multiplier}, 
-  year={1964},
-  volume={EC-13},
-  number={1},
-  pages={14-17},
-  keywords={Adders;Acceleration;Arithmetic;Hardware;Investments;Computer peripherals;Circuits;Power generation economics;Contracts;Physics computing},
-  doi={10.1109/PGEC.1964.263830}}
+@inproceedings{mertcan_acl2multipliers,
+  author    = {Temel, Mertcan and Slobodova, Anna and Hunt, Warren A.},
+  title     = {Automated and Scalable Verification of Integer Multipliers},
+  booktitle = {Proc. Int. Conf. Computer Aided Verification (CAV)},
+  pages     = {485--507},
+  year      = {2020}
+}
+
+@article{wallace_tree,
+  author  = {Wallace, C. S.},
+  title   = {A Suggestion for a Fast Multiplier},
+  journal = {IEEE Trans. Electron. Comput.},
+  volume  = {EC-13},
+  number  = {1},
+  pages   = {14--17},
+  year    = {1964}
+}
 
 @article{dadda_tree,
-  author={Dadda, Luigi},
-  journal={Alta Frequenza},
-  title={Some Schemes for Parallel Multipliers},
-  year={1965},
-  volume={34},
-  number={5},
-  pages={349-356}}
+  author  = {Dadda, Luigi},
+  title   = {Some Schemes for Parallel Multipliers},
+  journal = {Alta Frequenza},
+  volume  = {34},
+  number  = {5},
+  pages   = {349--356},
+  year    = {1965}
+}
 
 @article{sca,
-author = {Konrad, Alexander and Scholl, Christoph},
-title = {Symbolic computer algebra for multipliers revisited - demonstrating the significance of order and phase optimization},
-year = {2026},
-issue_date = {Mar 2026},
-publisher = {Kluwer Academic Publishers},
-address = {USA},
-volume = {68},
-number = {2},
-issn = {0925-9856},
-url = {https://doi.org/10.1007/s10703-026-00494-9},
-doi = {10.1007/s10703-026-00494-9},
-abstract = {Using Symbolic Computer Algebra (SCA) enabled a huge progress in formal verification of arithmetic circuits in recent years. Several different approaches have been proposed showing great success especially for the verification of multipliers. Some of them are based on precomputing and simplifying polynomials for specific circuit structures like converging cones while others take advantage of known or detected hierarchy information to replace and simplify particular subcircuits of the design. In this paper we propose a new method that avoids the use of such methods and applies only two dynamic approaches: (1) choosing a good substitution order for the backward rewriting process and (2) adjusting the phases of signals occurring in the intermediate polynomials during the verification process. Both methods are simply based on a greedy local search taking the sizes of intermediate polynomials into account. Our experimental results show that this method is very competitive with already existing tools and it improves their robustness, e.g. against optimizations of the verified circuits using logic synthesis.},
-journal = {Form. Methods Syst. Des.},
-month = mar,
-numpages = {33},
-keywords = {Fully automatic formal verification, Symbolic computer algebra, Multiplier verification, Phase optimization}
+  author  = {Konrad, Alexander and Scholl, Christoph},
+  title   = {Symbolic Computer Algebra for Multipliers Revisited: Demonstrating the Significance of Order and Phase Optimization},
+  journal = {Form. Methods Syst. Des.},
+  volume  = {68},
+  number  = {2},
+  year    = {2026}
 }
 
 @inproceedings{graphiti,
-author = {Herklotz, Yann and Elakhras, Ayatallah and Camaioni, Martina and Ienne, Paolo and Josipovi\'{c}, Lana and Bourgeat, Thomas},
-title = {Graphiti: Formally Verified Out-of-Order Execution in Dataflow Circuits},
-year = {2026},
-isbn = {9798400723599},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/3779212.3790166},
-doi = {10.1145/3779212.3790166},
-abstract = {High-level synthesis (HLS) tools automatically synthesise hardware from imperative programs and have seen a significant rise in adoption in both industry and academia. To deliver high-quality hardware designs for increasingly general purpose programs, HLS compilers have to become more aggressive. For the most irregular programs, HLS tools generating dataflow circuits show promising performance by adapting and specializing key ideas from processor architectures, like out-of-order execution and speculation. However, the complexity of these transformations makes them difficult to reason about, increasing the risk of subtle bugs and potentially delaying their adoption in a conservative industry where bugs can be extremely costly.This paper introduces Graphiti, a framework embedded in the Lean 4 proof assistant designed to formally reason about and manipulate dataflow circuits at the core of these HLS tools. We develop a metatheory of graph refinement that allows us to verify a general-purpose dataflow circuit rewriting algorithm. Using this framework, we formally verify a loop rewrite that introduces out-of-order execution into a dataflow circuit. Our evaluation shows that the resulting verified optimization pipeline achieves a 2.1× speedup over the in-order HLS flow and a 5.8× speedup over a verified HLS tool generating a static state machine. We also show that it achieves the same performance compared to an existing unverified approach which introduces out-of-order execution.Graphiti is a step toward a fully-verified HLS flow targeting dataflow circuits. In the interim, it can serve as an extensible, verified, optimizing engine that can be integrated into existing dataflow HLS compilers.},
-booktitle = {Proceedings of the 31st ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2},
-pages = {821–837},
-numpages = {17},
-keywords = {high-level synthesis, interactive theorem proving, lean 4},
-location = {USA},
-series = {ASPLOS '26}
+  author    = {Herklotz, Yann and Elakhras, Ayatallah and Camaioni, Martina and Ienne, Paolo and Josipovi\'{c}, Lana and Bourgeat, Thomas},
+  title     = {Graphiti: Formally Verified Out-of-Order Execution in Dataflow Circuits},
+  booktitle = {Proc. ACM Int. Conf. Architectural Support Program. Lang. Oper. Syst. (ASPLOS)},
+  pages     = {821--837},
+  year      = {2026}
 }
 
 @book{application_specific_arithmetic,
   author    = {de Dinechin, Florent and Kumm, Martin},
   title     = {Application-Specific Arithmetic},
-  publisher = {Springer Int. Publ.},
-  address   = {Cham, Switzerland},
+  publisher = {Springer},
   year      = {2024}
 }
 
-@INPROCEEDINGS{arithmetic_core_generation_bitheaps,
-  author={Brunie, Nicolas and de Dinechin, Florent and Istoan, Matei and Sergent, Guillaume and Illyes, Kinga and Popa, Bogdan},
-  booktitle={2013 23rd International Conference on Field programmable Logic and Applications}, 
-  title={Arithmetic core generation using bit heaps}, 
-  year={2013},
-  volume={},
-  number={},
-  pages={1-8},
-  keywords={Digital signal processing;Adders;Field programmable gate arrays;Table lookup;Optimization;Generators},
-  doi={10.1109/FPL.2013.6645544}}
+@inproceedings{arithmetic_core_generation_bitheaps,
+  author    = {Brunie, Nicolas and de Dinechin, Florent and Istoan, Matei and Sergent, Guillaume and Illyes, Kinga and Popa, Bogdan},
+  title     = {Arithmetic Core Generation Using Bit Heaps},
+  booktitle = {Proc. Int. Conf. Field Program. Logic Appl. (FPL)},
+  pages     = {1--8},
+  year      = {2013}
+}
 
 @article{asap7,
-title = {ASAP7: A 7-nm finFET predictive process design kit},
-journal = {Microelectronics Journal},
-volume = {53},
-pages = {105-115},
-year = {2016},
-issn = {1879-2391},
-doi = {https://doi.org/10.1016/j.mejo.2016.04.006},
-url = {https://www.sciencedirect.com/science/article/pii/S002626921630026X},
-author = {Lawrence T. Clark and Vinay Vashishtha and Lucian Shifren and Aditya Gujja and Saurabh Sinha and Brian Cline and Chandarasekaran Ramamurthy and Greg Yeric},
-keywords = {Predictive process design kit, 7-nm technology, Process scaling, Extreme ultraviolet lithography, Self-aligned multiple patterning, Design rules},
-abstract = {We describe a 7-nm predictive process design kit (PDK) called the ASAP7 PDK, developed in collaboration with ARM Ltd. for academic use. The PDK is realistic, based on current assumptions for the 7-nm technology node, but is not tied to any specific foundry. The initial version assumes EUV lithography for key layers, a decision based on its present near cost-effectiveness and resulting simpler layout rules. Non-EUV layers assume appropriate multiple patterning schemes, i.e., self-aligned quadruple patterning (SAQP), self-aligned double patterning (SADP) or litho-etch litho-etch (LELE), based on 193-nm optical immersion lithography. The specific design rule derivation is explained for key layers at the front end of line (FEOL), middle of line (MOL), and back end of line (BEOL) of the predictive process modeled. The MOL and BEOL DRC rules rely on estimation of time dependent dielectric breakdown requirements using layer alignments determined with projected machine to machine overlay assumptions, with significant guard-bands where possible. A high density, low-power standard cell architecture, developed using design/technology co-optimization (DTCO), as well as example SRAM cells are shown. The PDK transistor electrical assumptions are also explained, as are the FEOL design rules, and the models include basic design corners. The transistor models support four threshold voltage (Vth) levels for both NMOS and PMOS transistors. Cadence Virtuoso technology files and associated schematic and layout editing, as well as netlisting are supported. DRC, LVS, and full parasitic extraction is enabled through Mentor Calibre decks.}
+  author  = {Clark, Lawrence T. and Vashishtha, Vinay and Shifren, Lucian and Gujja, Aditya and Sinha, Saurabh and Cline, Brian and Ramamurthy, Chandarasekaran and Yeric, Greg},
+  title   = {{ASAP7}: A 7-nm {FinFET} Predictive Process Design Kit},
+  journal = {Microelectron. J.},
+  volume  = {53},
+  pages   = {105--115},
+  year    = {2016}
 }
+
 @inproceedings{abc,
-author = {Brayton, Robert and Mishchenko, Alan},
-title = {{ABC}: An Academic Industrial-Strength Verification Tool},
-booktitle = {Computer Aided Verification (CAV)},
-pages = {24--40},
-year = {2010},
-publisher = {Springer},
-doi = {10.1007/978-3-642-14295-6_5}
+  author    = {Brayton, Robert and Mishchenko, Alan},
+  title     = {{ABC}: An Academic Industrial-Strength Verification Tool},
+  booktitle = {Proc. Int. Conf. Computer Aided Verification (CAV)},
+  pages     = {24--40},
+  year      = {2010}
 }
 
 @inproceedings{bitwuzla,
-  author       = {Aina Niemetz and
-                  Mathias Preiner},
-  editor       = {Constantin Enea and
-                  Akash Lal},
-  title        = {Bitwuzla},
-  booktitle    = {Computer Aided Verification - 35th International Conference, {CAV}
-                  2023, Paris, France, July 17-22, 2023, Proceedings, Part {II}},
-  series       = {Lecture Notes in Computer Science},
-  volume       = {13965},
-  pages        = {3--17},
-  publisher    = {Springer},
-  year         = {2023},
-  url          = {https://doi.org/10.1007/978-3-031-37703-7\_1},
-  doi          = {10.1007/978-3-031-37703-7\_1},
-  timestamp    = {Fri, 21 Jul 2023 17:55:59 +0200},
-  biburl       = {https://dblp.org/rec/conf/cav/NiemetzP23.bib},
-  bibsource    = {dblp computer science bibliography, https://dblp.org}
+  author    = {Niemetz, Aina and Preiner, Mathias},
+  title     = {Bitwuzla},
+  booktitle = {Proc. Int. Conf. Computer Aided Verification (CAV)},
+  pages     = {3--17},
+  year      = {2023}
+}
+
+@misc{trace,
+  author = {Kleinekath{\"o}fer, Jan and Weingarten, Lennart and Datta, Kamalika and Drechsler, Rolf},
+  title  = {{TRACE}: Traversal and Reasoning Algebraic Computing Engine for Formal Hardware Verification},
+  year   = {2026},
+  note   = {arXiv:2608.16458}
 }
