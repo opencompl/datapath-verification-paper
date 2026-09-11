@@ -1064,10 +1064,12 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 % \end{table}
 
 \section{Related Work}
-FloPoCo~\cite{application_specific_arithmetic} is an open-source datapath generator, written in C++,
-that produces arithmetic circuits in VHDL.
-It builds these circuits on the same bit heap abstraction and compression techniques that we formalize in this paper.
-However, the tool provides no formal correctness guarantees, and its circuits have to be validated by testing.
+\cite{arithmetic_core_generation_bitheaps} advocates for the use of bit heaps as the central data structure
+of arithmetic designs, giving an exposition of the bit heaps and how they can be used in multiplier synthesis in FPGAs.
+FloPoCo~\cite{application_specific_arithmetic}, an open-source datapath generator written in C++ that produces
+arithmetic circuits in VHDL, is built on the framework that \cite{arithmetic_core_generation_bitheaps} lays out,
+and thus on the same bit heap abstraction and compression techniques that we formalize in this paper.
+However, neither provides formal correctness guarantees, and the generated circuits have to be validated by testing.
 
 \citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
