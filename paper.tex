@@ -888,7 +888,7 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
     \toprule
     & \multicolumn{2}{c}{Verified\,/\,Datapath} & \multicolumn{2}{c}{Time to verify (s)} \\
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
-    Benchmark & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
+    Benchmark (16-bit) & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
     \midrule
     AddMop & 1.00 & 1.06 & 0.44 & 0.24 \\
     AddMulSgn$^{\dagger}$ & 1.19 & 1.45 & $\times$ & $\times$ \\
@@ -912,6 +912,11 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
     MulThreeSgn$^{\dagger}$ & 1.01 & 1.14 & $\times$ & 22.72 \\
     SqrSgn$^{\dagger}$ & 1.87 & 1.19 & 14.65 & 26.24 \\
     SqrUns & 1.48 & 1.13 & 11.78 & 19.95 \\
+    \midrule
+    Geometric mean (32-bit) & 1.17 & 1.14 \\
+    Geometric mean (16-bit) & 1.21 & 1.12 \\
+    Geometric mean (8-bit) & 1.21 & 1.10 \\
+    \bottomrule
     \bottomrule
   \end{tabular}
 \end{table}
@@ -1086,7 +1091,21 @@ A line of research focuses on proving \ac{hls} tools correctt.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
 
 
-\section{Conclusion}
+\section{Conclusion and Future Work}
+This paper has presents a verified datapath synthesis engine integrated into CIRCT.
+By formalizing datapath synthesis steps with using bit heaps as the core data structure in Lean 4,
+we provide machine-checked correctness guarantees on the arithmetic circuits we generate.
+Our insight is that the most challenging verification task in datapath synthesis is the verification of the multipliers due to complex compressor trees.
+We therefore formally verify this stage of datapath synthesis, and leave the remaining proof obligations to an SMT-solver, which discharges them easily.
+At 16-bits, our approach can verify 16 of 22 designs within the timeout 
+while only being 1.21 times larger and 1.12 times slower than unverified method,
+whereas the SMT-based baseline can only verify 5 of the designs.
+We make all our contributions open-source on (this link).\osman{should we put a link here? if so how to appropriately anonymize it?}
+
+Future work will address the missing optimizations on bit heaps and datapath synthesis.
+Namely Booth encoding, sign-extension related optimizations opportunities, and extend our formalization
+with timing-aware compression, in which the arrival of each bit is accounted for during the compression.
+
 
 %% Acknowledgments. IEEEtran has no \begin{acks} or \grantsponsor/\grantnum;
 %% IEEE uses an unnumbered section. Suppressed for anonymous review.
