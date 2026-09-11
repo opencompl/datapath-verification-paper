@@ -330,11 +330,12 @@ Modern synthesis tools can map entire arithmetic expressions to highly optimized
 remove the computation of intermediate results. 
 In this paper, we prove that this automatic datapath synthesis produces functionally correct netlists.     
 
-Adders are used extensively in processors, for address computation, data processing, and even more complex circuits are built from adders, such as multipliers and dividers.
-Improving the way multiple-summand addition is computed greatly improves the delay of the circuit, since in \ac{asic}, carry propagation is a major contributor to delay. 
-In cases where multiple summands must be added, the naïve approach chains carry-propagate adders, growing the delay linearly with the number of bits and summands.
-Datapath synthesis methods address this issue by reducing multiple summands to two using carry-save arithmetic, avoiding multiple carry-propagation adders to compute the sum.
-The compression tree algorithms increase the difficulty of verifying the generated circuits, as they are highly optimized and complex.
+One of the key datapath optimizations applies to bitvector addition with $N$ addends, an operation that is used to build nearly all multiplier circuits. 
+In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
+Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree comprised of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
+The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
+Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically construct during datapath synthesis. 
+Whilst efficient and widely used, compression trees usually have highly irregular structures increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
 Different techniques exist to verify datapath circuits, such as \ac{sca} and SAT-based methods.
 A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large and complex circuits.
