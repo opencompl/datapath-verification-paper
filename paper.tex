@@ -236,7 +236,7 @@
 \begin{document}
 
 %% Title information
-\title{Verified Synthesis of Datapath Circuits}
+\title{Correct-by-Construction Compressor Trees for Datapath Synthesis}
 
 %% Author information
 %% Contents and number of authors suppressed with 'anonymous'.
@@ -276,7 +276,7 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
-Datapath circuits are the core computational units of digital designs and and one of the most timing-critical parts of the design.
+Datapath circuits are the core computational units of digital designs and one of the most timing-critical parts of the design.
 %  2. State the problem you tackle.
 To meet the performance requirements, datapath circuits are aggressively optimized by synthesis tools.
 These automatic datapath optimizations, like the deployment of compressor trees, make it hard to verify that the synthesized netlist implements the correct computation.
@@ -471,8 +471,6 @@ A \Col is a set of \BitExpr elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Col \ni \gamma &::=& \{c_0,\dots,c_n\} \\[2pt]
- w \in \mathbb{N}^{+},  
-\Heap_w \ni h &::=& \langle  \gamma_0,\dots,\gamma_{w-1} \rangle  &
 \end{array}
 \]
 
@@ -1082,10 +1080,10 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 % \end{table}
 
 \section{Related Work}
-\cite{arithmetic_core_generation_bitheaps} advocates for the use of bit heaps as the central data structure
-of arithmetic designs, giving an exposition of the bit heaps and how they can be used in multiplier synthesis in FPGAs.
+\citet{arithmetic_core_generation_bitheaps} propose the bit heap as the central data structure
+of arithmetic designs, giving an exposition of bit heaps and how they can be used in multiplier synthesis on FPGAs.
 FloPoCo~\cite{application_specific_arithmetic}, an open-source datapath generator written in C++ that produces
-arithmetic circuits in VHDL, is built on the framework that \cite{arithmetic_core_generation_bitheaps} lays out,
+arithmetic circuits in VHDL, is built on the framework that \cite{arithmetic_core_generation_bitheaps} lay out,
 and thus on the same bit heap abstraction and compression techniques that we formalize in this paper.
 However, neither provides formal correctness guarantees, and the generated circuits have to be validated by testing.
 
@@ -1099,9 +1097,10 @@ In their work, \citet{mertcan_acl2multipliers} prove correctness of integer mult
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
-A line of research focuses on proving \ac{hls} tools correctt. 
-\citet{graphiti} introduces Graphiti, a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
+A line of research focuses on proving \ac{hls} tools correct. 
+Graphiti \citet{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
+
 
 
 \section{Conclusion and Future Work}
