@@ -622,20 +622,23 @@ a variadic addition of \Arith expressions,
 or a multiplication of two \Arith expressions.
 This allows us to represent nested arithmetic expressions, such as multiply-accumulate.
 An \Arith variable $\mathsf{var}(i)$ represents the $i$-th input word.
-We also support zero-extension of the variables, that allows us to fit narrow operands into a wider datapath,
+We also support zero-extension and sign-extension of the variables, that allows us to fit narrow operands into a wider datapath,
 as this is commonly needed in multiplication to preserve the full precision of the result:
 \begin{align*}
 &i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
-&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}_{w}(a, e) \mid \mathsf{sext}_{w}(a, e) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]
+&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}(i, b) \mid \mathsf{sext}(i, b) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]
 \end{align*}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
 where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
-For a single variable, we evaluate it by truncating the value of the variable to its live bits, and zero-extending it to the width of the \Arith expression.
+A variable evaluates to the word the environment assigns it.
+A zero-extended variable $\mathsf{zext}(i,b)$ evaluates by truncating that word to its lowest $b$ bits and zero-extending the result back to the width of the \Arith expression.
+A sign-extended variable $\mathsf{sext}(i,b)$, where $0 < b \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.
 The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations:
 \begin{align*}
-  &\bvsem{\mathsf{var}(i)} = \rho\, i \qquad \bvsem{\mathsf{zext}_{w}(a')} = \mathsf{zext}_{w}\big(\bvsem{a'}\big)\\
+  &\bvsem{\mathsf{var}(i)} = \rho\, i \qquad \bvsem{\mathsf{zext}(i,b)} = \mathsf{zext}_{w}\big((\rho\,i)_{[0,b)}\big)\\
+  &\bvsem{\mathsf{sext}(i,b)} = \mathsf{sext}_{w}\big((\rho\,i)_{[0,b)}\big)\\
   &\bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} = \textstyle\sum_{t<n} \bvsem{a_t}\\
   &\bvsem{a_0 \times a_1} = \bvsem{a_0} \cdot \bvsem{a_1}
 \end{align*}
@@ -643,7 +646,10 @@ The addition and multiplication operations in \Arith are interpreted as the corr
 \paragraph{Bit Heap Construction from Arithmetic Expressions}
 
 In order to construct the bit heap from an \Arith expression, we work recursively.
-Firstly, for an \Arith variable, we construct a bit heap with a single row, with one bit expression per live bit of the variable.
+Firstly, for an \Arith variable, we construct a bit heap with a single row, with one bit expression per bit of the variable, and for a zero-extended variable only the lowest $b$ of them.
+A sign-extended variable is built from the zero-extended heap by then placing a further copy of the sign bit $x_{b-1}$ into each of the columns $b, \dots, w-1$,
+so that the single row of the heap spells out the sign-extended word bit by bit.
+Note that these copies are shared references to the same bit expression, so sign extension does not duplicate any logic in the synthesized circuit.
 
 Secondly, the bit heap for addition is constructed by inserting the bits of each summand's heap into a single bit heap.
 Intuitively, this is because the bit heap's value is a sum of the values of its bits.
@@ -661,6 +667,12 @@ where each partial product $x_i \wedge y_j$ is inserted at column $i+j$ of the b
 The correctness of these operations follow from the correctness of the bit heap operations.
 The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i 2^i$,
 which clearly matches the value of the bit heap and proved trivially.
+The sign-extended case instead needs an induction on the number of replicated columns,
+for which we give a closed form for the value of the heap after $k$ sign columns have been added:
+it is $x_{[0,b)}$ when the sign bit is clear, and $x_{[0,b)} + (2^{b+k} - 2^{b})$ when it is set.
+Each further column contributes exactly one more copy of the sign bit at weight $2^{b+k}$, which proves the induction step,
+and the closed form stays below $2^{w}$ as long as $b + k \leq w$, so the truncation in the bit heap semantics never wraps around.
+Instantiating the closed form at $k = w - b$ yields precisely the value of the sign-extended word.
 Similarly, taking the union of the columns of the bit heap preserves the value of the bit heap, 
 using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
 Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
@@ -883,7 +895,8 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
   \centering
   \caption{Synthesis quality and verification time at 16 bits. Area and delay are post-mapping ASAP7 numbers relative to CIRCT's Datapath dialect ($<1.00$ favours the verified lowering). Verification time compares proving the result against the original Verilog (\textsc{Standard}) with proving only the comb-to-AIG tail against the Lean snapshot (\textsc{Verified}). $\times$: solver timeout; $^{\dagger}$: signed benchmark.}
   \label{tab:qor-and-time-16}
-  \small
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lrrrr}
     \toprule
     & \multicolumn{2}{c}{Verified\,/\,Datapath} & \multicolumn{2}{c}{Time to verify (s)} \\
@@ -1092,7 +1105,7 @@ Integrated into an existing HLS tool, Graphiti provides a verified rewriting eng
 
 
 \section{Conclusion and Future Work}
-This paper has presents a verified datapath synthesis engine integrated into CIRCT.
+This paper presents a verified datapath synthesis engine integrated into CIRCT.
 By formalizing datapath synthesis steps with using bit heaps as the core data structure in Lean 4,
 we provide machine-checked correctness guarantees on the arithmetic circuits we generate.
 Our insight is that the most challenging verification task in datapath synthesis is the verification of the multipliers due to complex compressor trees.
