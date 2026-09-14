@@ -334,46 +334,38 @@ One of the key datapath optimizations applies to bitvector addition with $N$ add
 In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
 Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree comprised of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
-Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically construct during datapath synthesis. 
+Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
 Whilst efficient and widely used, compression trees usually have highly irregular structures increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
-Different techniques exist to verify datapath circuits, such as \ac{sca} and SAT-based methods.
-A shortcoming of these methods is that not only the verification tool itself is unverified, but also they do not scale to large and complex circuits.
-SAT-based methods convert the verification problem into a booleans satisfiability problem.
-However, this fails to scale to large bit widths due to state-space explosion.
-On the otherhand, SCA methods convert the verification problem into an algebraic equivalence checking problem.
-However, these fail due to the inherent undeciability of algebraic equivalence checking.
+Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
+and SAT-based methods~\cite{kaufmann2019verifying}.
+One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers}.
+A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
+So checking that a synthesized datapath circuit is correct remains challenging, even today. 
 
-We take a different approach by verifying the synthesis step itself, rather than verifying the generated circuits.
-This correct-by-construction approach guarantees that the generated circuits are correct, and scales to large circuits.
+We propose a different approach, verifying the synthesis step itself, rather than verifying the generated circuits.
+This approach guarantees that the generated circuits are correct-by-construction, and scales to large circuits.
+To prove this datapath synthesis step correct we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree} in the Lean~4 theorem prover~\cite{moura2021lean}.
+To demonstrate that verified synthesis is competitive, we integrate the Lean-based datapath generator into an existing open-source synthesis tool.
 
-We formalize the bit heap data structure and compression algorithms, and integrate them into an existing industrial synthesis tool to provide formally verified datapath circuits.
-
-Our list of contributions is as follows:
+Our contributions are:
 \begin{itemize} 
-  \item Formalization of bit heap data structure and efficient compression algorithms in a theorem prover
-  \item Integration into an existing synthesis flow to provide formally verified datapath circuits to eliminate the SAT solver bottleneck
-  \item Verified synthesis of existing datapath benchmark suite 
+  \item formalization of the bit heap data structure and efficient compression algorithms in a theorem prover (\autoref{sec:formalization}),
+  \item integration into an existing synthesis flow to provide formally verified datapath circuits (\autoref{sec:integration}),
+  \item the first verified synthesis of existing benchmarks using open-source tools (\autoref{sec:evaluation}). 
 \end{itemize}
 
-\section{Background}
-In digital arithmetic, an unsigned integer or fixed-point number is represented as follows:
+\section{Background}\label{sec:background}
+In digital arithmetic, an unsigned integer bitvector, $x$, of length $n$ represents a sum of weighted bits $x = \sum_{i=0}^{n-1} 2^i \cdot x_i $,
+where $x_i$ denotes the $i^{\textrm{th}}$ bit of $x$.
+The multiplication of two length $n$ bitvectors can of course also be represented as a sum of weighted bits:
 \[
-  X = \sum_{i=0}^{n-1} 2^i \cdot x_i 
+    x \cdot y = \sum_{i=0}^{n-1} \sum_{j=0}^{n-1} 2^{i+j} \cdot x_i \cdot y_j
 \]
-where a number is represented as a sum of weighted bits, with weights being a power of 2 such as $2^i$ for the bit in the $i$-th position. 
-Similarly, the multiplication operation can be represented as a sum of weighted bits as follows:
-\[
-  \begin{aligned}
-    X \cdot Y &= \left(\sum_{i=0}^{n-1} 2^i \cdot x_i\right)\left(\sum_{j=0}^{n-1} 2^j \cdot y_j\right) \\
-              &= \sum_{i=0}^{n-1} \sum_{j=0}^{n-1} 2^{i+j} \cdot x_i \cdot y_j
-  \end{aligned}
-\]
-
 where the term $x_i \cdot y_j$ is the logical AND of the bits, and the weight of the resulting bit is $2^{i+j}$. 
-Therefore, a multiplication can be implemented as a summation of weighted bits, where the bits are generated by logical AND of the bits of the two operands.
+More complex partial product encodings exist~\cite{application_specific_arithmetic}, but they can all eventually be reduced to a sum of weighted bits. 
 
-\begin{figure}[h]
+\begin{figure}
   \centering
   \begin{subfigure}{0.52\linewidth}
     \centering
@@ -423,7 +415,7 @@ dialect or lowering them into a dialect at a lower level of abstraction.
 The \texttt{circt-synth} flow is one such pipeline: it takes a design expressed in \texttt{hw} and \texttt{comb}
 and lowers it to an \ac{aig}, which technology mapping then targets.
 
-\section{Formalization}
+\section{Formalization}\label{sec:formalization}
 
 To enable verified synthesis, we implement, and prove correctness of bit heaps, which is a data structure
 that is key to perform effective synthesis of N-ary bitvector summation \cite{application_specific_arithmetic}.
@@ -859,7 +851,7 @@ This leaves a small trusted base, as these parts are syntax translations between
 SystemVerilog, \texttt{comb} operations and \texttt{ArithCircuit} constructors.
 \autoref{fig:flow-comparison} depicts this flow for both the unverified and verified paths.
 
-\section{Results}
+\section{Evaluation}\label{sec:evaluation}
 We evaluate our results on two metrics, the circuit quality and the time needed to verify the circuits.
 We compare our results against the CIRCT datapath pass that we replace.
 \sam{We should provide some evidence that we really isolate the hard part with our Lean synthesizer. 
