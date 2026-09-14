@@ -471,7 +471,7 @@ In implementing the data structure,
 we define a \Col as a set of \BitExpr elements,
 and a \Heap of width $w$ as a vector of $w$ columns.
 \[
-  \Heap\;w \;\triangleq\; \Vect(\Col\;w)
+  \Heap_w \;\triangleq\; \Vect_w(\Col)
 \]
 \end{definition}
 
@@ -996,7 +996,7 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 %     SqrUns & 0.16 & 0.27 \\
 %     \bottomrule
 %   \end{tabular}
-% % \end{table}
+% \end{table}
 % \begin{table}
 %   \centering
 %   \caption{Total time to obtain a trusted netlist at 16-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
