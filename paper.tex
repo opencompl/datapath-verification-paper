@@ -528,7 +528,7 @@ These are used by higher-level operations such as compression to construct a com
 Representing each column as a (hash)-set means we cannot add the same bit twice to a column,
 however this actually benefits us as we explain below.
 
-\paragraph*{Insertion}
+\paragraph*{\texttt{addBit}}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the set $h_k$.
 If $h_k$ already contains bit $e$ we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
 Effectively, this implies that the bit heap is always in its canonical form,
@@ -539,30 +539,25 @@ If a carry is propagated from the last column,
 it is dropped since we work with fixed-size bit heaps.
 This is exactly what we want for reasoning modulo $2^w$.
 The correctness of insertion says that adding a bit to the bit heap at weight $k$ 
-increases the total value of the bit heap by $2^k$ times the value of the bit expression (\autoref{thm:addBit}).
+increases the total value of the bit heap by $2^k$ times the value of the bit expression.
 
 \begin{theorem}[Bit insertion]
 \label{thm:addBit} 
-For all bit heaps $h : \Heap_w$, bit expressions $c : \BitExpr$, weight $k : \mathbb{N}$,
+For all bit heaps $h : \Heap_w$, bit expressions $e : \BitExpr$, weight $k : \mathbb{N}$,
 and environment $\sigma : \mathcal{V} \to \mathbb{B}$,
-$\hsem{\mathtt{addBit}(k, c, h)}
+$\hsem{\mathtt{addBit}(k, e, h)}
  =
 \bigl(\hsem{h}
-      + 2^{k}\cdot \csem{c} \bigr) \bmod 2^{w}.
+      + 2^{k}\cdot \csem{e} \bigr) \bmod 2^{w}.
 $
 \end{theorem}
-
 The proof follows by functional induction on \texttt{addBit}, following the carry propagation described above.
 
-\paragraph*{Removal}
-Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
-Removal is only meaningful if the bit is present in the \Col; therefore, we require that the bit to be removed is present in the column.
-This is encoded as an explicit hypothesis of the correctness theorem for bit removal, \autoref{thm:removeBit}.
-Under this hypothesis, removing a bit $c$ from column $k$ decreases the value of the bit heap by $2^k \csem{c}$.
-The proof does not require induction, since the removal of a bit only affects a single column.
-Rewriting the corresponding bit-removal lemmas at the level of a single \Col proves this statement.
-\sam{Is this proof stategy? To discuss}
-
+\paragraph*{\texttt{removeBit}}
+Removing a bit expression $e$ at column $k$ removes $e$ from the set $h_k$.
+Removal is only meaningful if $e\in h_k$; therefore, we require that the bit to be removed is present in the column.
+This is encoded as an explicit hypothesis of the correctness theorem for bit removal (\autoref{thm:removeBit}).
+Under this hypothesis, removing a bit $e$ from column $k$ decreases the value of the bit heap by $2^k \csem{e}$.
 \begin{theorem}[Bit removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$ and
@@ -574,13 +569,11 @@ $\sigma : \mathcal{V} \to \mathbb{B}$ with $c \in h_k$,
         - 2^{k}\cdot\lift{\csem{c}}\bigr) \bmod 2^{w}.
 \]
 \end{theorem}
-
-So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
-This gives us the foundational API to optimize bitvector arithmetic expressions,
-which we will explain next.
+The proof is a simple algebraic argument and does not require induction, since the removal only affects a single column.
 
 \subsection{From Word-Level Arithmetic to Bit Heaps}\label{subsec:to_bitheap}
-Our goal is to synthesize efficient and provably correct circuits for word-level arithmetic expressions.
+So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
+To synthesize efficient and provably correct circuits for word-level arithmetic, we require a verified translation from arithmetic to a bit heap.
 We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
