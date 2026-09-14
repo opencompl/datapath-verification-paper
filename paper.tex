@@ -416,24 +416,14 @@ and lowers it to an \ac{aig}, which can be passed on to technology mapping.
 \section{Formalization}\label{sec:formalization}
 
 To enable verified synthesis, we implement, and prove the correctness of bit heaps.
-Toward this, we begin by defining a symbolic bit heap in Lean 4, which is a vector of columns.
-Each column contains a bit expression, which is a symbolic representation of the bit that is computed.
+We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) and bit heap (\autoref{subsec:bitheap}) in Lean 4.
 We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
-These operations then enable us to implement and prove the correctness of the construction of the compressor trees (Theorem~\ref{thm:chain-correct}). 
+These operations then enable us to implement and prove the correctness of the construction of the compressor trees (\autoref{subsec:compression}). 
+\sam{Revisit once we've investigated the ordering of sections as didn't reference \autoref{subsec:to_bitheap}?}
 
-We now explain the individual components of our formalization, as well as key theorems that were proven
-along the way to a verified datapath synthesis flow.
-
-\subsection{Symbolic Bit Representations}
-We represent symbolic bits as \BitExpr, which is a language that represents Boolean expressions.
-These are the elements that are stored in the bit heap.
-A \BitExpr can be a Boolean variable, constant, or Boolean operations on \BitExpr values.
-Internally, \BitExpr variables are represented by a natural number index.
-In order to evaluate a \BitExpr, we need the values of all the variables in the \BitExpr.
-These values are supplied by a bit environment $(\sigma : \mathbb Var \to \mathbb B)$,
-which maps each bit variable to its boolean value. 
-The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr $e$ under a bit environment $\sigma$,
-producing a concrete boolean value. It is defined in the usual way by recursion on the language of \BitExpr:
+\subsection{Symbolic Bit Representations}\label{subsec:bitexpr}
+We represent bits of the bit heap via \BitExpr, a language for representing Boolean expressions over symbolic bits.
+A \BitExpr can be a Boolean variable, constant, or Boolean operation on \BitExpr values.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
@@ -442,18 +432,19 @@ producing a concrete boolean value. It is defined in the usual way by recursion 
 \BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
+To evaluate a \BitExpr, we need to assign values to all the variables in the \BitExpr.
+These are supplied by a bit environment $(\sigma : Var \to \mathbb B)$,
+which maps each bit variable to its Boolean value. 
+The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr under a bit environment $\sigma$,
+producing a concrete boolean value. It is defined by recursion.
 \[
 \begin{array}{r@{\;}c@{\;}l}
-\multicolumn{3}{@{}l@{}}{%
-  \sigma \;:\; Var \to \mathbb{B}
-  \qquad
-  \csem{\cdot} \;:\; \BitExpr \to \mathbb{B}} \\[2pt]
 \csem{b} &=& \sigma(b) \quad \csem{0} = \mathit{false} \quad \csem{1} = \mathit{true}\\
 \csem{\neg c} &=& \neg \csem{c} \quad \csem{c_0 \circledast c_1} = \csem{c_0} \circledast \csem{c_1}
 \end{array}
 \]
 
-\subsection{Bit Heap Data Structure}
+\subsection{Bit Heap Data Structure}\label{subsec:bitheap}
 A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
 A \Col is a set of \BitExpr elements.
 \[
@@ -476,7 +467,7 @@ and a \Heap of width $w$ as a vector of $w$ columns.
 \end{definition}
 
 
-\paragraph{Evaluation of Bit Heaps}
+\paragraph*{Bit Heap Evaluation}
 Since a bit heap represents a summation of weighted bits,
 we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
 This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$:
@@ -514,34 +505,24 @@ This is defined by adding up all the bits across all the columns, with bits at c
 
 For the purposes of both implementation and proofs by induction,
 it is much better to define the evaluation of a bit heap using Horner's method.
-
-$v_k = \sum_{c \in h_k} \csem{c}$ for the value of the column at
-index $k$:
-\begin{equation}
+Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote the value of it:
+\begin{equation*}
 \begin{split}
-  \Bigl( \sum_{k=0}^{w-1} &v_k \cdot x^{k} \Bigr) \bmod 2^{w}\\
-    &= \Bigl( v_0 + x \bigl( v_1
-      + x ( v_2 + \cdots\\
-    &\qquad + x \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
+  \Bigl( \sum_{k=0}^{w-1} &v_k \cdot 2^{k} \Bigr) \bmod 2^{w}\\
+    &= \Bigl( v_0 + 2 \bigl( v_1
+      + 2 ( v_2 + \cdots + 2 \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
 \end{split}
-\end{equation}
+\end{equation*}
+Horner's method cleanly separates the contribution of each column, $v_k$,
+and is structurally recursive on the vector of columns, which makes it ameanable to inductive reasoning.
 
-By setting $x = 2$, so that each column at index $k$ contributes its value $v_k$ weighted by $2^{k}$, and reducing modulo $2^{w}$, we obtain the value of the bit heap.
-Horner's method cleanly separates the contribution of each column $v_k$,
-and is structurally recursive on the list of columns, which makes it ameanable to inductive reasoning.
+To construct and modify a bit heap we define bit insertion and removal operations.
+These are used by higher-level operations such as compression to construct a compressor tree.
+Representing each column as a (hash)-set means we cannot add the same bit twice to a column,
+however this actually benefits us as we explain below.
 
-\paragraph{Constructing Bit Heaps}
-
-A bit heap's API involves bit insertion and removal operations,
-which are used by higher-level operations such as compression to create circuits like compressor trees.
-
-In order to support efficient insertion and deletion of bits, 
-a natural choice of data structure that provides $O(1)$ inserts and deletes is a (hash)-set.
-However, whilst this means we cannot add the same bit twice to a column,
-this actually benefits us as we explain below
-
-\paragraph{Insertion}
-Inserting a bit expression $e$ at column $k$ adds $e$ to the \Col of the bit heap that lies in index k.
+\paragraph*{Insertion}
+Inserting a bit expression $e$ at column $k$ adds $e$ to the set $h_k$.
 As previously mentioned, if the bit $e$ already exists in column $k$,
 we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
 Effectively, this implies that the bit heap is always in its canonical form,
@@ -569,7 +550,7 @@ $
 
 The proof follows by functional induction on \texttt{addBit}, following the carry propagation described above.
 
-\paragraph{Removal}
+\paragraph*{Removal}
 Removing a bit expression $e$ at column $k$ removes $e$ from the \Col of the bit heap that lies in index k.
 Removal is only meaningful if the bit is present in the \Col; therefore, we require that the bit to be removed is present in the column.
 This is encoded as an explicit hypothesis of the correctness theorem for bit removal, \autoref{thm:removeBit}.
@@ -594,12 +575,12 @@ So far, we have defined the bit heap data structure and its operations, and prov
 This gives us the foundational API to optimize bitvector arithmetic expressions,
 which we will explain next.
 
-\subsection{From Word-Level Arithmetic to Bit Heaps}
+\subsection{From Word-Level Arithmetic to Bit Heaps}\label{subsec:to_bitheap}
 Our goal is to synthesize efficient and provably correct circuits for word-level arithmetic expressions.
 We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
-This conversion then allows us to apply compression techniques that reduce the delay of the circuit (\autoref{sec:compression}).
+This conversion then allows us to apply compression techniques that reduce the delay of the circuit (\autoref{subsec:compression}).
 First, we define the syntax and semantics of \Arith,
 and then we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith expression.
 
@@ -677,8 +658,7 @@ Now that we have constructed a bit heap, we can build an optimized arithmetic ci
 by using compression algorithms that efficiently express the same value as the original bit heap,
 but with a much better circuit.
 
-\subsection{Compression Algorithms For Fast Arithmetic}
-\label{sec:compression}
+\subsection{Compression Algorithms For Fast Arithmetic}\label{subsec:compression}
 
 To synthesize the bit heap into a fast arithmetic circuit,
 the core idea is to repeatedly apply compressors (half and full adders),
