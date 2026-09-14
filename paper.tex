@@ -523,8 +523,7 @@ however this actually benefits us as we explain below.
 
 \paragraph*{Insertion}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the set $h_k$.
-As previously mentioned, if the bit $e$ already exists in column $k$,
-we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
+If $h_k$ already contains bit $e$ we propagate the bit to the next column, since $2^{k}c + 2^{k}c = 2^{k+1}c$.
 Effectively, this implies that the bit heap is always in its canonical form,
 where the weight of a bit is always equal to the weight of the column it is in.
 This canonicalization also optimizes the bit heap during construction automatically,
@@ -532,8 +531,6 @@ by re-weighting bits that are added multiple times to the same column, and propa
 If a carry is propagated from the last column, 
 it is dropped since we work with fixed-size bit heaps.
 This is exactly what we want for reasoning modulo $2^w$.
-Overall, this normalization design promotes both a simple API, a strong normal form,
-and an optimized implementation of the bit heap data structure.
 The correctness of insertion says that adding a bit to the bit heap at weight $k$ 
 increases the total value of the bit heap by $2^k$ times the value of the bit expression (\autoref{thm:addBit}).
 
