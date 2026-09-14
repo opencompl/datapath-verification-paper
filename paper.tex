@@ -434,13 +434,13 @@ A \BitExpr can be a Boolean variable, constant, or Boolean operation on \BitExpr
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \multicolumn{4}{l}{%
-  b \in Var  \qquad
+  b \in \texttt{Var}  \qquad
   \circledast \in \{\wedge,\vee,\oplus\}}\\[2pt]
-\BitExpr \ni c &::=& b_n \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
+\BitExpr \ni c &::=& b \mid 0 \mid 1 \mid \neg c \mid c \circledast c &
 \end{array}
 \]
 To evaluate a \BitExpr, we need to assign values to all the variables in the \BitExpr.
-These are supplied by a bit environment $(\sigma : Var \to \mathbb B)$,
+These are supplied by a bit environment $(\sigma : \texttt{Var} \to \mathbb B)$,
 which maps each bit variable to its Boolean value. 
 The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr under a bit environment $\sigma$,
 producing a concrete boolean value. It is defined by recursion.
@@ -573,7 +573,7 @@ The proof is a simple algebraic argument and does not require induction, since t
 
 \subsection{From Word-Level Arithmetic to Bit Heaps}\label{subsec:to_bitheap}
 So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
-To synthesize efficient and provably correct circuits for word-level arithmetic, we require a verified translation from arithmetic to a bit heap.
+To use the bit heap to synthesize efficient and provably correct circuits for word-level arithmetic, we require a verified translation from arithmetic to a bit heap.
 We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
@@ -581,31 +581,22 @@ This conversion then allows us to apply compression techniques that reduce the d
 First, we define the syntax and semantics of \Arith,
 and then we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith expression.
 
-An \Arith is a word-level expression, which can be a variable,
-a variadic addition of \Arith expressions,
-or a multiplication of two \Arith expressions.
-This allows us to represent nested arithmetic expressions, such as multiply-accumulate.
-An \Arith variable $\mathsf{var}(i)$ represents the $i$-th input word.
-We also support zero-extension and sign-extension of the variables, that allows us to fit narrow operands into a wider datapath,
-as this is commonly needed in multiplication to preserve the full precision of the result:
+\Arith is a word-level representation supporting variables,
+variadic addition and two-input multiplication.
+This allows us to represent nested arithmetic expressions, like $a\times b + c$.
+We also support zero/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
 \begin{align*}
-&i \in \mathbb{N} \qquad v, w \in \mathbb{N}^{+}\\
+&b \in \texttt{Var}_{\texttt{Arith}} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
-&\quad \mid \mathsf{var}(i) \mid \mathsf{zext}(i, b) \mid \mathsf{sext}(i, b) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a, a]
+&\quad \mid b \mid \mathsf{zext}(i, b) \mid \mathsf{sext}(i, b) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a_0, a_1]
 \end{align*}
 
-The \Arith variables are assigned a value by a variable environment $\rho : \mathbb{N} \to \mathtt{BitVec}\ w$, mapping each variable to a $w$-bit word,
-where $\mathtt{BitVec}\ w$ is Lean's type of bitvectors of width $w$.
+The \Arith variables are assigned a value by a variable environment $\rho : \texttt{Var}_{\texttt{Arith}} \to \mathtt{BitVec}\ w$, mapping each variable to Lean's built-in bitvector type of width $w$.
+\sam{We should make it clear that everything gets assigned to $w$-bits?}
 A variable evaluates to the word the environment assigns it.
-A zero-extended variable $\mathsf{zext}(i,b)$ evaluates by truncating that word to its lowest $b$ bits and zero-extending the result back to the width of the \Arith expression.
-A sign-extended variable $\mathsf{sext}(i,b)$, where $0 < b \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.
-The addition and multiplication operations in \Arith are interpreted as the corresponding word-level operations:
-\begin{align*}
-  &\bvsem{\mathsf{var}(i)} = \rho\, i \qquad \bvsem{\mathsf{zext}(i,b)} = \mathsf{zext}_{w}\big((\rho\,i)_{[0,b)}\big)\\
-  &\bvsem{\mathsf{sext}(i,b)} = \mathsf{sext}_{w}\big((\rho\,i)_{[0,b)}\big)\\
-  &\bvsem{\mathsf{add}[a_0,\dots,a_{n-1}]} = \textstyle\sum_{t<n} \bvsem{a_t}\\
-  &\bvsem{a_0 \times a_1} = \bvsem{a_0} \cdot \bvsem{a_1}
-\end{align*}
+A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$-bits and zero-extending the result back to the width of the \Arith expression.
+A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.
+The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
  
 \paragraph{Bit Heap Construction from Arithmetic Expressions}
 
