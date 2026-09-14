@@ -380,46 +380,42 @@ More complex partial product encodings exist~\cite{application_specific_arithmet
     \caption{The resulting bit heap.}
     \label{fig:basic-bh}
   \end{subfigure}
-  \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Each partial product
-  $a_i \wedge b_j$ in (a) has weight $2^{i+j}$, so it is placed in column $i+j$ of the bit heap in (b).}
+  \caption{A $3 \times 3$ unsigned multiplication as a bit heap. Bits are abstract dots and each column can be summed in any order.}
   \label{fig:bitheap-example}
 \end{figure}
 
-A bit heap is a data structure that effectively represents the summation of weighted bits \cite{arithmetic_core_generation_bitheaps}. 
-Bits in a bit heap are organized into columns based on their weights, and the height of each column corresponds to the number of bit values that need to be summed for that particular weight.
+The bit heap is a data structure that represents the summation of weighted bits \cite{arithmetic_core_generation_bitheaps}. 
+Bits are abstract, represented by dots, and are organized into columns based on their weights.
+The height of each column corresponds to the number of bit values that need to be summed for that particular weight.
 \autoref{fig:bitheap-example} illustrates the bit heap for a $3 \times 3$ unsigned multiplication.
 
 \subsection{Compression Algorithms}
 \label{comp_algo}
-In arithmetic circuits, a main contributor to delay is carry propagation. In cases where multiple summands must be added, the naive approach chains carry-propagation adders, growing the delay linearly with the number of bits and summands. For example, multiplication is usually implemented as addition of multiple summands. 
-
-Compressor trees are built to address this issue by reducing multiple summands to two using carry-save arithmetic, 
-avoiding multiple carry-propagation adders to compute the sum. 
-
-Compression reduces the number of summands to two, after which a single \ac{cpa} produces the result \cite{application_specific_arithmetic}.
-The reduction is carried out by compressors, half adders ($2{:}2$), full adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
-Different compression algorithms exist, such as Wallace tree which greedily compresses the circuit and Dadda tree, 
-using only as many adders to meet a fix target height. 
+Compressor trees reduce multiple summands to two using carry-save arithmetic, 
+avoiding recursive \acp{cpa} to compute the sum. 
+A compressor tree is followed by a single \ac{cpa} that produces the result \cite{application_specific_arithmetic}.
+The reduction is carried out by composing compressors, half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
+Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
+that uses the minimal number of compressors to perform the reduction as fast as possible~\cite{dadda_tree}. 
+By formalizing the bit heap and the application of compressors to it, we can verify any compression algorithm with a minimal proof. 
 
 \subsection{CIRCT}
 \label{sec:circt}
 CIRCT is a hardware compiler, based on MLIR, adapting the methods from software compilers to hardware synthesis.
 It is capable of expressing different abstraction layers of a hardware design through \textit{dialects}, which
 are self-contained sets of operations and types that together form an \ac{ir}.
-Separate dialects cover the structure of a design (\texttt{hw}), its sequential elements (\texttt{seq}), its
+Separate dialects cover the structure of a design (\texttt{hw}), its
 word-level combinational logic (\texttt{comb}), and its gate-level representation (\texttt{synth}), such that a design
 can be lowered from RTL-level to gate-level constructs within CIRCT.
 
-CIRCT relies on passes, each of which rewrites the \ac{ir} in place, either canonicalising operations within a
+CIRCT relies on passes, each of which rewrites the \ac{ir} in place, either optimizing operations within a
 dialect or lowering them into a dialect at a lower level of abstraction.
-The \texttt{circt-synth} flow is one such pipeline: it takes a design expressed in \texttt{hw} and \texttt{comb}
-and lowers it to an \ac{aig}, which technology mapping then targets.
+The \texttt{circt-synth} flow chains such passes: it takes a design expressed in \texttt{hw} and \texttt{comb}
+and lowers it to an \ac{aig}, which can be passed on to technology mapping.
 
 \section{Formalization}\label{sec:formalization}
 
-To enable verified synthesis, we implement, and prove correctness of bit heaps, which is a data structure
-that is key to perform effective synthesis of N-ary bitvector summation \cite{application_specific_arithmetic}.
-
+To enable verified synthesis, we implement, and prove the correctness of bit heaps.
 Toward this, we begin by defining a symbolic bit heap in Lean 4, which is a vector of columns.
 Each column contains a bit expression, which is a symbolic representation of the bit that is computed.
 We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
