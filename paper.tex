@@ -597,27 +597,12 @@ A variable evaluates to the word the environment assigns it.
 A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$-bits and zero-extending the result back to the width of the \Arith expression.
 A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.
 The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
- 
-\paragraph{Bit Heap Construction from Arithmetic Expressions}
 
-In order to construct the bit heap from an \Arith expression, we work recursively.
-Firstly, for an \Arith variable, we construct a bit heap with a single row, with one bit expression per bit of the variable, and for a zero-extended variable only the lowest $b$ of them.
-A sign-extended variable is built from the zero-extended heap by then placing a further copy of the sign bit $x_{b-1}$ into each of the columns $b, \dots, w-1$,
-so that the single row of the heap spells out the sign-extended word bit by bit.
-Note that these copies are shared references to the same bit expression, so sign extension does not duplicate any logic in the synthesized circuit.
-
-Secondly, the bit heap for addition is constructed by inserting the bits of each summand's heap into a single bit heap.
-Intuitively, this is because the bit heap's value is a sum of the values of its bits.
-Since insertion follows the propagation rule described above, adding a summand to itself promotes every bit to the next column,
-resulting in a single-row bit heap where the summand is shifted up by one, i.e. $x+x = 2x$.
-If instead the summands do not share any bits, the rows are stacked, 
-resulting in a rectangular bit heap with height equal to the number of summands.
-
-Finally, the bit heap for multiplication generates partial products of the two operands.
-In our framework, we use the shift-add algorithm to build partial products.
-This results in simple AND operations of the bits of the two operands, i.e.
-$\big(\sum_{i} x_i 2^{i}\big)\cdot\big(\sum_{j} y_j 2^{j}\big) = \sum_{i}\sum_{j} (x_i \wedge y_j)\, 2^{i+j}$,
-where each partial product $x_i \wedge y_j$ is inserted at column $i+j$ of the bit heap.
+We construct a bit heap by structural recursion on the arithmetic expression. 
+Each recursive call returns a width-$w$ bit heap representing its subexpression modulo $2^w$.
+Variables and zero-/sign-extended variables produce a single row bit heap.
+Addition merges the recursively constructed operand bit heaps, increasing the bit heaps height or automatically propagating duplicated addends, i.e., $x+x = 2x$.
+The multiplication of two bit heaps, $h$ and $g$, produces a single bit heap containing for every $e \in h_i$ and $f \in g_j$ a bit $e \land f$ in column $i+j$. Any bits for which $i+j\geq w$ are discarded.
 
 The correctness of these operations follow from the correctness of the bit heap operations.
 The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i 2^i$,
