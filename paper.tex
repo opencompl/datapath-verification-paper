@@ -426,6 +426,7 @@ To enable verified synthesis, we implement, and prove the correctness of bit hea
 We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) and bit heap (\autoref{subsec:bitheap}) in Lean 4.
 We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
 These operations then enable us to implement and prove the correctness of the construction of the compressor trees (\autoref{subsec:compression}). 
+Every theorem stated here is formalized and proven in Lean~4.
 \sam{Revisit once we've investigated the ordering of sections as didn't reference \autoref{subsec:to_bitheap}?}
 
 \subsection{Symbolic Bit Representations}\label{subsec:bitexpr}
@@ -501,7 +502,7 @@ Horner's method cleanly separates the contribution of each column, $v_k$,
 and is structurally recursive on the vector of columns, which makes it ameanable to inductive reasoning.
 
 To construct and modify a bit heap we define bit insertion and removal operations.
-These are used by higher-level operations such as compression to construct a compressor tree.
+These are used by higher-level operations to construct a compressor tree.
 Representing each column as a (hash)-set means we cannot add the same bit twice to a column,
 however this actually benefits us as we explain below.
 
@@ -569,10 +570,9 @@ The proof is a simple algebraic argument and does not require induction, since t
   $\FA(k,i,j,l)$
     & $i,j,l \in h_k$, pairwise distinct, $k<w$
     & $\begin{aligned}
-        g_1 &= \mathtt{removeBit}(k,j,\mathtt{removeBit}(k,i,h)) \\
-        g_2 &= \mathtt{removeBit}(k,l,g_1) \\
-        g_3 &= \mathtt{addBit}(k,i\oplus j\oplus l,g_2) \\
-        h'  &= \mathtt{addBit}(k+1,\maj(i,j,l),g_3)
+        g_1 &= \mathtt{removeBit}(k,l,\mathtt{removeBit}(k,j,\mathtt{removeBit}(k,i,h))) \\
+        g_2 &= \mathtt{addBit}(k,i\oplus j\oplus l,g_1) \\
+        h'  &= \mathtt{addBit}(k+1,\maj(i,j,l),g_2)
       \end{aligned}$ \\
   \bottomrule
   \end{tabular}
@@ -640,7 +640,7 @@ we have not constructed any logic gates.
 What remains is to construct and verify the compressor tree for a given bit heap.
 
 
-\subsection{Compression Algorithms For Fast Arithmetic}\label{subsec:compression}
+\subsection{Correct-by-Construction Compressor Trees}\label{subsec:compression}
 
 To compress the bit heap we apply a tree of compressors (half and full adders),
 which reduce its height to two.
@@ -691,24 +691,22 @@ then removing intermediate $\bmod$ operations we obtain an arithmetic identity:
 The proof follows by case analysis on the four possible values of $i$ and $j$.
 The full adder case follows the same structure.
 
-Having established that each individual step preserves the value of the heap, we now consider
+Having proven that each individual step preserves the value of the heap, we now consider a
 sequences of steps.
-Formally, a chain of compressors is an ordered list of compression steps, where each step is a half or full adder,
-and is either empty or a step followed by a chain:
+Formally, a \Chain is a, possibly empty, ordered list of compression steps, where each step is a half or full adder:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Chain \ni S &::=& [\,] \mid s :: S &
 \end{array}
 \]
-
-We will notate this as $S \equiv s_0 :: s_1 \dots :: s_{n-1}$ for a chain of $n$ steps.
 We write $h \xrightarrow{S} h'$ for the application of a chain $S$ to a bit heap $h$, producing a new bit heap $h'$.
-This can be broken down into a sequence of applications $h = h_0 \xrightarrow{s_0} h_1 \xrightarrow{s_1} \dots \xrightarrow{s_{n-1}}  h'$.
-We call a chain \emph{well formed}, iff, at each step $h_i \xrightarrow{s_i} h_{i+1}$, the applicability conditions of the step $s_{i}$
-are satisfied by the intermediate bit heap $h_i$.
-As above, the applicability conditions (\autoref{tab:steps}) ensure that the bits consumed by the step $s_i$ are present in the bit heap $h_i$,
+This can be broken into a sequence of applications $h = h^0 \xrightarrow{s_0} h^1 \xrightarrow{s_1} \dots \xrightarrow{s_{n-1}} h^n = h'$.
+We call a chain \emph{well formed}, iff, at each step $h^i \xrightarrow{s_i} h^{i+1}$, the applicability conditions of step $s_{i}$
+are satisfied by the intermediate bit heap $h^i$.
+As above, the applicability conditions (\autoref{tab:steps}) ensure that the bits consumed by the step $s_i$ are 
+present in the bit heap $h^i$,
 and that the consumed bits are pairwise distinct.
-This well-formedness condition allows us to prove the key chain correctness theorem (\autoref{thm:chain-correct}),
+Well-formedness lets us to prove the key chain correctness theorem (\autoref{thm:chain-correct}),
 which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{figure*}[t]
@@ -723,52 +721,51 @@ which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{theorem}[Chain Correctness]
 \label{thm:chain-correct}
-For all $h : \Heap_w$ and $S: \Chain$ is well-formed for $h$,
+For all $h : \Heap_w$ and all well formed $S: \Chain$ for $h$, let $h \xrightarrow{S} h'$ then
 \[
   \forall \sigma,\quad
-  \hsem{S(h)} \;=\; \hsem{h} .
+  \hsem{h'} \;=\; \hsem{h} .
 \]
 \end{theorem}
 
-Chain correctness (\autoref{thm:chain-correct}) is proven by induction on the length of the chain.
-The base case, when the chain has length $0$, is trivial, since the heap is unchanged.
+The proof proceeds by induction on the length of the chain.
+The base case, an empty chain, is trivial, since the heap is unchanged.
 For the induction step, the new step $s_{i+1}$'s correctness is justified by the step correctness theorem
 proven above (\autoref{thm:step-correct}),
 and the induction hypothesis is used to prove that the other steps preserve the value of the heap.
 
-This shows that \emph{any} well-formed chain preserves the value of the bit heap.
-It should we noted that we do not verify compression algorithms themselves.
-But instead we verify that the chain of compressors generated by a compressor algorithm preserves the value at the run-time.
-So we define $\mathsf{applyChainSafe}$, which applies a chain step by step, checks the conditions of each step against the bit heap it
+This proves that \emph{any} well formed chain preserves the value of the bit heap.
+It should we noted that we have not verified a specific compression algorithms itself.
+Instead, we verified that the chain of compressors generated by a compression algorithm preserves the value at the run-time.
+We define $\mathsf{applyChainSafe}$, which applies a chain step by step, checks the applicability conditions of each step against the bit heap it
 has reached, and returns $\mathsf{none}$ if a step does not apply.
-We then prove that a successful run preserves the value:
+We then trivially prove that a successful run preserves the value:
 \[
   \mathsf{applyChainSafe}(S, h) = \mathsf{some}\ h'
   \quad\Longrightarrow\quad
   \forall \sigma,\; \hsem{h'} = \hsem{h}.
 \]
 
-Dadda's algorithm is a plain Lean function with no correctness theorem of its own.
-It proposes a chain, and the check decides whether that chain is used.
-Any other compression algorithm can take its place without further proof, since only the chain it produces is checked.
-This is the check the CIRCT pass of \autoref{sec:integration} runs.
+The implementation of Dadda's algorithm is simply a plain Lean function with no correctness theorem of its own.
+It proposes a chain, and passes it to $\mathsf{applyChainSafe}$ which verifies the compressor tree.
+Another compression algorithm, e.g., Wallace's, can be substituted without further proof, since only the chain it produces is checked.
 
-\begin{theorem}[Bit Heap Compression]
+\subsection{Correct-by-Construction Synthesis}
+Putting it all together, we are ready to prove that the synthesized compressor tree
+preserves the value of the original word-level arithmetic expression (\autoref{thm:tobitheap-compression}).
+\begin{theorem}[Compressor Tree Synthesis]
 \label{thm:tobitheap-compression}
 For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \mathbb{N} \to
-\mathtt{BitVec}\ w$, and $S: \Chain$ is well-formed for $h$,
+\mathtt{BitVec}\ w$, and all well formed $S: \Chain$ for $h$, let $h = \mathsf{toBitHeap}(a)$, $h\xrightarrow{S} h'$ and $\sigma$ denote the bit environment induced
+by $\rho$, then
 \[
-  \forall \sigma,\quad
-  \hsem{S(\mathsf{toBitHeap}(a))} \;=\; \bvsem{a}.
+  \hsem{h'} \;=\; \bvsem{a}.
 \]
 \end{theorem}
-
-Finally, we prove that compression of word-level arithmetic expressions preserves the value (\autoref{thm:tobitheap-compression}).
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
-
-This now completes the overall proof of correctness of compression algorithms.
-We will use this to synthesize fast and verified multiplier circuits in CIRCT framework.
-The next sections will explain the integration into CIRCT and the results of the verified synthesis of multipliers.
+This theorem is the key step in verifing the correctness of our datapath synthesis engine.
+The next sections will explain the practical integration into CIRCT (\autoref{sec:integration}) 
+and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation}).
 
 \section{Integration}
 \label{sec:integration}
