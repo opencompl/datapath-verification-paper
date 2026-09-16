@@ -487,29 +487,6 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \end{array}
 \]
 
-\begin{table*}[t]
-  \centering
-  \caption{Compression steps. $\maj$ denotes the majority function
-           $(i \wedge j) \vee (i \wedge l) \vee (j \wedge l)$.}
-  \label{tab:steps}
-  \begin{tabular}{@{}lll@{}}
-  \toprule
-  Step & Applicability & Effect \\
-  \midrule
-  $\HA(k,i,j)$
-    & $i,j \in \gamma_k$, $i \neq j$, $k\le w$
-    & remove $i,j$ from $\gamma_k$;\;
-      add $i \oplus j$ at $\gamma_k$;\;
-      add $i \wedge j$ at $\gamma_{k{+}1}$ \\[2pt]
-  $\FA(k,i,j,l)$
-    & $i,j,l \in \gamma_k$, pairwise distinct, $k\le w$
-    & remove $i,j,l$ from $\gamma_k$;\;
-      add $i \oplus j \oplus l$ at $\gamma_k$;\;
-      add $\maj(i,j,l)$ at $\gamma_{k{+}1}$ \\
-  \bottomrule
-  \end{tabular}
-\end{table*}
-
 For the purposes of both implementation and proofs by induction,
 it is much better to define the evaluation of a bit heap using Horner's method.
 Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote the value of it:
@@ -571,15 +548,46 @@ $\sigma : \mathcal{V} \to \mathbb{B}$ with $c \in h_k$,
 \end{theorem}
 The proof is a simple algebraic argument and does not require induction, since the removal only affects a single column.
 
+\begin{table*}
+  \centering
+  \caption{Compression steps on an input heap $h$, producing $h'$.
+           $\maj$ denotes the majority function
+           $(i \wedge j) \vee (i \wedge l) \vee (j \wedge l)$.}
+  \label{tab:steps}
+  \begin{tabular}{@{}lll@{}}
+  \toprule
+  Step & Applicability & Effect \\
+  \midrule
+  $\HA(k,i,j)$
+    & $i,j \in h_k$, $i \neq j$, $k<w$
+    & $\begin{aligned}
+        g_1 &= \mathtt{removeBit}(k,j,\mathtt{removeBit}(k,i,h)) \\
+        g_2 &= \mathtt{addBit}(k,i\oplus j,g_1) \\
+        h'  &= \mathtt{addBit}(k+1,i\wedge j,g_2)
+      \end{aligned}$ \\[6pt]
+\midrule
+  $\FA(k,i,j,l)$
+    & $i,j,l \in h_k$, pairwise distinct, $k<w$
+    & $\begin{aligned}
+        g_1 &= \mathtt{removeBit}(k,j,\mathtt{removeBit}(k,i,h)) \\
+        g_2 &= \mathtt{removeBit}(k,l,g_1) \\
+        g_3 &= \mathtt{addBit}(k,i\oplus j\oplus l,g_2) \\
+        h'  &= \mathtt{addBit}(k+1,\maj(i,j,l),g_3)
+      \end{aligned}$ \\
+  \bottomrule
+  \end{tabular}
+\end{table*}
+
+
 \subsection{From Word-Level Arithmetic to Bit Heaps}\label{subsec:to_bitheap}
 So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
 To use the bit heap to synthesize efficient and provably correct circuits for word-level arithmetic, we require a verified translation from arithmetic to a bit heap.
 We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
-This conversion then allows us to apply compression techniques that reduce the delay of the circuit (\autoref{subsec:compression}).
-First, we define the syntax and semantics of \Arith,
-and then we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith expression.
+This conversion then lets us to apply compressor trees to synthesize efficient circuits (\autoref{subsec:compression}).
+First, we define the syntax and semantics of \Arith.
+Then, we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith.
 
 \Arith is a word-level representation supporting variables,
 variadic addition and two-input multiplication.
@@ -603,72 +611,73 @@ Each recursive call returns a width-$w$ bit heap representing its subexpression 
 Variables and zero-/sign-extended variables produce a single row bit heap.
 Addition merges the recursively constructed operand bit heaps, increasing the bit heaps height or automatically propagating duplicated addends, i.e., $x+x = 2x$.
 The multiplication of two bit heaps, $h$ and $g$, produces a single bit heap containing for every $e \in h_i$ and $f \in g_j$ a bit $e \land f$ in column $i+j$. Any bits for which $i+j\geq w$ are discarded.
+We formally prove that the translation from \Arith expressions to bit heaps preserves their fixed-width arithmetic semantics.
 
-The correctness of these operations follow from the correctness of the bit heap operations.
-The variable case follows directly, since the value of a word-level variable $x$ is equal to $\sum_i x_i 2^i$,
-which clearly matches the value of the bit heap and proved trivially.
-The sign-extended case instead needs an induction on the number of replicated columns,
+\begin{theorem}[Construction]\label{thm:tobitheap}
+For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \texttt{Var}_{\texttt{Arith}}\to
+\mathtt{BitVec}\ w$, let $\sigma$ denote the bit environment induced
+by $\rho$, then
+\[
+  \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a}.
+\]
+\end{theorem}
+
+The proof uses structural indusction handling each \Arith operation separately. 
+The proofs for variables and their zero-extension are trivial. 
+The sign-extended case requires an induction argument on the number of replicated columns,
 for which we give a closed form for the value of the heap after $k$ sign columns have been added:
 it is $x_{[0,b)}$ when the sign bit is clear, and $x_{[0,b)} + (2^{b+k} - 2^{b})$ when it is set.
 Each further column contributes exactly one more copy of the sign bit at weight $2^{b+k}$, which proves the induction step,
 and the closed form stays below $2^{w}$ as long as $b + k \leq w$, so the truncation in the bit heap semantics never wraps around.
 Instantiating the closed form at $k = w - b$ yields precisely the value of the sign-extended word.
-Similarly, taking the union of the columns of the bit heap preserves the value of the bit heap, 
-using the identity $\sum_i h_i 2^i + \sum_j  h'_j 2^j = \sum_k (h_i + h'_i) 2^k$.
+\sam{This proof for sign-extension case became very confusing...}
+The addition proof is simpler and uses the identity $\sum_i h_i 2^i + \sum_j  g_j 2^j = \sum_k (h_i + g_i) 2^k$.
 Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
-Overall, this proves that the bit heap faithfully represents the value of the original \Arith expression (\autoref{thm:tobitheap}).
 
-\begin{theorem}[Bit Heap Construction]\label{thm:tobitheap}
-For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \mathbb{N} \to
-\mathtt{BitVec}\ w$, writing $\sigma_\rho$ for the bit environment induced
-by $\rho$,
-\[
-  \hsem{\mathsf{toBitHeap}(a)} \;=\; \bvsem{a}.
-\]
-\end{theorem}
- 
-Now that we have constructed a bit heap, we can build an optimized arithmetic circuit,
-by using compression algorithms that efficiently express the same value as the original bit heap,
-but with a much better circuit.
+Overall, we verified the conversion from word-level arithmetic to a bit heap (\autoref{thm:tobitheap}).
+Other than the multiplier, which created AND gates to compute the partial product bits, 
+we have not constructed any logic gates.
+What remains is to construct and verify the compressor tree for a given bit heap.
+
 
 \subsection{Compression Algorithms For Fast Arithmetic}\label{subsec:compression}
 
-To synthesize the bit heap into a fast arithmetic circuit,
-the core idea is to repeatedly apply compressors (half and full adders),
-which reduce the height of the bit heap.
-When the bit heap is reduced to two rows, a single carry-propagate adder can be used to produce the final result.
-This framework can be used to synthesize well-known, standard compression algorithms such as Wallace and Dadda trees \cite{dadda_tree,wallace_tree}.
-In this section, we prove the correctness of compression algorithms, starting from a single compressor step.
+To compress the bit heap we apply a tree of compressors (half and full adders),
+which reduce its height to two.
+The compressor tree is followed by a single \ac{cpa} that sums the remaining two rows.
+We proceed by first proving that applying a single compressor to a bit heap preserves its evaluated value,
+then prove correct the composition of compressors.
+These foundational proofs make it easy to prove Wallace's~\cite{wallace_tree} and Dadda's~\cite{dadda_tree} compression algorithms.
 
 Concretely, any compression algorithm produces a sequence of compression steps.
-Formally, we define a \Step as either a half adder or a full adder, which takes the column index and the bits it consumes as arguments:
+Formally, we define a \Step as either a half adder or a full adder. Each compressor takes
+the column index, $k$, and the bits ($c_1, c_2, c_3$) it consumes as arguments.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
-\Step \ni s &::=& \HA(k,c,c) \mid \FA(k,c,c,c) &
+\Step \ni s &::=& \HA(k,c_1,c_2) \mid \FA(k,c_1,c_2,c_3) &
 \end{array}
 \]
-
-% The effects of a single step on the heap with the applicability conditions are shown in Table~\autoref{tab:steps}.
-% Both applicability conditions are forced by Theorem~\autoref{thm:removeBit}, which requires bits to be present and that they are pairwise distinct.
-Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that each step preserves the value of the heap.
-
-\begin{theorem}[Half/Full Adder Correctness]
+Each compressor is accompanied by an applicability condition and maps to a sequence 
+of \texttt{addBit}/\texttt{removeBit} operations (\autoref{tab:steps}).
+Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that any applicable step preserves the value of the bit heap.
+\begin{theorem}[Half/Full Adder Correct]
 \label{thm:step-correct}
 For all $h : \Heap_w$, and $s : \Step$ if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
 
-This proof rewrites the goal using the lemmas for adding and removing bits (\autoref{thm:addBit}, \autoref{thm:removeBit}) until the
-goal becomes an arithmetic identity over the Boolean values of bits.
-This is then discharged by case analysis on the booleans, and some arithmetic reasoning.
+Proceeding one compressor type at a time, this proof rewrites the goal using the lemmas for 
+\texttt{addBit}/\texttt{removeBit} (\autoref{thm:addBit}, \autoref{thm:removeBit}) reducing the
+goal to an arithmetic identity over the Boolean values of bits.
+This is then discharged by case analysis on the Booleans, and some arithmetic reasoning. \sam{Why can we not just discharge this with bv decide?}
 
-Concretely, consider the half adder step $\HA(k,i,j)$, which removes $i$ and $j$ from column $k$,
+As an example, consider the step $\HA(k,i,j)$, which removes $i$ and $j$ from column $k$,
 and adds $i \oplus j$ at column $k$ and $i \wedge j$ at column $k{+}1$ (\autoref{tab:steps}).
 Writing $h'$ for the resulting heap, the theorem states that the value of the heap is preserved:
 \[
   \hsem{h'} \;=\; \hsem{h}.
 \]
-Unfolding $h'$ by rewriting the \texttt{addBit} and \texttt{removeBit} functions as well as the theorems (\autoref{thm:addBit}, \autoref{thm:removeBit}), 
-we obtain an arithmetic expression:
+Unfolding $h'$ by rewriting first \texttt{addBit} (\autoref{thm:addBit}) and \texttt{removeBit} (\autoref{thm:removeBit}),
+then removing intermediate $\bmod$ operations we obtain an arithmetic identity:
 \begin{equation*}
 \begin{split}
   \bigl(\hsem{h}
@@ -679,9 +688,8 @@ we obtain an arithmetic expression:
   &\;=\; \hsem{h} \bmod 2^{w}.
 \end{split}
 \end{equation*}
-
-The proof is discharged by case analysis on the four possible values of $i$ and $j$.
-The full adder case follows the same pattern, with $\maj(i,j,l)$ instead of $i \wedge j$.
+The proof follows by case analysis on the four possible values of $i$ and $j$.
+The full adder case follows the same structure.
 
 Having established that each individual step preserves the value of the heap, we now consider
 sequences of steps.
