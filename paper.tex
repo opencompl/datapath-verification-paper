@@ -390,7 +390,7 @@ More complex partial product encodings exist~\cite{application_specific_arithmet
   \centering
   \begin{subfigure}{0.52\linewidth}
     \centering
-    \includegraphics[width=\linewidth]{partialproducts.pdf}
+    \includegraphics[width=\linewidth]{mul_dot.png}
     \caption{Partial products of $a \times b$.}
     \label{fig:partialproducts}
   \end{subfigure}
@@ -876,7 +876,7 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 
 \begin{table}
   \centering
-  \caption{Synthesis quality and proof cost at 16-bit operand width. \textsc{Verified\,/\,Datapath} is post-technology-mapping ASAP7 area and delay relative to CIRCT's Datapath dialect, so below $1.00$ favours the verified lowering. \textsc{Time to trust} is synthesis plus equivalence checking, in seconds: \textsc{Standard} proves the result against the original Verilog, re-checking the whole pipeline, while \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
+  \caption{Synthesis quality and proof cost at 16-bit operand width. \textsc{Verified\,/\,Datapath} is post-technology-mapping ASAP7 area and delay relative to CIRCT's Datapath dialect, so below $1.00$ favours the verified lowering. \textsc{Time to trust} is synthesis plus equivalence checking, in seconds. Both flows are checked over the same three pipeline segments -- the front-end passes, the multiplier lowering, and the comb-to-AIG tail -- and the times are their sum; \textsc{Verified} has no second segment to check, because the Lean proof discharges it during synthesis. $\times$ marks a solver timeout on at least one segment. $^{\dagger}$ marks signed benchmarks.}
   \label{tab:qor-and-time-16}
   \small
   \setlength{\tabcolsep}{4pt}
@@ -886,178 +886,31 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
     Benchmark & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
     \midrule
-    AddMop & 1.00 & 1.06 & 0.45 & 0.35 \\
+    AddMop & 1.00 & 1.06 & 0.81 & 0.30 \\
     AddMulSgn$^{\dagger}$ & 1.19 & 1.54 & $\times$ & $\times$ \\
     AddMulUns & 1.02 & 1.21 & $\times$ & $\times$ \\
-    AddThree & 1.00 & 0.94 & 0.24 & 0.34 \\
-    AddThreeSgn$^{\dagger}$ & 1.00 & 0.94 & 0.20 & 0.34 \\
+    AddThree & 1.00 & 0.94 & 0.48 & 0.28 \\
+    AddThreeSgn$^{\dagger}$ & 1.00 & 0.94 & 0.38 & 0.29 \\
     AlphaBlend & 0.97 & 1.13 & $\times$ & $\times$ \\
-    CarrySaveCompare & 1.02 & 0.98 & $\times$ & 5.35 \\
-    CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.74 \\
-    DotProduct & 1.01 & 1.02 & $\times$ & 54.12 \\
+    CarrySaveCompare & 1.02 & 0.98 & $\times$ & 4.59 \\
+    CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.23 \\
+    DotProduct & 1.01 & 1.02 & $\times$ & 46.58 \\
     DotProductSgn$^{\dagger}$ & 1.64 & 1.04 & $\times$ & $\times$ \\
-    Fma & 1.01 & 1.05 & $\times$ & 3.90 \\
+    Fma & 1.01 & 1.05 & $\times$ & 3.16 \\
     FmaSgn$^{\dagger}$ & 1.61 & 1.14 & $\times$ & $\times$ \\
-    FmaShare & 1.01 & 1.17 & $\times$ & 35.82 \\
+    FmaShare & 1.01 & 1.17 & $\times$ & 30.60 \\
     FmaShareSgn$^{\dagger}$ & 1.48 & 1.38 & $\times$ & $\times$ \\
-    Fmaa & 1.00 & 0.95 & $\times$ & 2.31 \\
-    FmaaSgn$^{\dagger}$ & 2.03 & 1.28 & $\times$ & 38.64 \\
-    MulAddSgn$^{\dagger}$ & 1.57 & 1.14 & $\times$ & 13.21 \\
-    MulAddUns & 1.01 & 1.07 & $\times$ & 1.68 \\
-    MulThree & 1.01 & 1.14 & $\times$ & 21.82 \\
-    MulThreeSgn$^{\dagger}$ & 1.01 & 1.14 & $\times$ & 22.01 \\
-    SqrSgn$^{\dagger}$ & 1.79 & 1.18 & 13.93 & 23.60 \\
-    SqrUns & 1.48 & 1.13 & 9.18 & 18.62 \\
+    Fmaa & 1.00 & 0.95 & $\times$ & 1.90 \\
+    FmaaSgn$^{\dagger}$ & 2.03 & 1.28 & $\times$ & 32.59 \\
+    MulAddSgn$^{\dagger}$ & 1.57 & 1.14 & $\times$ & 10.94 \\
+    MulAddUns & 1.01 & 1.07 & $\times$ & 1.36 \\
+    MulThree & 1.01 & 1.14 & $\times$ & 18.37 \\
+    MulThreeSgn$^{\dagger}$ & 1.01 & 1.14 & $\times$ & 18.41 \\
+    SqrSgn$^{\dagger}$ & 1.79 & 1.18 & 35.13 & 20.97 \\
+    SqrUns & 1.48 & 1.13 & 23.59 & 15.93 \\
     \bottomrule
   \end{tabular}
 \end{table}
-
-% \begin{table}
-%   \centering
-%   \caption{Per-benchmark area and delay at 32-bit operand width after technology
-%   mapping to ASAP7, reported by Mockturtle's mapper. Both columns are normalised to the
-%   unverified CIRCT datapath pass, so $1.00$ is parity and values below $1.00$
-%   favour our flow. Geometric means are taken over all 22 benchmarks.
-%   $^{\dagger}$ marks signed benchmarks.}
-%   \label{tab:verified-full-32-asap7}
-%   \small
-%   \begin{tabular}{lrr}
-%     \toprule
-%     Benchmark & Area & Delay \\
-%     \midrule
-%     AddMop & 1.00 & 1.08 \\
-%     AddMulSgn$^{\dagger}$ & 1.17 & 1.35 \\
-%     AddMulUns & 1.04 & 1.21 \\
-%     AddThree & 1.03 & 1.06 \\
-%     AddThreeSgn$^{\dagger}$ & 1.03 & 1.07 \\
-%     AlphaBlend & 0.99 & 1.11 \\
-%     CarrySaveCompare & 0.98 & 1.02 \\
-%     CarrySaveSelect & 1.20 & 1.13 \\
-%     DotProduct & 0.99 & 0.96 \\
-%     DotProductSgn$^{\dagger}$ & 1.66 & 1.25 \\
-%     Fma & 0.96 & 1.00 \\
-%     FmaSgn$^{\dagger}$ & 1.61 & 1.13 \\
-%     FmaShare & 1.04 & 1.22 \\
-%     FmaShareSgn$^{\dagger}$ & 1.58 & 1.30 \\
-%     Fmaa & 0.86 & 1.02 \\
-%     FmaaSgn$^{\dagger}$ & 1.54 & 1.38 \\
-%     MulAddSgn$^{\dagger}$ & 1.59 & 1.15 \\
-%     MulAddUns & 0.98 & 1.02 \\
-%     MulThree & 1.06 & 1.19 \\
-%     MulThreeSgn$^{\dagger}$ & 1.06 & 1.19 \\
-%     SqrSgn$^{\dagger}$ & 1.52 & 1.07 \\
-%     SqrUns & 1.55 & 1.24 \\
-%     \midrule
-%     Geometric mean (32-bit) & 1.17 & 1.14 \\
-%     Geometric mean (16-bit) & 1.21 & 1.12 \\
-%     Geometric mean (8-bit) & 1.21 & 1.10 \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
-
-% \begin{table}
-%   \centering
-%   \caption{Total time to obtain a trusted netlist at 8-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
-%   \label{tab:verify-time-8}
-%   \small
-%   \begin{tabular}{lrr}
-%     \toprule
-%     Benchmark & \textsc{Standard} & \textsc{Verified} \\
-%     \midrule
-%     AddMop & 0.66 & 0.22 \\
-%     AddMulSgn$^{\dagger}$ & $\times$ & 18.12 \\
-%     AddMulUns & $\times$ & 9.46 \\
-%     AddThree & 0.64 & 0.23 \\
-%     AddThreeSgn$^{\dagger}$ & 0.14 & 0.20 \\
-%     AlphaBlend & $\times$ & 123.98 \\
-%     CarrySaveCompare & 0.51 & 0.32 \\
-%     CarrySaveSelect & 2.31 & 0.60 \\
-%     DotProduct & $\times$ & 1.53 \\
-%     DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     Fma & 70.48 & 0.65 \\
-%     FmaSgn$^{\dagger}$ & 55.81 & 5.91 \\
-%     FmaShare & 13.43 & 1.16 \\
-%     FmaShareSgn$^{\dagger}$ & 15.75 & 4.85 \\
-%     Fmaa & $\times$ & 0.46 \\
-%     FmaaSgn$^{\dagger}$ & $\times$ & 22.43 \\
-%     MulAddSgn$^{\dagger}$ & 248.05 & 3.80 \\
-%     MulAddUns & 174.39 & 0.45 \\
-%     MulThree & 10.05 & 2.03 \\
-%     MulThreeSgn$^{\dagger}$ & 9.98 & 2.10 \\
-%     SqrSgn$^{\dagger}$ & 0.18 & 0.34 \\
-%     SqrUns & 0.16 & 0.27 \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
-% \begin{table}
-%   \centering
-%   \caption{Total time to obtain a trusted netlist at 16-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
-%   \label{tab:verify-time-16}
-%   \small
-%   \begin{tabular}{lrr}
-%     \toprule
-%     Benchmark & \textsc{Standard} & \textsc{Verified} \\
-%     \midrule
-%     AddMop & 0.44 & 0.24 \\
-%     AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     AddMulUns & $\times$ & $\times$ \\
-%     AddThree & 0.21 & 0.22 \\
-%     AddThreeSgn$^{\dagger}$ & 0.17 & 0.22 \\
-%     AlphaBlend & $\times$ & $\times$ \\
-%     CarrySaveCompare & $\times$ & 5.57 \\
-%     CarrySaveSelect & $\times$ & 2.77 \\
-%     DotProduct & $\times$ & 58.02 \\
-%     DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     Fma & $\times$ & 3.66 \\
-%     FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     FmaShare & $\times$ & 36.59 \\
-%     FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     Fmaa & $\times$ & 2.20 \\
-%     FmaaSgn$^{\dagger}$ & $\times$ & 175.88 \\
-%     MulAddSgn$^{\dagger}$ & $\times$ & 20.57 \\
-%     MulAddUns & $\times$ & 1.59 \\
-%     MulThree & $\times$ & 22.86 \\
-%     MulThreeSgn$^{\dagger}$ & $\times$ & 22.72 \\
-%     SqrSgn$^{\dagger}$ & 14.65 & 26.24 \\
-%     SqrUns & 11.78 & 19.95 \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
-
-% \begin{table}
-%   \centering
-%   \caption{Total time to obtain a trusted netlist at 32-bit operand width, in seconds: synthesis plus equivalence checking. \textsc{Standard} proves the synthesised AIG against the original Verilog, so the whole pipeline is re-checked; \textsc{Verified} proves it against the Lean snapshot, leaving only the unverified comb-to-AIG tail. $\times$ marks a solver timeout. $^{\dagger}$ marks signed benchmarks.}
-%   \label{tab:verify-time-32}
-%   \small
-%   \begin{tabular}{lrr}
-%     \toprule
-%     Benchmark & \textsc{Standard} & \textsc{Verified} \\
-%     \midrule
-%     AddMop & 1.15 & 0.35 \\
-%     AddMulSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     AddMulUns & $\times$ & $\times$ \\
-%     AddThree & 0.35 & 0.29 \\
-%     AddThreeSgn$^{\dagger}$ & 0.35 & 0.31 \\
-%     AlphaBlend & $\times$ & $\times$ \\
-%     CarrySaveCompare & $\times$ & 169.87 \\
-%     CarrySaveSelect & $\times$ & 29.72 \\
-%     DotProduct & $\times$ & $\times$ \\
-%     DotProductSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     Fma & $\times$ & 54.21 \\
-%     FmaSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     FmaShare & $\times$ & $\times$ \\
-%     FmaShareSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     Fmaa & $\times$ & 22.87 \\
-%     FmaaSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     MulAddSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     MulAddUns & $\times$ & 21.48 \\
-%     MulThree & $\times$ & $\times$ \\
-%     MulThreeSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     SqrSgn$^{\dagger}$ & $\times$ & $\times$ \\
-%     SqrUns & $\times$ & $\times$ \\
-%     \bottomrule
-%   \end{tabular}
-% \end{table}
 
 \section{Related Work}
 \citet{arithmetic_core_generation_bitheaps} propose the bit heap as the central data structure
