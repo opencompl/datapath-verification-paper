@@ -55,6 +55,19 @@
 \usepackage{hyperref}
 \usepackage{amsthm}   % \theoremstyle/\newtheorem; acmart loaded this
 \usepackage{thmtools} % required for autoref to lemmas
+% Workaround for thmtools <= 0.78 with LaTeX >= 2026-06-01: the kernel now
+% creates alias counters itself in \newtheorem{lemma}[theorem]{...}, and
+% thmtools' own aliasing (aliasctr) then fails with "\c@lemma already
+% defined". Only the \<env>autorefname definition is still needed.
+% See https://github.com/muzimuzhi/thmtools/issues/75
+\makeatletter
+\@ifundefined{newcounteralias}{}{%
+  \renewcommand\thmt@autorefsetup{%
+    \expandafter\def\csname\thmt@envname autorefname\expandafter\endcsname
+      \expandafter{\thmt@thmname}%
+  }%
+}
+\makeatother
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \usepackage{hyphenat}
