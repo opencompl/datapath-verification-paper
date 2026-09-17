@@ -876,7 +876,10 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 
 \begin{table}
   \centering
-  \caption{Synthesis quality and proof cost at 16-bit operand width. \textsc{Verified\,/\,Datapath} is post-technology-mapping ASAP7 area and delay relative to CIRCT's Datapath dialect, so below $1.00$ favours the verified lowering. \textsc{Time to trust} is synthesis plus equivalence checking, in seconds. Both flows are checked over the same three pipeline segments -- the front-end passes, the multiplier lowering, and the comb-to-AIG tail -- and the times are their sum; \textsc{Verified} has no second segment to check, because the Lean proof discharges it during synthesis. $\times$ marks a solver timeout on at least one segment. $^{\dagger}$ marks signed benchmarks.}
+  \caption{Synthesis quality and proof cost at 16-bit operand width. 
+  \textsc{Verified\,/\,Datapath} is post-technology-mapping ASAP7 area and delay relative to CIRCT's Datapath dialect. 
+  \textsc{Time to trust} is total verification time, in seconds, summed over the checks of \autoref{fig:flow-comparison}. 
+  $\times$ marks a solver timeout on at least one check.}
   \label{tab:qor-and-time-16}
   \small
   \setlength{\tabcolsep}{4pt}
@@ -887,26 +890,26 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
     Benchmark & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
     \midrule
     AddMop & 1.00 & 1.06 & 0.81 & 0.30 \\
-    AddMulSgn$^{\dagger}$ & 1.19 & 1.54 & $\times$ & $\times$ \\
+    AddMulSgn & 1.19 & 1.54 & $\times$ & $\times$ \\
     AddMulUns & 1.02 & 1.21 & $\times$ & $\times$ \\
     AddThree & 1.00 & 0.94 & 0.48 & 0.28 \\
-    AddThreeSgn$^{\dagger}$ & 1.00 & 0.94 & 0.38 & 0.29 \\
+    AddThreeSgn & 1.00 & 0.94 & 0.38 & 0.29 \\
     AlphaBlend & 0.97 & 1.13 & $\times$ & $\times$ \\
     CarrySaveCompare & 1.02 & 0.98 & $\times$ & 4.59 \\
     CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.23 \\
     DotProduct & 1.01 & 1.02 & $\times$ & 46.58 \\
-    DotProductSgn$^{\dagger}$ & 1.64 & 1.04 & $\times$ & $\times$ \\
+    DotProductSgn & 1.64 & 1.04 & $\times$ & $\times$ \\
     Fma & 1.01 & 1.05 & $\times$ & 3.16 \\
-    FmaSgn$^{\dagger}$ & 1.61 & 1.14 & $\times$ & $\times$ \\
+    FmaSgn & 1.61 & 1.14 & $\times$ & $\times$ \\
     FmaShare & 1.01 & 1.17 & $\times$ & 30.60 \\
-    FmaShareSgn$^{\dagger}$ & 1.48 & 1.38 & $\times$ & $\times$ \\
+    FmaShareSgn & 1.48 & 1.38 & $\times$ & $\times$ \\
     Fmaa & 1.00 & 0.95 & $\times$ & 1.90 \\
-    FmaaSgn$^{\dagger}$ & 2.03 & 1.28 & $\times$ & 32.59 \\
-    MulAddSgn$^{\dagger}$ & 1.57 & 1.14 & $\times$ & 10.94 \\
+    FmaaSgn & 2.03 & 1.28 & $\times$ & 32.59 \\
+    MulAddSgn & 1.57 & 1.14 & $\times$ & 10.94 \\
     MulAddUns & 1.01 & 1.07 & $\times$ & 1.36 \\
     MulThree & 1.01 & 1.14 & $\times$ & 18.37 \\
-    MulThreeSgn$^{\dagger}$ & 1.01 & 1.14 & $\times$ & 18.41 \\
-    SqrSgn$^{\dagger}$ & 1.79 & 1.18 & 35.13 & 20.97 \\
+    MulThreeSgn & 1.01 & 1.14 & $\times$ & 18.41 \\
+    SqrSgn & 1.79 & 1.18 & 35.13 & 20.97 \\
     SqrUns & 1.48 & 1.13 & 23.59 & 15.93 \\
     \bottomrule
   \end{tabular}
