@@ -344,9 +344,9 @@ The compressor tree performs the reduction of the addends in parallel and is fol
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
 Whilst efficient and widely used, compression trees usually have highly irregular structures increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
-Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
+Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers, vescmul_acl2,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
 and SAT-based methods~\cite{kaufmann2019verifying}.
-One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers}.
+One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
 So checking that a synthesized datapath circuit is correct remains challenging, even today. 
 
@@ -770,14 +770,16 @@ and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation
 \section{Integration}
 \label{sec:integration}
 
-We integrate our verified synthesizer into the CIRCT compiler framework, and make our contributions open-source.
-CIRCT's \texttt{circt-synth} flow lowers the word-level \texttt{comb} dialect to an
-\ac{aig}; within that flow, a datapath engine rewrites arithmetic operations into
+We integrate the verified datapath synthesis step into the CIRCT compiler framework, 
+and make our contributions open-source.\footnote{Github link anonymized for review.}
+CIRCT's \texttt{circt-synth} (\autoref{fig:flow-comparison} - top) flow can lower 
+a word-level SystemVerilog design through the \texttt{comb} dialect to an
+\ac{aig}; within that flow, an existing unverified datapath engine rewrites arithmetic operations into
 compressor trees in a dedicated pass.
-We replace exactly this pass and leave the rest of the flow untouched, so that our
-pipeline is a drop-in alternative to CIRCT's and the two are directly comparable.
-\autoref{fig:flow-comparison} shows the two flows side by side, and marks which stages
-are verified in Lean and which are discharged by the SAT check on the tail.
+We replace exactly this pass and leave the rest of the flow untouched.
+As a result, the proposed flow (\autoref{fig:flow-comparison} - bottom) is a drop-in 
+replacement for \texttt{circt-synth} and the two are directly comparable.
+In both flows we use an SMT solver to check intermediate steps that are not verified in Lean. 
 
 Using circt-verilog, we write the SystemVerilog design into CIRCT's RTL dialects, namely the comb.
 Then, a pass matches arbitrary sums of products, that is, expressions built from two-operand
@@ -1034,7 +1036,7 @@ using backwards rewriting of polynomials at the gate level, employing a dynamic 
 different substitution orders with polynomial compression techniques, namely phase optimization
 and conflict analysis, and verifies adders and multiply-accumulate units as well.
 
-In their work, \citet{mertcan_acl2multipliers} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
+In their work, \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
