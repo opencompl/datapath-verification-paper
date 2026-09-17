@@ -52,7 +52,7 @@
 \usepackage[acronym,shortcuts]{glossaries}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{amsthm}   % \theoremstyle/\newtheorem; acmart loaded this
 \usepackage{thmtools} % required for autoref to lemmas
 % Workaround for thmtools <= 0.78 with LaTeX >= 2026-06-01: the kernel now
@@ -248,6 +248,7 @@
 \providecommand{\ccsdesc}[2][]{}
 \providecommand{\settopmatter}[1]{}
 \providecommand{\received}[2][]{}
+
 
 \newcommand{\SynthesisSpeedupGeomean}{\ensuremath{X \times}}
 \newcommand{\PerformanceSlowdownGeomean}{\ensuremath{Y \times}}
