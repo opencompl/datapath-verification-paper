@@ -682,7 +682,7 @@ For all $h : \Heap_w$, and $s : \Step$ if $s$ obeys the applicability conditions
 Proceeding one compressor type at a time, this proof rewrites the goal using the lemmas for 
 \texttt{addBit}/\texttt{removeBit} (\autoref{thm:addBit}, \autoref{thm:removeBit}) reducing the
 goal to an arithmetic identity over the Boolean values of bits.
-This is then discharged by case analysis on the Booleans, and some arithmetic reasoning. \sam{Why can we not just discharge this with bv decide?}
+This is then discharged by case analysis on the Booleans, and some arithmetic reasoning.
 
 As an example, consider the step $\HA(k,i,j)$, which removes $i$ and $j$ from column $k$,
 and adds $i \oplus j$ at column $k$ and $i \wedge j$ at column $k{+}1$ (\autoref{tab:steps}).
@@ -725,11 +725,22 @@ which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=0.72\textwidth]{flow-diagram.png}
-  \caption{The baseline \texttt{circt-synth} flow (top) and ours (bottom). Both share
-  CIRCT's front-end passes and its \texttt{comb}-to-\ac{aig} lowering; we replace only the
-  compressor-tree pass, whose result is guaranteed by \autoref{thm:tobitheap-compression},
-  and check the remaining tail against the baseline netlist with a SAT solver.}
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{circt-synth.drawio.png}
+    \caption{Baseline \texttt{circt-synth} flow that we verify via three equivalence checking steps.}
+    \label{fig:circt-synth-flow}
+  \end{subfigure}
+  \par\medskip
+  \begin{subfigure}{\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{verified-datapath.drawio.png}
+    \caption{The proposed verified datapath flow that eliminates the second equivalence check by deploying a Lean-verified datapath engine.}
+    \label{fig:verified-datapath-flow}
+  \end{subfigure}
+  \caption{Our verified datapath engine is a drop-in replacement for CIRCT's existing datapath engine and eliminates one equivalence check.
+  The front-end is unverified in both flows, but the initial optimizations and back-end AIG generation are verified via SMT.
+  }
   \label{fig:flow-comparison}
 \end{figure*}
 
@@ -795,11 +806,14 @@ As a result, the proposed flow (\autoref{fig:flow-comparison} - bottom) is a dro
 replacement for \texttt{circt-synth} and the two are directly comparable.
 In both flows we use an SMT solver to check intermediate steps that are not verified in Lean. 
 
-Using circt-verilog, we write the SystemVerilog design into CIRCT's RTL dialects, namely the comb.
+Diving into the flows, the \texttt{circt-verilog} front-end parses the SystemVerilog
+and generates a design in CIRCT \ac{ir}, primarily \texttt{comb}.
+In both flows this conversion is unverified.
+Before datapath synthesis, \texttt{circt-synth} applies a canonicalization pass that applies basic optimizations 
+and decomposes variadic multipliers into a chain of binary multipliers. 
 Then, a pass matches arbitrary sums of products, that is, expressions built from two-operand
-\texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ (e.g. $a*b+c*d+e$),
-but it does not match for two-operand additions, since they are already carry-propagate adders and are left alone, whereas
-variadic multiplications are decomposed into binary ones by an existing CIRCT pass beforehand.
+\texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ (e.g., $a*b+c*d+e$),
+but it does not match for two-operand additions, since they are already carry-propagate adders and are left alone.
 
 For each matched \ac{sop} expression, our tool builds the corresponding bit heap and compresses
 it with the Dadda algorithm.
