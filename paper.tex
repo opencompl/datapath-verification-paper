@@ -651,7 +651,6 @@ Other than the multiplier, which created AND gates to compute the partial produc
 we have not constructed any logic gates.
 What remains is to construct and verify the compressor tree for a given bit heap.
 
-
 \subsection{Correct-by-Construction Compressor Trees}\label{subsec:compression}
 
 To compress the bit heap we apply a tree of compressors (half and full adders),
@@ -771,8 +770,10 @@ We then trivially prove that a successful run preserves the value:
 The implementation of Dadda's algorithm is simply a plain Lean function with no correctness theorem of its own.
 It proposes a chain, and passes it to $\mathsf{applyChainSafe}$, which verifies the compressor tree.
 Another compression algorithm, e.g., Wallace's, can be substituted without further proof, since only the chain it produces is checked.
-We likewise give no guarantees that a proposed chain reduces the bit heap to two rows.
-That is a property of the compression algorithm, and is not required for the correctness of compression. 
+Likewise, we do not prove that a proposed chain reduces the bit heap to two rows.
+That is a property of the compression algorithm, and it is not required for the correctness of compression.
+However, we enforce this property at the netlist emission stage ((\autoref{sec:integration})).
+If any column still holds more than two bits, the emitter rejects the heap and the datapath synthesis pass aborts.
 
 \subsection{Correct-by-Construction Synthesis}
 Putting it all together, we are ready to prove that the synthesized compressor tree
