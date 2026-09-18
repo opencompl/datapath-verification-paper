@@ -415,7 +415,7 @@ The height of each column corresponds to the number of bit values that need to b
 Compressor trees reduce multiple summands to two using carry-save arithmetic, 
 avoiding chained \acp{cpa} to compute the sum. 
 A compressor tree is followed by a single \ac{cpa} that produces the result \cite{application_specific_arithmetic}.
-The reduction is carried out by composing compressors, half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
+The reduction is carried out by composing compressors: half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
 that uses the minimal number of compressors to perform the reduction as fast as possible~\cite{dadda_tree}. 
 By formalizing the bit heap and the application of compressors to it, we can verify any compression algorithm with a minimal proof. 
@@ -458,7 +458,7 @@ To evaluate a \BitExpr, we need to assign values to all the variables in the \Bi
 These are supplied by a bit environment $(\sigma : \texttt{Var} \to \mathbb B)$,
 which maps each bit variable to its Boolean value. 
 The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr under a bit environment $\sigma$,
-producing a concrete Boolean value. It is defined by recursion.
+producing a concrete Boolean value. It is defined by recursion:
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \csem{b} &=& \sigma(b) \quad \csem{0} = \mathit{false} \quad \csem{1} = \mathit{true}\\
@@ -846,7 +846,7 @@ In the evaluation, we demonstrate how our hybrid approach, combining formal synt
 the hardest step to check, thus allowing us to verify more designs.
 
 \section{Evaluation}\label{sec:evaluation}
-We evaluate our results on two metrics, the circuit quality and the time needed to verify the circuits.
+We evaluate our results on two metrics: the circuit quality and the time needed to verify the circuits.
 We compare our results against the CIRCT datapath pass that we replace.
 \sam{We should provide some evidence that we really isolate the hard part with our Lean synthesizer. 
 Namely, a reviewer might ask well what happens if you decompose the original CIRCT problem into two separate SMT problems using an identical cutpoint as you've used.
