@@ -872,18 +872,18 @@ proving that we do indeed isolate and formalize the hardest step to check.
 
 \begin{table}
   \centering
-  \caption{Synthesis quality and proof cost at 16-bit operand width. 
-  \textsc{Verified\,/\,Datapath} is post-technology-mapping ASAP7 area and delay relative to CIRCT's Datapath dialect. 
-  \textsc{Time to trust} is total verification time, in seconds, summed over the checks of \autoref{fig:flow-comparison}. 
+  \caption{
+  We report technology-mapped area and delay relative to baseline \texttt{circt-synth} for 16-bit operands. 
+  Verification Time is the total runtime of all the checks/Lean proofs in \autoref{fig:flow-comparison}. 
   $\times$ marks a solver timeout on at least one check.}
   \label{tab:qor-and-time-16}
   \small
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lrrrr}
     \toprule
-    & \multicolumn{2}{c}{Verified\,/\,Datapath} & \multicolumn{2}{c}{Time to trust (s)} \\
+    & \multicolumn{2}{c}{Ours\,/\,Basline} & \multicolumn{2}{c}{Verification Time (s)} \\
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
-    Benchmark & Area & Delay & \textsc{Standard} & \textsc{Verified} \\
+    Benchmark & Area & Delay & Baseline & \textbf{Ours} \\
     \midrule
     AddMop & 1.00 & 1.06 & 0.81 & 0.30 \\
     AddMulSgn & 1.19 & 1.54 & $\times$ & $\times$ \\
