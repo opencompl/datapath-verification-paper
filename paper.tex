@@ -356,7 +356,7 @@ In \ac{asic} design, recursively summing $N$ addends is slow because the delay o
 Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
-Whilst efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits.\sam{CITE something}
+While efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
 Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers, vescmul_acl2,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
 and SAT-based methods~\cite{kaufmann2019verifying}.
@@ -837,7 +837,7 @@ At this point both flows reconverge.
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
 apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
-Whilst non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
+While non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
 In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remain unverified.
 This leaves a small trusted base, as these parts are syntax translations between
@@ -937,7 +937,7 @@ Similar to our approach, their implementation of the tool in a theorem prover gu
 
 A line of research focuses on proving \ac{hls} tools correct. 
 Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
-Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
+Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behavior.
 
 
 
