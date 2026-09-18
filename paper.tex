@@ -468,7 +468,8 @@ producing a concrete Boolean value. It is defined by recursion:
 \]
 
 \subsection{Bit Heap Data Structure}\label{subsec:bitheap}
-A bit heap of width $w$ is a vector of $w$ columns, where the column at index $k$ holds the bits of weight $2^k$. 
+Recall that a bit heap is a data structure that is used to represent a summation of weighted bits,
+organized into columns according to their weight.
 A \Col is a set of \BitExpr elements.
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -478,17 +479,12 @@ A \Col is a set of \BitExpr elements.
 
 \begin{definition}[Bit heap]
 \label{def:bitheap}
-
-Recall that a bit heap is a data structure that is used to represent a summation of weighted bits.
-Bits of the same weight are organized into columns, where column $k$ has weight $2^k$.
-In implementing the data structure,
-we define a \Col as a set of \BitExpr elements,
-and a \Heap of width $w$ as a vector of $w$ columns.
+A \Heap of width $w$ is a vector of $w$ columns,
+where the column at index $k$ holds the bits of weight $2^k$.
 \[
-  \Heap_w \;\triangleq\; \Vect_w(\Col)
+  w \in \mathbb{N} \qquad \Heap_w \;\triangleq\; \Vect_w(\Col)
 \]
 \end{definition}
-
 
 \paragraph*{Bit Heap Evaluation}
 Since a bit heap represents a summation of weighted bits,
