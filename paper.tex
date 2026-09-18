@@ -502,8 +502,8 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \end{array}
 \]
 
-For the purposes of both implementation and proofs by induction,
-it is much better to define the evaluation of a bit heap using Horner's method.
+For the purpose of proving by induction,
+it is easier to define the evaluation of a bit heap using Horner's method.
 Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote its value:
 \begin{equation*}
 \begin{split}
@@ -512,8 +512,7 @@ Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \cse
       + 2 ( v_2 + \cdots + 2 \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
 \end{split}
 \end{equation*}
-Horner's method cleanly separates the contribution of each column, $v_k$,
-and is structurally recursive on the vector of columns, which makes it amenable to inductive reasoning.
+Horner's method is structurally recursive on the vector of columns, which makes it amenable to inductive reasoning.
 
 To construct and modify a bit heap we define bit insertion and removal operations.
 These are used by higher-level operations to construct a compressor tree.
@@ -547,8 +546,8 @@ The proof follows by functional induction on \texttt{addBit}, following the carr
 
 \paragraph*{\texttt{removeBit}}
 Removing a bit expression $e$ at column $k$ removes $e$ from the set $h_k$.
-Removal is only meaningful if $e\in h_k$; therefore, we require that the bit to be removed is present in the column.
-This is encoded as an explicit hypothesis of the correctness theorem for bit removal (\autoref{thm:removeBit}).
+Removal is only feasible if $e\in h_k$.
+Therefore, we encode the presence of the bit to be removed in the column as an explicit hypothesis of the bit removal theorem (\autoref{thm:removeBit}).
 Under this hypothesis, removing a bit $e$ from column $k$ decreases the value of the bit heap by $2^k \csem{e}$.
 \begin{theorem}[Bit removal]
 \label{thm:removeBit}
