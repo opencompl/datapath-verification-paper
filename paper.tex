@@ -852,7 +852,7 @@ We compare our results against the CIRCT datapath pass that we replace.
 Namely, a reviewer might ask well what happens if you decompose the original CIRCT problem into two separate SMT problems using an identical cutpoint as you've used.
 We can handle this query by showing that even for a simple multiplier this step does not converge with an SMT solver.}
 
-We use a benchmark consisting of 22 datapath designs\footnote{\url{https://github.com/cowardsa/DatapathBench}},
+We use a benchmark consisting of 22 datapath designs,\footnote{\url{https://github.com/cowardsa/DatapathBench}}
 spanning multi-operand addition and multiplication, dot-products, and fused multiply-add variants in signed and unsigned forms.
 We instantiate each design at 8-, 16-, and 32-bit operand widths.
 
