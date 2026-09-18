@@ -914,7 +914,8 @@ proving that we do indeed isolate and formalize the hardest step to check.
 The most closely related work pre-dates more recent advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
 and is a short paper formalizing the synthesis of Wallace tree multipliers in a theorem prover~\cite{verified_wallace}.
 Some of the proof structure, such as proving the application of compressors, is common to both works. 
-However, we strive for much greater generality and extensibility, admitting arbitrary compression algorithms and \acp{sop}.
+However, our work offers much greater generality and extensibility, admitting varied compression algorithms and 
+handling arbitrary \acp{sop} circuits by integrating with a complete synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
 arithmetic circuits in VHDL, is built on the same bit heap abstraction and compression techniques that we formalize in this paper~\citet{arithmetic_core_generation_bitheaps}.
