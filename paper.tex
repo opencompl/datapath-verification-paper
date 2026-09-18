@@ -605,7 +605,7 @@ Then, we prove that the semantics of the resulting bit heap are equal to the sem
 \Arith is a word-level representation supporting variables,
 variadic addition, and two-input multiplication.
 This allows us to represent nested arithmetic expressions, like $a\times b + c$.
-We also support zero/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
+We also support zero-/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
 \begin{align*}
 &b \in \texttt{Var}_{\texttt{Arith}} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
