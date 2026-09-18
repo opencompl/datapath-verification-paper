@@ -857,7 +857,7 @@ All equivalence checks (\autoref{fig:flow-comparison}) use the Bitwuzla SMT solv
 
 We report area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized to the baseline \texttt{circt-synth} flow.
 The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
-with the gap being stable for other bit widths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
+with the gap being stable for other bitwidths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
 This gap in circuit quality is not an inherent limitation of our flow.
 The \texttt{circt-synth} datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations~\cite{application_specific_arithmetic}.
 Our area penalty is large on signed benchmarks.
