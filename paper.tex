@@ -405,7 +405,7 @@ More complex partial product encodings exist~\cite{application_specific_arithmet
   \label{fig:bitheap-example}
 \end{figure}
 
-The bit heap is a data structure that represents the summation of weighted bits \cite{arithmetic_core_generation_bitheaps}. 
+The bit heap is a data structure that represents the summation of weighted bits~\cite{arithmetic_core_generation_bitheaps}. 
 Bits are abstract, represented by dots, and are organized into columns based on their weights.
 The height of each column corresponds to the number of bit values that need to be summed for that particular weight.
 \autoref{fig:bitheap-example} illustrates the bit heap for a $3 \times 3$ unsigned multiplication.
@@ -414,7 +414,7 @@ The height of each column corresponds to the number of bit values that need to b
 \label{comp_algo}
 Compressor trees reduce multiple summands to two using carry-save arithmetic, 
 avoiding chained \acp{cpa} to compute the sum. 
-A compressor tree is followed by a single \ac{cpa} that produces the result \cite{application_specific_arithmetic}.
+A compressor tree is followed by a single \ac{cpa} that produces the result~\cite{application_specific_arithmetic}.
 The reduction is carried out by composing compressors: half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
 that uses the minimal number of compressors to perform the reduction as fast as possible~\cite{dadda_tree}. 
@@ -857,7 +857,7 @@ spanning multi-operand addition and multiplication, dot-products, and fused mult
 We instantiate each design at 8-, 16-, and 32-bit operand widths.
 
 We synthesize the designs using both the unverified CIRCT path and our verified datapath generator.
-Both are technology mapped to the ASAP 7nm library \cite{asap7} using Mockturtle, and we report the total cell area and critical-path delay.
+Both are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle, and we report the total cell area and critical-path delay.
 For the verification of the unverified path and the tail of our verified circuit, we use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
 \autoref{tab:qor-and-time-16} reports area and delay at 16 bits, normalized to the results of the unverified CIRCT path.
@@ -865,7 +865,7 @@ The netlists our pass produces are close to CIRCT's. The geometric mean is $\geo
 with the gap being stable for other bit widths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
 
 The existing gap in circuit quality is not an inherent limitation of our workflow.
-CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations \cite{application_specific_arithmetic}. \sam{cite?}
+CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations~\cite{application_specific_arithmetic}. \sam{cite?}
 This is also revealed in our performance on signed benchmarks.
 
 \autoref{tab:qor-and-time-16} reports how both flows perform on total verification time. 
