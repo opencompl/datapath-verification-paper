@@ -839,7 +839,7 @@ apply local optimizations such as \ac{cse} before generating an \ac{aig}.
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
 While non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
-In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remain unverified.
+In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remains unverified.
 This leaves a small trusted base, as these parts are syntax translations between
 SystemVerilog, \texttt{comb} operations, and \texttt{ArithCircuit} constructors.
 In the evaluation, we demonstrate how our hybrid approach, combining formal synthesis and equivalence checking, isolates
