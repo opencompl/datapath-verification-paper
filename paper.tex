@@ -616,7 +616,7 @@ We also support zero/sign-extension of variables, as this lets our multiplicatio
 The \Arith variables are assigned a value by a variable environment $\rho : \texttt{Var}_{\texttt{Arith}} \to \mathtt{BitVec}\ w$, mapping each variable to Lean's built-in bitvector type of width $w$.
 \sam{We should make it clear that everything gets assigned to $w$-bits?}
 A variable evaluates to the word the environment assigns it.
-A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$-bits and zero-extending the result back to the width of the \Arith expression.
+A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$ bits and zero-extending the result back to the width of the \Arith expression.
 A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
 The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
 
@@ -932,7 +932,7 @@ different substitution orders with polynomial compression techniques, namely pha
 and conflict analysis, and verifies adders and multiply-accumulate units as well.
 
 In their work, \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
-Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$ bit multipliers in minutes. 
+Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
 A line of research focuses on proving \ac{hls} tools correct. 
