@@ -175,6 +175,13 @@
 \newcommand{\geoAreaEight}{1.19}
 \newcommand{\geoDelayEight}{1.10}
 
+\newcommand{\synthMeanBaseline}{0.20}
+\newcommand{\synthMeanOurs}{0.91}
+\newcommand{\synthMedianBaseline}{0.12}
+\newcommand{\synthMedianOurs}{0.23}
+\newcommand{\synthGeoBaseline}{0.14}
+\newcommand{\synthGeoOurs}{0.36}
+
 \graphicspath{{./images/}}
 \usepackage{subcaption}
 
@@ -884,31 +891,32 @@ proving that we do indeed isolate and formalize the hardest step to check.
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
     Benchmark & Area & Delay & Baseline & \textbf{Ours} \\
     \midrule
-    AddMop & 1.00 & 1.06 & 0.81 & 0.30 \\
+    AddMop & 1.00 & 1.06 & 0.96 & 0.41 \\
     AddMulSgn & 1.19 & 1.54 & $\times$ & $\times$ \\
     AddMulUns & 1.02 & 1.21 & $\times$ & $\times$ \\
-    AddThree & 1.00 & 0.94 & 0.48 & 0.28 \\
-    AddThreeSgn & 1.00 & 0.94 & 0.38 & 0.29 \\
+    AddThree & 1.00 & 0.94 & 0.54 & 0.41 \\
+    AddThreeSgn & 1.00 & 0.94 & 0.41 & 0.44 \\
     AlphaBlend & 0.97 & 1.13 & $\times$ & $\times$ \\
-    CarrySaveCompare & 1.02 & 0.98 & $\times$ & 4.59 \\
-    CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.23 \\
-    DotProduct & 1.01 & 1.02 & $\times$ & 46.58 \\
+    CarrySaveCompare & 1.02 & 0.98 & $\times$ & 5.47 \\
+    CarrySaveSelect & 1.06 & 1.09 & $\times$ & 2.74 \\
+    DotProduct & 1.01 & 1.02 & $\times$ & 54.57 \\
     DotProductSgn & 1.64 & 1.04 & $\times$ & $\times$ \\
-    Fma & 1.01 & 1.05 & $\times$ & 3.16 \\
+    Fma & 1.01 & 1.05 & $\times$ & 3.80 \\
     FmaSgn & 1.61 & 1.14 & $\times$ & $\times$ \\
-    FmaShare & 1.01 & 1.17 & $\times$ & 30.60 \\
+    FmaShare & 1.01 & 1.17 & $\times$ & 36.44 \\
     FmaShareSgn & 1.48 & 1.38 & $\times$ & $\times$ \\
-    Fmaa & 1.00 & 0.95 & $\times$ & 1.90 \\
-    FmaaSgn & 2.03 & 1.28 & $\times$ & 32.59 \\
-    MulAddSgn & 1.57 & 1.14 & $\times$ & 10.94 \\
-    MulAddUns & 1.01 & 1.07 & $\times$ & 1.36 \\
-    MulThree & 1.01 & 1.14 & $\times$ & 18.37 \\
-    MulThreeSgn & 1.01 & 1.14 & $\times$ & 18.41 \\
-    SqrSgn & 1.79 & 1.18 & 35.13 & 20.97 \\
-    SqrUns & 1.48 & 1.13 & 23.59 & 15.93 \\
+    Fmaa & 1.00 & 0.95 & $\times$ & 2.35 \\
+    FmaaSgn & 2.03 & 1.28 & $\times$ & 39.15 \\
+    MulAddSgn & 1.57 & 1.14 & $\times$ & 13.52 \\
+    MulAddUns & 1.01 & 1.07 & $\times$ & 1.77 \\
+    MulThree & 1.01 & 1.14 & $\times$ & 22.42 \\
+    MulThreeSgn & 1.01 & 1.14 & $\times$ & 22.48 \\
+    SqrSgn & 1.79 & 1.18 & 37.68 & 24.46 \\
+    SqrUns & 1.48 & 1.13 & 25.04 & 19.00 \\
     \bottomrule
   \end{tabular}
 \end{table}
+
 
 \section{Related Work}
 The most closely related work pre-dates more recent advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
