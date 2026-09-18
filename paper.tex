@@ -438,11 +438,13 @@ and lowers it to an \ac{aig}, which can be passed on to technology mapping.
 \section{Formalization}\label{sec:formalization}
 
 To enable verified synthesis, we implement, and prove the correctness of bit heaps.
-We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) and bit heap (\autoref{subsec:bitheap}) in Lean 4.
-We implement basic operations on the bit heap, including evaluating a bit heap to a concrete value, adding and removing bits, and compressing a bit heap. 
-These operations then enable us to implement and prove the correctness of the construction of the compressor trees (\autoref{subsec:compression}). 
+We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) and the bit heap (\autoref{subsec:bitheap}) in Lean 4,
+along with basic operations on the bit heap, such as evaluating a it to a concrete value and adding or removing bits.
+We then define a representation of word-level arithmetic and prove that the bit heap
+constructed from such expressions evaluates to the same value (\autoref{subsec:to_bitheap}).
+Lastly, we construct compressor trees and prove that applying one to a bit heap leaves its
+value unchanged (\autoref{subsec:compression}).
 Every theorem stated here is formalized and proven in Lean~4.
-\sam{Revisit once we've investigated the ordering of sections as didn't reference \autoref{subsec:to_bitheap}?}
 
 \subsection{Symbolic Bit Representations}\label{subsec:bitexpr}
 We represent bits of the bit heap via \BitExpr, a language for representing Boolean expressions over symbolic bits.
