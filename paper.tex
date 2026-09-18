@@ -297,7 +297,7 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
-Datapath circuits are the core computational units of digital designs and one of the most timing-critical parts of the design.
+Datapath circuits are the core computational units of digital designs and among the most timing-critical parts of the design.
 %  2. State the problem you tackle.
 To meet the performance requirements, datapath circuits are aggressively optimized by synthesis tools.
 These automatic datapath optimizations, like the deployment of compressor trees, make it hard to verify that the synthesized netlist implements the correct computation.
@@ -305,7 +305,7 @@ These automatic datapath optimizations, like the deployment of compressor trees,
 Existing methods largely focus on verifying this post-synthesis netlist but either do not scale to large bit widths or
 struggle to recover the circuit structure that optimizations destroyed.
 %  4. Explain, in one sentence, how you tackled the research question.
-We however, tackle the verification problem during synthesis. 
+However, we tackle the verification problem during synthesis. 
 Rather than verifying the netlist post-synthesis, 
 we construct it in an interactive theorem prover, 
 synthesizing a provably correct-by-construction netlist.
@@ -356,7 +356,7 @@ In \ac{asic} design, recursively summing $N$ addends is slow because the delay o
 Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
-Whilst efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits.\sam{CITE something}
+While efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
 Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers, vescmul_acl2,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
 and SAT-based methods~\cite{kaufmann2019verifying}.
@@ -405,7 +405,7 @@ More complex partial product encodings exist~\cite{application_specific_arithmet
   \label{fig:bitheap-example}
 \end{figure}
 
-The bit heap is a data structure that represents the summation of weighted bits \cite{arithmetic_core_generation_bitheaps}. 
+The bit heap is a data structure that represents the summation of weighted bits~\cite{arithmetic_core_generation_bitheaps}. 
 Bits are abstract, represented by dots, and are organized into columns based on their weights.
 The height of each column corresponds to the number of bit values that need to be summed for that particular weight.
 \autoref{fig:bitheap-example} illustrates the bit heap for a $3 \times 3$ unsigned multiplication.
@@ -414,7 +414,7 @@ The height of each column corresponds to the number of bit values that need to b
 \label{comp_algo}
 Compressor trees reduce multiple summands to two using carry-save arithmetic, 
 avoiding chained \acp{cpa} to compute the sum. 
-A compressor tree is followed by a single \ac{cpa} that produces the result \cite{application_specific_arithmetic}.
+A compressor tree is followed by a single \ac{cpa} that produces the result~\cite{application_specific_arithmetic}.
 The reduction is carried out by composing compressors: half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
 that uses the minimal number of compressors to perform the reduction as fast as possible~\cite{dadda_tree}. 
@@ -605,7 +605,7 @@ Then, we prove that the semantics of the resulting bit heap are equal to the sem
 \Arith is a word-level representation supporting variables,
 variadic addition, and two-input multiplication.
 This allows us to represent nested arithmetic expressions, like $a\times b + c$.
-We also support zero/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
+We also support zero-/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
 \begin{align*}
 &b \in \texttt{Var}_{\texttt{Arith}} \qquad v, w \in \mathbb{N}^{+}\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
@@ -617,7 +617,7 @@ The \Arith variables are assigned a value by a variable environment $\rho : \tex
 \sam{We should make it clear that everything gets assigned to $w$-bits?}
 A variable evaluates to the word the environment assigns it.
 A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$ bits and zero-extending the result back to the width of the \Arith expression.
-A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
+A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e., bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
 The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
 
 We construct a bit heap by structural recursion on the arithmetic expression. 
@@ -749,7 +749,7 @@ which states that any well-formed chain preserves the value of the bit heap.
 For all $h : \Heap_w$ and all well formed $S: \Chain$ for $h$, let $h \xrightarrow{S} h'$, then
 \[
   \forall \sigma,\quad
-  \hsem{h'} \;=\; \hsem{h} .
+  \hsem{h'} \;=\; \hsem{h}.
 \]
 \end{theorem}
 
@@ -837,9 +837,9 @@ At this point both flows reconverge.
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
 apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
-Whilst non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
+While non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
-In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remain unverified.
+In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remains unverified.
 This leaves a small trusted base, as these parts are syntax translations between
 SystemVerilog, \texttt{comb} operations, and \texttt{ArithCircuit} constructors.
 In the evaluation, we demonstrate how our hybrid approach, combining formal synthesis and equivalence checking, isolates
@@ -856,7 +856,7 @@ Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
 All equivalence checks (\autoref{fig:flow-comparison}) use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
-We reports area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized to the baseline \texttt{circt-synth} flow.
+We report area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized to the baseline \texttt{circt-synth} flow.
 The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
 with the gap being stable for other bit widths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
 This gap in circuit quality is not an inherent limitation of our flow.
@@ -931,7 +931,7 @@ Similar to our approach, their implementation of the tool in a theorem prover gu
 
 A line of research focuses on proving \ac{hls} tools correct. 
 Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
-Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
+Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behavior.
 
 
 
