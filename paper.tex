@@ -513,7 +513,7 @@ Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \cse
 \end{split}
 \end{equation*}
 Horner's method cleanly separates the contribution of each column, $v_k$,
-and is structurally recursive on the vector of columns, which makes it ameanable to inductive reasoning.
+and is structurally recursive on the vector of columns, which makes it amenable to inductive reasoning.
 
 To construct and modify a bit heap we define bit insertion and removal operations.
 These are used by higher-level operations to construct a compressor tree.
@@ -636,7 +636,7 @@ by $\rho$, then
 \]
 \end{theorem}
 
-The proof uses structural indusction handling each \Arith operation separately. 
+The proof uses structural induction handling each \Arith operation separately. 
 The proofs for variables and their zero-extension are trivial. 
 The sign-extended case requires an induction argument on the number of replicated columns,
 for which we give a closed form for the value of the heap after $k$ sign columns have been added:
@@ -788,7 +788,7 @@ by $\rho$, then
 \]
 \end{theorem}
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
-This theorem is the key step in verifing the correctness of our datapath synthesis engine.
+This theorem is the key step in verifying the correctness of our datapath synthesis engine.
 The next sections will explain the practical integration into CIRCT (\autoref{sec:integration}) 
 and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation}).
 
@@ -796,7 +796,7 @@ and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation
 \label{sec:integration}
 
 We integrate the verified datapath synthesis step into the CIRCT compiler framework, 
-and make our contributions open-source.\footnote{Github link anonymized for review.}
+and make our contributions open-source.\footnote{GitHub link anonymized for review.}
 CIRCT's \texttt{circt-synth} (\autoref{fig:flow-comparison} - top) flow can lower 
 a word-level SystemVerilog design through the \texttt{comb} dialect to an
 \ac{aig}; within that flow, an existing unverified datapath engine rewrites arithmetic operations into
@@ -835,7 +835,7 @@ The pass then emits the compressor tree as gates, leaving two compressed rows an
 At this point both flows reconverge.
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
 apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
-The ``Logic Synthesis'' step in both flows is check with an SMT sovler via ``Equivalence Check 3''.
+The ``Logic Synthesis'' step in both flows is check with an SMT solver via ``Equivalence Check 3''.
 Whilst non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
 In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remain unverified.
