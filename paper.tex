@@ -356,7 +356,7 @@ In \ac{asic} design, recursively summing $N$ addends is slow because the delay o
 Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
-Whilst efficient and widely used, compression trees usually have highly irregular structures increasing the difficulty of verifying the generated circuits.\sam{CITE something}
+Whilst efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits.\sam{CITE something}
 
 Techniques exist to verify datapath circuits, including \ac{sca}~\cite{trace,mertcan_acl2multipliers, vescmul_acl2,sca,kleinekathofer2026conflict,mahzoon2021revsca,kaufmann2019verifying}
 and SAT-based methods~\cite{kaufmann2019verifying}.
@@ -366,7 +366,7 @@ So checking that a synthesized datapath circuit is correct remains challenging, 
 
 We propose a different approach, verifying the synthesis step itself, rather than verifying the generated circuits.
 This approach guarantees that the generated circuits are correct-by-construction, and scales to large circuits.
-To prove this datapath synthesis step correct we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree} in the Lean~4 theorem prover~\cite{moura2021lean}.
+To prove this datapath synthesis step correct, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree} in the Lean~4 theorem prover~\cite{moura2021lean}.
 To demonstrate that verified synthesis is competitive, we integrate the Lean-based datapath generator into an existing open-source synthesis tool.
 
 Our contributions are:
@@ -521,7 +521,7 @@ however, this actually benefits us as we explain below.
 
 \paragraph*{\texttt{addBit}}
 Inserting a bit expression $e$ at column $k$ adds $e$ to the set $h_k$.
-If $h_k$ already contains bit $e$ we propagate the bit to the next column, since $2^{k}e + 2^{k}e = 2^{k+1}e$.
+If $h_k$ already contains bit $e$, we propagate the bit to the next column, since $2^{k}e + 2^{k}e = 2^{k+1}e$.
 Effectively, this implies that the bit heap is always in its canonical form,
 where the weight of a bit is always equal to the weight of the column it is in.
 This canonicalization also optimizes the bit heap during construction automatically,
@@ -624,7 +624,7 @@ We construct a bit heap by structural recursion on the arithmetic expression.
 Each recursive call returns a width-$w$ bit heap representing its subexpression modulo $2^w$.
 Variables and zero-/sign-extended variables produce a single row bit heap.
 Addition merges the recursively constructed operand bit heaps, increasing the bit heap's height or automatically propagating duplicated addends, i.e., $x+x = 2x$.
-The multiplication of two bit heaps, $h$ and $g$, produces a single bit heap containing for every $e \in h_i$ and $f \in g_j$ a bit $e \land f$ in column $i+j$. Any bits for which $i+j\geq w$ are discarded.
+The multiplication of two bit heaps, $h$ and $g$, produces a single bit heap containing, for every $e \in h_i$ and $f \in g_j$, a bit $e \land f$ in column $i+j$. Any bits for which $i+j\geq w$ are discarded.
 We formally prove that the translation from \Arith expressions to bit heaps preserves their fixed-width arithmetic semantics.
 
 \begin{theorem}[Construction]\label{thm:tobitheap}
@@ -636,7 +636,7 @@ by $\rho$, then
 \]
 \end{theorem}
 
-The proof uses structural induction handling each \Arith operation separately. 
+The proof uses structural induction, handling each \Arith operation separately. 
 The proofs for variables and their zero-extension are trivial. 
 The sign-extended case requires an induction argument on the number of replicated columns,
 for which we give a closed form for the value of the heap after $k$ sign columns have been added:
@@ -676,11 +676,11 @@ of \texttt{addBit}/\texttt{removeBit} operations (\autoref{tab:steps}).
 Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that any applicable step preserves the value of the bit heap.
 \begin{theorem}[Half/Full Adder Correct]
 \label{thm:step-correct}
-For all $h : \Heap_w$, and $s : \Step$ if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
+For all $h : \Heap_w$, and $s : \Step$, if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
 \end{theorem}
 
 Proceeding one compressor type at a time, this proof rewrites the goal using the lemmas for 
-\texttt{addBit}/\texttt{removeBit} (\autoref{thm:addBit}, \autoref{thm:removeBit}) reducing the
+\texttt{addBit}/\texttt{removeBit} (\autoref{thm:addBit}, \autoref{thm:removeBit}), reducing the
 goal to an arithmetic identity over the Boolean values of bits.
 This is then discharged by case analysis on the Booleans, and some arithmetic reasoning.
 
@@ -691,7 +691,7 @@ Writing $h'$ for the resulting heap, the theorem states that the value of the he
   \hsem{h'} \;=\; \hsem{h}.
 \]
 Unfolding $h'$ by rewriting first \texttt{addBit} (\autoref{thm:addBit}) and \texttt{removeBit} (\autoref{thm:removeBit}),
-then removing intermediate $\bmod$ operations we obtain an arithmetic identity:
+then removing intermediate $\bmod$ operations, we obtain an arithmetic identity:
 \begin{equation*}
 \begin{split}
   \bigl(\hsem{h}
@@ -746,7 +746,7 @@ which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{theorem}[Chain Correctness]
 \label{thm:chain-correct}
-For all $h : \Heap_w$ and all well formed $S: \Chain$ for $h$, let $h \xrightarrow{S} h'$ then
+For all $h : \Heap_w$ and all well formed $S: \Chain$ for $h$, let $h \xrightarrow{S} h'$, then
 \[
   \forall \sigma,\quad
   \hsem{h'} \;=\; \hsem{h} .
@@ -772,7 +772,7 @@ We then trivially prove that a successful run preserves the value:
 \]
 
 The implementation of Dadda's algorithm is simply a plain Lean function with no correctness theorem of its own.
-It proposes a chain, and passes it to $\mathsf{applyChainSafe}$ which verifies the compressor tree.
+It proposes a chain, and passes it to $\mathsf{applyChainSafe}$, which verifies the compressor tree.
 Another compression algorithm, e.g., Wallace's, can be substituted without further proof, since only the chain it produces is checked.
 
 \subsection{Correct-by-Construction Synthesis}
@@ -815,7 +815,7 @@ and decomposes variadic multipliers into a chain of two-operand multipliers.
 ``Equivalence Check 1'', comparing the pre- and post-optimized CIRCT \ac{ir} for this step, is trivial.
 
 In both flows a datapath pass matches arbitrary \ac{sop} expressions (e.g., $a*b+c*d+e$).
-In CIRCT \ac{ir} that is expressions built from two-operand
+In CIRCT \ac{ir}, these are expressions built from two-operand
 \texttt{comb.mul} and $n$-operand \texttt{comb.add} for $n \geq 3$ operations.
 Two-operand additions are not matched, since they are \acp{cpa} that will be handled
 by the downstream pass.
@@ -825,7 +825,7 @@ specific sum-of-product circuits.
 We verify this step via ``Equivalence Check 2'' using an SMT solver.
 
 The verified datapath engine first converts the \ac{sop} expression to an \Arith.
-This is consumed by our Lean tool which generates an equivalent bit heap and compresses
+This is consumed by our Lean tool, which generates an equivalent bit heap and compresses
 it using Dadda's algorithm.
 The resulting chain is replayed through the well-formedness checker (\autoref{subsec:compression}). 
 A successful check discharges the proof obligations required to apply \autoref{thm:tobitheap-compression}, which guarantees
