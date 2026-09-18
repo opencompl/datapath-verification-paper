@@ -768,10 +768,11 @@ We then trivially prove that a successful run preserves the value:
   \quad\Longrightarrow\quad
   \forall \sigma,\; \hsem{h'} = \hsem{h}.
 \]
-
 The implementation of Dadda's algorithm is simply a plain Lean function with no correctness theorem of its own.
 It proposes a chain, and passes it to $\mathsf{applyChainSafe}$, which verifies the compressor tree.
 Another compression algorithm, e.g., Wallace's, can be substituted without further proof, since only the chain it produces is checked.
+We likewise give no guarantees that a proposed chain reduces the bit heap to two rows.
+That is a property of the compression algorithm, and is not required for the correctness of compression. 
 
 \subsection{Correct-by-Construction Synthesis}
 Putting it all together, we are ready to prove that the synthesized compressor tree
