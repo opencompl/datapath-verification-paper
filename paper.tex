@@ -910,12 +910,14 @@ proving that we do indeed isolate and formalize the hardest step to check.
 \end{table}
 
 \section{Related Work}
-\citet{arithmetic_core_generation_bitheaps} propose the bit heap as the central data structure
-of arithmetic designs, giving an exposition of bit heaps and how they can be used in multiplier synthesis on FPGAs.
-FloPoCo~\cite{application_specific_arithmetic}, an open-source datapath generator written in C++ that produces
-arithmetic circuits in VHDL, is built on the framework that \citet{arithmetic_core_generation_bitheaps} lay out,
-and thus on the same bit heap abstraction and compression techniques that we formalize in this paper.
-However, neither provides formal correctness guarantees, and the generated circuits have to be validated by testing.
+The most closely related work pre-dates more recent advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
+and is a short paper formalizing the synthesis of Wallace tree multipliers in a theorem prover~\cite{verified_wallace}.
+Some of the proof structure, such as proving the application of compressors, is common to both works. 
+However, we strive for much greater generality and extensibility, admitting arbitrary compression algorithms and \acp{sop}.
+
+FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
+arithmetic circuits in VHDL, is built on the same bit heap abstraction and compression techniques that we formalize in this paper~\citet{arithmetic_core_generation_bitheaps}.
+FloPoCo provides testbenches but no formal correctness guarantees,.
 
 \citet{sca} presents an \ac{sca}-based approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
