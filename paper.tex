@@ -916,8 +916,8 @@ However, our work offers much greater generality and extensibility, admitting va
 handling arbitrary \acp{sop} circuits by integrating with a complete synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
-arithmetic circuits in VHDL, is built on the same bit heap abstraction and compression techniques that we formalize in this paper~\citet{arithmetic_core_generation_bitheaps}.
-FloPoCo provides testbenches but no formal correctness guarantees,.
+arithmetic circuits in VHDL, is built on the bit heap abstraction of~\citet{application_specific_arithmetic} and the compression techniques we formalize in this paper.
+FloPoCo provides testbenches but no formal correctness guarantees.
 
 \citet{sca} present an \ac{sca}-based approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
