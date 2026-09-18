@@ -354,14 +354,14 @@ In this paper, we prove that this automatic datapath synthesis produces function
 
 One of the key datapath optimizations applies to bitvector addition with $N$ addends, an operation that is used to build nearly all multiplier circuits. 
 In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
-Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
+Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
 While efficient and widely used, compression trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits \cite{mul_verif}.
 
-Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsc,algebraic_rewriting},
+Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsca,algebraic_rewriting},
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
-One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of theorem prover-based approaches~\cite{mertcan_acl2multipliers, vescmul_acl2}.
+One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
 So checking that a synthesized datapath circuit is correct remains challenging, even today. 
 
@@ -911,9 +911,9 @@ proving that we do indeed isolate and formalize the hardest step to check.
 
 \section{Related Work}
 The most closely related work pre-dates more recent advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
-and is a short paper formalizing the synthesis of Wallace tree multipliers in a theorem prover~\cite{verified_wallace}.
+and is a short paper formalizing Wallace tree multiplier synthesis in a theorem prover~\cite{verified_wallace}.
 Some of the proof structure, such as proving the application of compressors, is common to both works. 
-However, our work offers much greater generality and extensibility, admitting varied compression algorithms and 
+However, our work is far more general and extensible, admitting varied compression algorithms and
 handling arbitrary \acp{sop} circuits by integrating with a complete synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
