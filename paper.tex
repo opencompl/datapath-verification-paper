@@ -344,7 +344,7 @@ Formal Verification, Datapath, Theorem Provers
 \end{IEEEkeywords}
 
 \section{Introduction}
-Datapath circuits are a fundamental component of digital systems, responsible from performing computations on incoming data.
+Datapath circuits are a fundamental component of digital systems, responsible for performing computations on incoming data.
 Thanks to advances in automatic datapath synthesis~\cite{Zimmermann2003OptimizedSum-of-products,Zimmermann2009DatapathDesign},
 most datapath circuits can now be implemented using bitvector-level arithmetic.
 Modern synthesis tools can map entire arithmetic expressions to highly optimized gate-level circuits, or netlists, that effectively
@@ -353,7 +353,7 @@ In this paper, we prove that this automatic datapath synthesis produces function
 
 One of the key datapath optimizations applies to bitvector addition with $N$ addends, an operation that is used to build nearly all multiplier circuits. 
 In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
-Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree comprised of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
+Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of many full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b + 255*c - d$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
 Whilst efficient and widely used, compression trees usually have highly irregular structures increasing the difficulty of verifying the generated circuits.\sam{CITE something}
@@ -413,7 +413,7 @@ The height of each column corresponds to the number of bit values that need to b
 \subsection{Compression Algorithms}
 \label{comp_algo}
 Compressor trees reduce multiple summands to two using carry-save arithmetic, 
-avoiding recursive \acp{cpa} to compute the sum. 
+avoiding chained \acp{cpa} to compute the sum. 
 A compressor tree is followed by a single \ac{cpa} that produces the result \cite{application_specific_arithmetic}.
 The reduction is carried out by composing compressors, half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
@@ -458,7 +458,7 @@ To evaluate a \BitExpr, we need to assign values to all the variables in the \Bi
 These are supplied by a bit environment $(\sigma : \texttt{Var} \to \mathbb B)$,
 which maps each bit variable to its Boolean value. 
 The evaluation function $\csem{\cdot} : \BitExpr \to \mathbb B$ evaluates a \BitExpr under a bit environment $\sigma$,
-producing a concrete boolean value. It is defined by recursion.
+producing a concrete Boolean value. It is defined by recursion.
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \csem{b} &=& \sigma(b) \quad \csem{0} = \mathit{false} \quad \csem{1} = \mathit{true}\\
@@ -504,7 +504,7 @@ This is defined by adding up all the bits across all the columns, with bits at c
 
 For the purposes of both implementation and proofs by induction,
 it is much better to define the evaluation of a bit heap using Horner's method.
-Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote the value of it:
+Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote its value:
 \begin{equation*}
 \begin{split}
   \Bigl( \sum_{k=0}^{w-1} &v_k \cdot 2^{k} \Bigr) \bmod 2^{w}\\
@@ -599,7 +599,7 @@ To use the bit heap to synthesize efficient and provably correct circuits for wo
 We represent such arithmetic expressions as \Arith, a minimal symbolic
 representation of word-level arithmetic. 
 We will define a function $\mathsf{toBitHeap}$ that converts an \Arith expression into a bit heap.
-This conversion then lets us to apply compressor trees to synthesize efficient circuits (\autoref{subsec:compression}).
+This conversion then lets us apply compressor trees to synthesize efficient circuits (\autoref{subsec:compression}).
 First, we define the syntax and semantics of \Arith.
 Then, we prove that the semantics of the resulting bit heap are equal to the semantics of the original \Arith.
 
@@ -623,7 +623,7 @@ The addition and multiplication operations in \Arith are interpreted following s
 We construct a bit heap by structural recursion on the arithmetic expression. 
 Each recursive call returns a width-$w$ bit heap representing its subexpression modulo $2^w$.
 Variables and zero-/sign-extended variables produce a single row bit heap.
-Addition merges the recursively constructed operand bit heaps, increasing the bit heaps height or automatically propagating duplicated addends, i.e., $x+x = 2x$.
+Addition merges the recursively constructed operand bit heaps, increasing the bit heap's height or automatically propagating duplicated addends, i.e., $x+x = 2x$.
 The multiplication of two bit heaps, $h$ and $g$, produces a single bit heap containing for every $e \in h_i$ and $f \in g_j$ a bit $e \land f$ in column $i+j$. Any bits for which $i+j\geq w$ are discarded.
 We formally prove that the translation from \Arith expressions to bit heaps preserves their fixed-width arithmetic semantics.
 
@@ -706,7 +706,7 @@ The proof follows by case analysis on the four possible values of $i$ and $j$.
 The full adder case follows the same structure.
 
 Having proven that each individual step preserves the value of the heap, we now consider a
-sequences of steps.
+sequence of steps.
 Formally, a \Chain is a, possibly empty, ordered list of compression steps, where each step is a half or full adder:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
@@ -715,12 +715,12 @@ Formally, a \Chain is a, possibly empty, ordered list of compression steps, wher
 \]
 We write $h \xrightarrow{S} h'$ for the application of a chain $S$ to a bit heap $h$, producing a new bit heap $h'$.
 This can be broken into a sequence of applications $h = h^0 \xrightarrow{s_0} h^1 \xrightarrow{s_1} \dots \xrightarrow{s_{n-1}} h^n = h'$.
-We call a chain \emph{well formed}, iff, at each step $h^i \xrightarrow{s_i} h^{i+1}$, the applicability conditions of step $s_{i}$
+We call a chain \emph{well formed} iff at each step $h^i \xrightarrow{s_i} h^{i+1}$, the applicability conditions of step $s_{i}$
 are satisfied by the intermediate bit heap $h^i$.
 As above, the applicability conditions (\autoref{tab:steps}) ensure that the bits consumed by the step $s_i$ are 
 present in the bit heap $h^i$,
 and that the consumed bits are pairwise distinct.
-Well-formedness lets us to prove the key chain correctness theorem (\autoref{thm:chain-correct}),
+Well-formedness lets us prove the key chain correctness theorem (\autoref{thm:chain-correct}),
 which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{figure*}[t]
@@ -760,8 +760,8 @@ proven above (\autoref{thm:step-correct}),
 and the induction hypothesis is used to prove that the other steps preserve the value of the heap.
 
 This proves that \emph{any} well formed chain preserves the value of the bit heap.
-It should we noted that we have not verified a specific compression algorithms itself.
-Instead, we verified that the chain of compressors generated by a compression algorithm preserves the value at the run-time.
+It should be noted that we have not verified a specific compression algorithm itself.
+Instead, we verified that the chain of compressors generated by a compression algorithm preserves the value at run time.
 We define $\mathsf{applyChainSafe}$, which applies a chain step by step, checks the applicability conditions of each step against the bit heap it
 has reached, and returns $\mathsf{none}$ if a step does not apply.
 We then trivially prove that a successful run preserves the value:
@@ -811,7 +811,7 @@ and generates a design in CIRCT \ac{ir}, primarily in the \texttt{comb} dialect.
 In both flows this conversion is unverified.
 Before datapath synthesis, \texttt{circt-synth} applies a canonicalization pass that performs basic optimizations 
 and decomposes variadic multipliers into a chain of two-operand multipliers. 
-``Equivalence Check 1'' comparing the pre- and post-optimized CIRCT \ac{ir} for this step is trivial.
+``Equivalence Check 1'', comparing the pre- and post-optimized CIRCT \ac{ir} for this step, is trivial.
 
 In both flows a datapath pass matches arbitrary \ac{sop} expressions (e.g., $a*b+c*d+e$).
 In CIRCT \ac{ir} that is expressions built from two-operand
@@ -820,7 +820,7 @@ Two-operand additions are not matched, since they are \acp{cpa} that will be han
 by the downstream pass.
 The baseline unverified engine incrementally builds a timing-aware compressor tree~\cite{Zimmermann2009DatapathDesign}, explicitly 
 representing it in the \ac{ir} using the \texttt{datapath} dialect, which also optimizes
-specific product of sum circuits. 
+specific sum-of-product circuits. 
 We verify this step via ``Equivalence Check 2'' using an SMT solver.
 
 The verified datapath engine first converts the \ac{sop} expression to an \Arith.
@@ -835,7 +835,7 @@ The pass then emits the compressor tree as gates, leaving two compressed rows an
 At this point both flows reconverge.
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
 apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
-The ``Logic Synthesis'' step in both flows is check with an SMT solver via ``Equivalence Check 3''.
+The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
 Whilst non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
 In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remain unverified.
@@ -853,11 +853,11 @@ We can handle this query by showing that even for a simple multiplier this step 
 
 We use a benchmark consisting of 22 datapath designs\footnote{\url{https://github.com/cowardsa/DatapathBench}},
 spanning multi-operand addition and multiplication, dot-products and fused multiply-add variants in signed and unsigned forms.
-We instantiate each design at 8, 16, 32-bit operand widths.
+We instantiate each design at 8-, 16-, and 32-bit operand widths.
 
 We synthesize the designs using both the unverified CIRCT path and our verified datapath generator.
 Both are technology mapped to the ASAP 7nm library \cite{asap7} using Mockturtle, and we report the total cell area and critical-path delay.
-For the verification of the unverified path and the tail of our verified circuit, we use Bitwuzla SMT solver \cite{bitwuzla}
+For the verification of the unverified path and the tail of our verified circuit, we use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
 \autoref{tab:qor-and-time-16} reports area and delay at 16 bits, normalized to the results of the unverified CIRCT path.
 The netlists our pass produces are close to CIRCT's. The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
@@ -865,14 +865,14 @@ with the gap being stable for other bit widths as well ($\geoAreaThirtyTwo\times
 
 The existing gap in circuit quality is not an inherent limitation of our workflow.
 CIRCT's datapath engine applies certain optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations \cite{application_specific_arithmetic}. \sam{cite?}
-This is also revealed on our performance on signed benchmarks.
+This is also revealed in our performance on signed benchmarks.
 
-\autoref{tab:qor-and-time-16} reports how both of flows perform on total verification time. 
+\autoref{tab:qor-and-time-16} reports how both flows perform on total verification time. 
 For the unverified path, we verify the resulting \ac{aig} against the word-level Verilog design,
-and for the verified path, we verify the front-end passes, the tail of the circuit -final-stage adder and simple optimizations, against the intermediate circuit generated by our Lean framework.
+and for the verified path, we verify the front-end passes, the tail of the circuit (final-stage adder and simple optimizations) against the intermediate circuit generated by our Lean framework.
 
 The results show that we are able to verify circuits that the standard flow cannot verify\osman{funny thing, we are not faster on the ones that the standard flow can already verify, because it already cannot verify most},
-with out flow verifying 11 more circuits than the standard flow, we show the effectiveness of our approach on verification.
+with our flow verifying 11 more circuits than the standard flow, we show the effectiveness of our approach on verification.
 
 \begin{table}
   \centering
@@ -919,11 +919,11 @@ with out flow verifying 11 more circuits than the standard flow, we show the eff
 \citet{arithmetic_core_generation_bitheaps} propose the bit heap as the central data structure
 of arithmetic designs, giving an exposition of bit heaps and how they can be used in multiplier synthesis on FPGAs.
 FloPoCo~\cite{application_specific_arithmetic}, an open-source datapath generator written in C++ that produces
-arithmetic circuits in VHDL, is built on the framework that \cite{arithmetic_core_generation_bitheaps} lay out,
+arithmetic circuits in VHDL, is built on the framework that \citet{arithmetic_core_generation_bitheaps} lay out,
 and thus on the same bit heap abstraction and compression techniques that we formalize in this paper.
 However, neither provides formal correctness guarantees, and the generated circuits have to be validated by testing.
 
-\citet{sca} presents a method based \ac{sca} approach to verify multiplication circuits, 
+\citet{sca} presents an \ac{sca}-based approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
 \citet{trace} extend this line beyond multipliers with TRACE, an \ac{sca} engine that combines
 different substitution orders with polynomial compression techniques, namely phase optimization
@@ -934,24 +934,24 @@ Their approach can verify different partial-product generation and compression t
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
 A line of research focuses on proving \ac{hls} tools correct. 
-Graphiti \citet{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
+Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behaviour.
 
 
 
 \section{Conclusion and Future Work}
 This paper presents a verified datapath synthesis engine integrated into CIRCT.
-By formalizing datapath synthesis steps with using bit heaps as the core data structure in Lean 4,
+By formalizing datapath synthesis steps using bit heaps as the core data structure in Lean 4,
 we provide machine-checked correctness guarantees on the arithmetic circuits we generate.
 Our insight is that the most challenging verification task in datapath synthesis is the verification of the multipliers due to complex compressor trees.
-We therefore formally verify this stage of datapath synthesis, and leave the remaining proof obligations to an SMT-solver, which discharges them easily.
-At 16-bits, our approach can verify 16 of 22 designs within the timeout 
-while only being 1.21 times larger and 1.12 times slower than unverified method,
+We therefore formally verify this stage of datapath synthesis, and leave the remaining proof obligations to an SMT solver, which discharges them easily.
+At 16 bits, our approach can verify 16 of 22 designs within the timeout 
+while only being 1.21 times larger and 1.12 times slower than the unverified method,
 whereas the SMT-based baseline can only verify 5 of the designs.
 We make all our contributions open-source on (this link).\osman{should we put a link here? if so how to appropriately anonymize it?}
 
 Future work will address the missing optimizations on bit heaps and datapath synthesis.
-Namely Booth encoding, sign-extension related optimizations opportunities, and extend our formalization
+Namely Booth encoding, sign-extension optimization opportunities, and extend our formalization
 with timing-aware compression, in which the arrival of each bit is accounted for during the compression.
 
 
