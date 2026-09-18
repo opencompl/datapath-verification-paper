@@ -524,7 +524,7 @@ Inserting a bit expression $e$ at column $k$ adds $e$ to the set $h_k$.
 If $h_k$ already contains bit $e$, we propagate the bit to the next column, since $2^{k}e + 2^{k}e = 2^{k+1}e$.
 Effectively, this implies that the bit heap is always in its canonical form,
 where the weight of a bit is always equal to the weight of the column it is in.
-This canonicalization also optimizes the bit heap during construction automatically,
+This canonicalization also optimizes the bit heap during construction automatically
 by re-weighting bits that are added multiple times to the same column, and propagating them to the next column.
 If a carry is propagated from the last column, 
 it is dropped since we work with fixed-size bit heaps.
@@ -682,7 +682,7 @@ For all $h : \Heap_w$, and $s : \Step$, if $s$ obeys the applicability condition
 Proceeding one compressor type at a time, this proof rewrites the goal using the lemmas for 
 \texttt{addBit}/\texttt{removeBit} (\autoref{thm:addBit}, \autoref{thm:removeBit}), reducing the
 goal to an arithmetic identity over the Boolean values of bits.
-This is then discharged by case analysis on the Booleans, and some arithmetic reasoning.
+This is then discharged by case analysis on the Booleans and some arithmetic reasoning.
 
 As an example, consider the step $\HA(k,i,j)$, which removes $i$ and $j$ from column $k$,
 and adds $i \oplus j$ at column $k$ and $i \wedge j$ at column $k{+}1$ (\autoref{tab:steps}).
@@ -707,7 +707,7 @@ The full adder case follows the same structure.
 
 Having proven that each individual step preserves the value of the heap, we now consider a
 sequence of steps.
-Formally, a \Chain is a, possibly empty, ordered list of compression steps, where each step is a half or full adder:
+Formally, a \Chain is a possibly empty ordered list of compression steps, where each step is a half or full adder:
 \[
 \begin{array}{r@{\;}c@{\;}l@{\qquad}l}
 \Chain \ni S &::=& [\,] \mid s :: S &
