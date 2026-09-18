@@ -617,7 +617,7 @@ The \Arith variables are assigned a value by a variable environment $\rho : \tex
 \sam{We should make it clear that everything gets assigned to $w$-bits?}
 A variable evaluates to the word the environment assigns it.
 A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$ bits and zero-extending the result back to the width of the \Arith expression.
-A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e. bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
+A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e., bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
 The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
 
 We construct a bit heap by structural recursion on the arithmetic expression. 
