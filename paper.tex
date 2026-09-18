@@ -607,17 +607,16 @@ variadic addition, and two-input multiplication.
 This allows us to represent nested arithmetic expressions, like $a\times b + c$.
 We also support zero-/sign-extension of variables, as this lets our multiplication preserve the full precision of the result.
 \begin{align*}
-&b \in \texttt{Var}_{\texttt{Arith}} \qquad v, w \in \mathbb{N}^{+}\\
+&b \in \texttt{Var}_{\texttt{Arith}} \qquad w \in \mathbb{N}^{+} \qquad w' \in \mathbb{N},\ w' \leq w\\
 &\mathtt{ArithCircuit}_w \ni a ::= \\
-&\quad \mid b \mid \mathsf{zext}(i, b) \mid \mathsf{sext}(i, b) \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a_0, a_1]
+&\quad b \mid \mathsf{zext}(b, w') \mid \mathsf{sext}(b, w') \mid \mathsf{add}[a_0,\dots,a_{n-1}] \mid \mathsf{mul}[a_0, a_1]
 \end{align*}
-\grosser{Notation: $v$ is declared but never used, and the grammar writes $\mathsf{zext}(i, b)$ while the prose below writes $\mathsf{zext}(b, w')$. Use one argument order and one name for the width.}
 
 The \Arith variables are assigned a value by a variable environment $\rho : \texttt{Var}_{\texttt{Arith}} \to \mathtt{BitVec}\ w$, mapping each variable to Lean's built-in bitvector type of width $w$.
 \sam{We should make it clear that everything gets assigned to $w$-bits?}
 A variable evaluates to the word the environment assigns it.
-A zero-extended variable $\mathsf{zext}(b,w')$, where $w'\leq w$, evaluates by truncating that word to its lowest $w'$ bits and zero-extending the result back to the width of the \Arith expression.
-A sign-extended variable $\mathsf{sext}(b,w')$, where $w' \leq w$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e., bit $b-1$ of the word.\grosser{$b$ is the variable name; the sign bit is bit $w'-1$.}
+A zero-extended variable $\mathsf{zext}(b,w')$ evaluates by truncating that word to its lowest $w'$ bits and zero-extending the result back to width $w$.
+A sign-extended variable $\mathsf{sext}(b,w')$, which additionally requires $0 < w'$, truncates in the same way, but extends the result back to width $w$ by replicating the sign bit, i.e., bit $w'-1$ of the truncated word.
 The addition and multiplication operations in \Arith are interpreted following standard bitvector arithmetic.
 
 We construct a bit heap by structural recursion on the arithmetic expression. 
@@ -640,12 +639,12 @@ The proof uses structural induction, handling each \Arith operation separately.
 The proofs for variables and their zero-extension are trivial. 
 The sign-extended case requires an induction argument on the number of replicated columns,
 for which we give a closed form for the value of the heap after $k$ sign columns have been added:
-it is $x_{[0,b)}$ when the sign bit is clear, and $x_{[0,b)} + (2^{b+k} - 2^{b})$ when it is set.
-Each further column contributes exactly one more copy of the sign bit at weight $2^{b+k}$, which proves the induction step,
-and the closed form stays below $2^{w}$ as long as $b + k \leq w$, so the truncation in the bit heap semantics never wraps around.
-Instantiating the closed form at $k = w - b$ yields precisely the value of the sign-extended word.
+it is $x_{[0,w')}$ when the sign bit is clear, and $x_{[0,w')} + (2^{w'+k} - 2^{w'})$ when it is set.
+Each further column contributes exactly one more copy of the sign bit at weight $2^{w'+k}$, which proves the induction step,
+and the closed form stays below $2^{w}$ as long as $w' + k \leq w$, so the truncation in the bit heap semantics never wraps around.
+Instantiating the closed form at $k = w - w'$ yields precisely the value of the sign-extended word.
 \sam{This proof for sign-extension case became very confusing...}
-The addition proof is simpler and uses the identity $\sum_i h_i 2^i + \sum_j  g_j 2^j = \sum_k (h_i + g_i) 2^k$.\grosser{Index mismatch: the right-hand side should be $\sum_k (h_k + g_k)\,2^k$.}
+The addition proof is simpler and uses the identity $\sum_i h_i 2^i + \sum_j  g_j 2^j = \sum_k (h_k + g_k) 2^k$.
 Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
 
 Overall, we verified the conversion from word-level arithmetic to a bit heap (\autoref{thm:tobitheap}).
@@ -780,14 +779,13 @@ Putting it all together, we are ready to prove that the synthesized compressor t
 preserves the value of the original word-level arithmetic expression (\autoref{thm:tobitheap-compression}).
 \begin{theorem}[Compressor Tree Synthesis]
 \label{thm:tobitheap-compression}
-For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \mathbb{N} \to
+For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \texttt{Var}_{\texttt{Arith}} \to
 \mathtt{BitVec}\ w$, and all well formed $S: \Chain$ for $h$, let $h = \mathsf{toBitHeap}(a)$, $h\xrightarrow{S} h'$, and $\sigma$ denote the bit environment induced
 by $\rho$, then
 \[
   \hsem{h'} \;=\; \bvsem{a}.
 \]
 \end{theorem}
-\grosser{$\rho$ is typed $\mathbb{N} \to \mathtt{BitVec}\ w$ here but $\texttt{Var}_{\texttt{Arith}} \to \mathtt{BitVec}\ w$ in \autoref{thm:tobitheap}. Use the same domain.}
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
 This theorem is the key step in verifying the correctness of our datapath synthesis engine.
 The next sections will explain the practical integration into CIRCT (\autoref{sec:integration}) 
