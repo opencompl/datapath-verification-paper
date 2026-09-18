@@ -315,8 +315,8 @@ Existing methods largely verify netlists post-synthesis, where much of the circu
 structure has been lost and scaling to large bitwidths is difficult.
 %  4. Explain, in one sentence, how you tackled the research question.
 Rather than verifying the netlist post-synthesis, 
-we construct it in an interactive theorem prover, 
-synthesizing a provably correct-by-construction netlist.
+we construct its compressor tree in an interactive theorem prover, 
+and validate the remaining, much simpler, synthesis steps with an SMT solver.
 % Our insight is that these methods attempt to tackle the verification problem at the wrong stage.
 % They are all post-synthesis, where the structure of the circuit optimization has already been lost.
 % Instead, we propose a pre-synthesis approach, where we build a formally verified
@@ -324,10 +324,11 @@ synthesizing a provably correct-by-construction netlist.
 % This eliminates the need for an expensive post-synthesis verification,
 % instead leveraging the ability to implement correct-by-construction algorithms in a theorem prover.
 %  5. In one sentence, how did you go about doing the research that follows from your big idea.
-We formalize the bit heap data structure and two compressor tree construction algorithms in Lean 4,
-letting us prove the correctness of key synthesis steps for any design we might encounter.
-We integrate our formalized datapath synthesis engine with the CIRCT framework, which, 
-when applied to datapath benchmarks, verifies 11 circuits that state-of-the-art verification tools cannot. 
+We formalize the bit heap data structure and compressor tree construction in Lean 4,
+proving that every generated compressor tree implements the correct arithmetic.
+We integrate our formalized datapath synthesis engine with the CIRCT framework, which 
+we evaluate on 22 datapath benchmarks.
+Using the resulting flow we can verify 11 circuits that SMT-based equivalence checking cannot. 
 % For this approach, we phrase circuit synthesis as a bit-heap compression problem.
 % We formalize the bit heap data structure and its operations in the Lean theorem prover,
 % synthesize compression trees with this data structure,
