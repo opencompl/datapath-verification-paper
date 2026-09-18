@@ -938,16 +938,15 @@ Integrated into an existing HLS tool, Graphiti provides a verified rewriting eng
 
 \section{Conclusion and Future Work}
 This paper presents a verified datapath synthesis engine integrated into CIRCT.
-By formalizing datapath synthesis steps using bit heaps as the core data structure in Lean 4,
+Our key insight is that compressor-tree transformations are among the hardest datapath synthesis optimizations to verify.
+By formalizing the bit heap and compression algorithms in Lean 4,
 we provide machine-checked correctness guarantees on the arithmetic circuits we generate.
-Our insight is that the most challenging verification task in datapath synthesis is the verification of the multipliers due to complex compressor trees.
-We therefore formally verify this stage of datapath synthesis, and leave the remaining proof obligations to an SMT solver, which discharges them easily.
-At 16 bits, our approach can verify 16 of 22 designs within the timeout 
-while only being 1.21 times larger and 1.12 times slower than the unverified method,
+Our hybrid verification approach leaves the remaining proof obligations to an SMT solver.
+At 16-bits, our approach can verify 16 of 22 designs within the timeout,
 whereas the SMT-based baseline can only verify 5 of the designs.
 
-Future work will address the missing optimizations on bit heaps and datapath synthesis:
-namely, Booth encoding, sign-extension optimization opportunities, and extending our formalization
+Future work will address the missing bit heap and partial product optimizations:
+namely, Booth encoding, sign-extension optimizations, and extending our formalization
 with timing-aware compression, in which the arrival of each bit is accounted for during the compression.
 
 
