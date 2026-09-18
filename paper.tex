@@ -297,15 +297,16 @@
 \begin{abstract}
 % An abstract should consist of six main sentences:
 %  1. Introduction. In one sentence, what’s the topic?
-Datapath circuits are the core computational units of digital designs and among the most timing-critical parts of the design.
+Datapath circuits are among the most timing-critical units of a digital design,
+which makes their aggressive optimization an essential component of today's
+synthesis flows.
 %  2. State the problem you tackle.
-To meet the performance requirements, datapath circuits are aggressively optimized by synthesis tools.
-These automatic datapath optimizations, like the deployment of compressor trees, make it hard to verify that the synthesized netlist implements the correct computation.
+Effective datapath optimizations, e.g., via compressor trees, deliver high performance, but their
+complexity makes establishing the correctness of synthesized netlists hard.
 %  3. Summarize (in one sentence) why nobody else has adequately answered the research question yet.
-Existing methods largely focus on verifying this post-synthesis netlist but either do not scale to large bit widths or
-struggle to recover the circuit structure that optimizations destroyed.
+Existing methods largely verify netlists post-synthesis, where much of the circuit
+structure has been lost and scaling to large bitwidths is difficult.
 %  4. Explain, in one sentence, how you tackled the research question.
-However, we tackle the verification problem during synthesis. 
 Rather than verifying the netlist post-synthesis, 
 we construct it in an interactive theorem prover, 
 synthesizing a provably correct-by-construction netlist.
