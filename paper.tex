@@ -921,7 +921,7 @@ FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-so
 arithmetic circuits in VHDL, is built on the same bit heap abstraction and compression techniques that we formalize in this paper~\citet{arithmetic_core_generation_bitheaps}.
 FloPoCo provides testbenches but no formal correctness guarantees,.
 
-\citet{sca} presents an \ac{sca}-based approach to verify multiplication circuits, 
+\citet{sca} present an \ac{sca}-based approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
 \citet{trace} extend this line beyond multipliers with TRACE, an \ac{sca} engine that combines
 different substitution orders with polynomial compression techniques, namely phase optimization
@@ -931,7 +931,7 @@ In their work, \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of
 Their approach can verify different partial-product generation and compression tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
 Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
 
-A line of research focuses on proving \ac{hls} tools correct. 
+A line of research focuses on proving \ac{hls} tools correct~\cite{herklotz2021formal,herklotz2024hyperblock}. 
 Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behavior.
 
