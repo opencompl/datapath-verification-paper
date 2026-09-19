@@ -375,7 +375,7 @@ One shortcoming of these methods is that the verification tool itself is almost 
 A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
 
 Instead of verifying the netlist post-synthesis, we verify the synthesis step itself: we prove the generation of compressor-trees correct in the Lean 4 theorem prover~\cite{moura2021lean} and check the remaining synthesis steps with an SMT solver.
-This guarantees that the generated circuits are correct by construction, and scales to large circuits. 
+The proof holds for every design and every bitwidth, so the per-design cost reduces to a cheap check of the generated tree and an SMT query over the small remaining tail.
 To prove this datapath synthesis step correct, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree}.
 To demonstrate that verified synthesis is competitive, we integrate our Lean-based datapath generator into an existing open-source synthesis tool.
 
