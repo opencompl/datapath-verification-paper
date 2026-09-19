@@ -372,7 +372,6 @@ Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
-So checking that a synthesized datapath circuit is correct remains challenging, even today. 
 
 We propose a different approach, verifying the synthesis step itself, rather than verifying the generated circuits.
 This approach guarantees that the generated circuits are correct by construction, and scales to large circuits. 
