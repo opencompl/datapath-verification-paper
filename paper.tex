@@ -353,13 +353,14 @@ Formal Verification, Datapath, Theorem Provers
 \end{IEEEkeywords}
 
 \section{Introduction}
-Datapath circuits are a fundamental component of digital systems, responsible for performing computations on incoming data.
-Thanks to advances in automatic datapath synthesis~\cite{Zimmermann2003OptimizedSum-of-products,Zimmermann2009DatapathDesign},
-most datapath circuits can now be implemented using bitvector-level arithmetic.
-Modern synthesis tools can map entire arithmetic expressions to highly optimized compressor trees, that effectively
-remove the computation of intermediate results. 
-% In this paper, we prove that this automatic datapath synthesis produces functionally correct netlists.     
-In this paper, we prove the compressor-tree construction correct and check the remaining synthesis steps with an SMT solver.
+Datapath circuits perform the arithmetic of a digital design,
+and are among its most timing-critical components.
+Thanks to advances in automatic
+datapath
+synthesis~\cite{Zimmermann2003OptimizedSum-of-products,Zimmermann2009DatapathDesign},
+most datapaths can now be designed at the word level.  Modern synthesis tools
+map word-level arithmetic to optimized compressor trees that avoid delay-inducing intermediate sums. The price of this optimization is a netlist
+whose structure no longer resembles the arithmetic it implements.
 
 One of the key datapath optimizations applies to bitvector addition with $N$ addends, an operation that is used to build nearly all multiplier circuits. 
 In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
@@ -373,10 +374,10 @@ Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace
 One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
 
-We propose a different approach, verifying the synthesis step itself, rather than verifying the generated circuits.
-This approach guarantees that the generated circuits are correct by construction, and scales to large circuits. 
-To prove this datapath synthesis step correct, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree} in the Lean~4 theorem prover~\cite{moura2021lean}.
-To demonstrate that verified synthesis is competitive, we integrate the Lean-based datapath generator into an existing open-source synthesis tool.
+Instead of verifying the netlist post-synthesis, we verify the synthesis step itself: we prove the generation of compressor-trees correct in the Lean 4 theorem prover~\cite{moura2021lean} and check the remaining synthesis steps with an SMT solver.
+This guarantees that the generated circuits are correct by construction, and scales to large circuits. 
+To prove this datapath synthesis step correct, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic} and compression algorithms~\cite{dadda_tree}.
+To demonstrate that verified synthesis is competitive, we integrate our Lean-based datapath generator into an existing open-source synthesis tool.
 
 Our contributions are:
 \begin{itemize} 
