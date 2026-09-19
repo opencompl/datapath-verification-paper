@@ -366,7 +366,7 @@ In \ac{asic} design, recursively summing $N$ addends is slow because the delay o
 Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
 The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
 Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b+c*d+e$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
-While efficient and widely used, compressor trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits \cite{mul_verif}.
+While efficient and widely used, compressor trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits~\cite{mul_verif}.
 
 Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsca,algebraic_rewriting},
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
