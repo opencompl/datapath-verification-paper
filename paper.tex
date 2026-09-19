@@ -372,7 +372,7 @@ While efficient and widely used, compressor trees usually have highly irregular 
 Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsca,algebraic_rewriting},
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
 One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
-A second shortcoming is that they do not scale to large and complex circuits, either due to state-space explosion in the SAT approach or polynomial explosion in \ac{sca}.
+A second shortcoming is that they must first recover the arithmetic structure that synthesis destroyed: \ac{sca} succeeds on regular multiplier architectures but struggles with heavily optimized netlists and general sums of products~\cite{mul_verif}, while SAT-based checking, which needs no structure, does not scale beyond small bitwidths~\cite{kaufmann2019verifying}.
 
 Instead of verifying the netlist post-synthesis, we verify the synthesis step itself: we prove the generation of compressor trees correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining synthesis steps with an SMT solver.
 Our proof holds for every design and bitwidth, such that the per-design cost reduces to a cheap check of the generated tree and an SMT query over the small remaining tail.
