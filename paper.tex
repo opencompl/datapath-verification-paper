@@ -130,8 +130,8 @@
 \createtodoauthor{authorSix}{pairedSixDarkRed}
 
 \newacronym{ir}{IR}{intermediate representation}
-\newacronym{fa}{FA}{full-adder}
-\newacronym{ha}{HA}{half-adder}
+\newacronym{fa}{FA}{full adder}
+\newacronym{ha}{HA}{half adder}
 \newacronym{cpa}{CPA}{carry-propagate adder}
 \newacronym{lsb}{LSB}{least-significant bit}
 \newacronym{msb}{MSB}{most-significant bit}
@@ -359,15 +359,15 @@ Thanks to advances in automatic
 datapath
 synthesis~\cite{Zimmermann2003OptimizedSum-of-products,Zimmermann2009DatapathDesign},
 most datapaths can now be designed at the word level.  Modern synthesis tools
-map word-level arithmetic to optimized compressor trees that avoid delay-inducing intermediate sums. The price of this optimization is a netlist
-whose structure no longer resembles the arithmetic it implements.
+map word-level arithmetic to optimized compressor trees that avoid delay-inducing intermediate sums. 
+However, the resulting netlist lacks the structure of the arithmetic it implements.
 
 One of the key datapath optimizations applies to bitvector addition with $N$ addends, an operation that is used to build nearly all multiplier circuits. 
 In \ac{asic} design, recursively summing $N$ addends is slow because the delay of a binary \ac{cpa} depends on the bitwidth of the addends. 
-Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of full- and half-adders~\cite{wallace_tree, application_specific_arithmetic}.
-The compressor tree performs the reduction of the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
-Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b+c*d+e$, and modern synthesis tools now automatically recognize and replace such sub-circuits during datapath synthesis. 
-While efficient and widely used, compressor trees usually have highly irregular structures, increasing the difficulty of verifying the generated circuits~\cite{mul_verif}.
+Datapath synthesis improves this circuit's delay by reducing $N$ addends to two using a compressor tree composed of full and half adders~\cite{wallace_tree, application_specific_arithmetic}.
+The compressor tree reduces the addends in parallel and is followed by a single \ac{cpa}, avoiding the need for sequential \acp{cpa} to compute the sum.
+Compressor trees can be used to implement arbitrary sums of products, e.g., $a*b+c*d+e$, and modern synthesis tools automatically recognize and replace such sub-circuits during datapath synthesis. 
+While efficient and widely used, compressor trees have highly irregular structures, increasing the difficulty of verifying the generated circuits~\cite{mul_verif}.
 
 Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsca,algebraic_rewriting},
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
@@ -377,7 +377,7 @@ A second shortcoming is that they must first recover the arithmetic structure th
 
 Instead of verifying the netlist post-synthesis, we verify the synthesis step itself: we prove the generation of compressor trees correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining synthesis steps with an SMT solver.
 Our proof holds for every design and bitwidth, such that the per-design cost reduces to a cheap check of the generated tree and an SMT query over the small remaining tail.
-As the core of our proof, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic}, the point in the synthesis flow where the word-level structure is still explicit, and prove that any well-formed sequence of half- and full-adder compressions preserves its value.
+As the core of our proof, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic}, the point in the synthesis flow where the word-level structure is still explicit, and prove that any well-formed sequence of half and full adder compressions preserves its value.
 The compression algorithm itself therefore needs no proof: Dadda's algorithm~\cite{dadda_tree} proposes a sequence, our verified checker validates it,\grosser{Do we have a checker
 or }
 and any other algorithm can be substituted.
@@ -433,7 +433,7 @@ The height of each column corresponds to the number of bit values that need to b
 Compressor trees reduce multiple summands to two using carry-save arithmetic, 
 avoiding chained \acp{cpa} to compute the sum. 
 A compressor tree is followed by a single \ac{cpa} that produces the result~\cite{application_specific_arithmetic}.
-The reduction is carried out by composing compressors: half-adders ($2{:}2$), full-adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
+The reduction is carried out by composing compressors: half adders ($2{:}2$), full adders ($3{:}2$), or in general any $N{:}M$ compressor with $N \ge M$. 
 Different compression algorithms exist, such as the Wallace tree which greedily compresses the bit heap~\cite{wallace_tree} and the Dadda tree, 
 that uses the minimal number of compressors to perform the reduction as fast as possible~\cite{dadda_tree}. 
 By formalizing the bit heap and the application of compressors to it, we can verify any compression algorithm with a minimal proof. 
