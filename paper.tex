@@ -371,17 +371,25 @@ While efficient and widely used, compressor trees have highly irregular structur
 
 Existing techniques for verifying datapath circuits include \ac{sca}~\cite{trace,sca,kleinekathofer2026conflict,mahzoon2021revsca,algebraic_rewriting},
 \ac{sca} combined with SAT-based methods~\cite{kaufmann2019verifying}, and theorem proving~\cite{mertcan_acl2multipliers, vescmul_acl2}.
-One shortcoming of these methods is that the verification tool itself is almost always unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
-A second shortcoming is that they must first recover the arithmetic structure that synthesis destroyed: \ac{sca} succeeds on regular multiplier architectures but struggles with heavily optimized netlists and general sums of products~\cite{mul_verif}, while SAT-based checking, which needs no structure, does not scale beyond small bitwidths~\cite{kaufmann2019verifying}.
-\grosser{Sam, can you double-check the last claims here?}
+One shortcoming of these methods is that the verification tool itself is unverified, with the exception of~\cite{mertcan_acl2multipliers, vescmul_acl2}.
+A second shortcoming is that they must first recover the arithmetic structure that synthesis destroyed: 
+\ac{sca} succeeds on regular multiplier architectures but can struggle with heavily optimized netlists 
+and sums of products~\cite{mul_verif}, while SAT-based checking
+does not scale beyond small bitwidths~\cite{kaufmann2019verifying}.
 
-Instead of verifying the netlist post-synthesis, we verify the synthesis step itself: we prove the generation of compressor trees correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining synthesis steps with an SMT solver.
-Our proof holds for every design and bitwidth, such that the per-design cost reduces to a cheap check of the generated tree and an SMT query over the small remaining tail.
-As the core of our proof, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic}, the point in the synthesis flow where the word-level structure is still explicit, and prove that any well-formed sequence of half and full adder compressions preserves its value.
-The compression algorithm itself therefore needs no proof: Dadda's algorithm~\cite{dadda_tree} proposes a sequence, our verified checker validates it,\grosser{Do we have a checker
-or }
+Instead of verifying the netlist post-synthesis, 
+we verify the synthesis step itself: we prove the generation of compressor trees 
+correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining 
+synthesis steps with an SMT solver.
+Our proof holds for every design and bitwidth, such that the per-design cost reduces 
+to a cheap check of the generated tree and an SMT query over the small remaining tail.
+As the core of our proof, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic}, 
+the point in the synthesis flow where the word-level structure is still explicit, 
+and prove that any well-formed circuit of half and full adders preserves its value.
+We do not prove the compression algorithm: Dadda's algorithm~\cite{dadda_tree} proposes a sequence, 
+our verified checker validates it,
 and any other algorithm can be substituted.
-We complete the synthesis flow by integrating our Lean-based datapath generator into CIRCT's open-source synthesis flow.
+We evaluate by integrating our Lean-based datapath generator into CIRCT's open-source synthesis flow.
 
 
 Our contributions are:
