@@ -555,10 +555,10 @@ This is exactly what we want for reasoning modulo $2^w$.
 The correctness of insertion says that adding a bit to the bit heap at weight $k$ 
 increases the total value of the bit heap by $2^k$ times the value of the bit expression.
 
-\begin{theorem}[Bit insertion]
+\begin{theorem}[Bit Insertion]
 \label{thm:addBit} 
 For all bit heaps $h : \Heap_w$, bit expressions $e : \BitExpr$, weight $k : \mathbb{N}$,
-and environment $\sigma : \texttt{Var}  \to \mathbb{B}$,
+and environment $\sigma : \texttt{Var} \to \mathbb{B}$,
 $\hsem{\mathtt{addBit}(k, e, h)}
  =
 \bigl(\hsem{h}
@@ -572,10 +572,10 @@ Removing a bit expression $e$ at column $k$ removes $e$ from the set $h_k$.
 Removal is only feasible if $e\in h_k$.
 Therefore, we encode the presence of the bit to be removed in the column as an explicit hypothesis of the bit removal theorem (\autoref{thm:removeBit}).
 Under this hypothesis, removing a bit $e$ from column $k$ decreases the value of the bit heap by $2^k \csem{e}$.
-\begin{theorem}[Bit removal]
+\begin{theorem}[Bit Removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$, and
-$\sigma : \texttt{Var}  \to \mathbb{B}$ with $c \in h_k$,
+$\sigma : \texttt{Var} \to \mathbb{B}$ with $c \in h_k$,
 \[
   \hsem{\mathtt{removeBit}(k, c, h)}
   \;=\;
@@ -613,7 +613,6 @@ The proof is a simple algebraic argument and does not require induction, since t
   \bottomrule
   \end{tabular}
 \end{table*}
-
 
 \subsection{From Word-Level Arithmetic to Bit Heaps}\label{subsec:to_bitheap}
 So far, we have defined the bit heap data structure and its operations, and proved that they preserve the semantics of bit heap evaluation.
@@ -697,7 +696,9 @@ of \texttt{addBit}/\texttt{removeBit} operations (\autoref{tab:steps}).
 Writing $h \xrightarrow{s} h'$ for the heap $h'$ obtained by applying step $s$ to $h$, we prove that any applicable step preserves the value of the bit heap.
 \begin{theorem}[Half/Full Adder Correct]
 \label{thm:step-correct}
-For all $h : \Heap_w$, and $s : \Step$, if $s$ obeys the applicability conditions (\autoref{tab:steps}) and $h \xrightarrow{s} h'$, then $\hsem{h} \;=\; \hsem{h'}$.
+For all $h : \Heap_w$, $s : \Step$, and $\sigma : \texttt{Var} \to \mathbb{B}$
+with $s$ obeying the applicability conditions (\autoref{tab:steps}),
+let $h \xrightarrow{s} h'$, then $\hsem{h'} \;=\; \hsem{h}$.
 \end{theorem}
 
 Proceeding one compressor type at a time, this proof rewrites the goal using the lemmas for 
@@ -767,11 +768,8 @@ which states that any well-formed chain preserves the value of the bit heap.
 
 \begin{theorem}[Chain Correctness]
 \label{thm:chain-correct}
-For all $h : \Heap_w$ and all well formed $S: \Chain$ for $h$, let $h \xrightarrow{S} h'$, then
-\[
-  \forall \sigma,\quad
-  \hsem{h'} \;=\; \hsem{h}.
-\]
+For all $h : \Heap_w$, $\sigma : \texttt{Var} \to \mathbb{B}$, and well formed
+$S: \Chain$ for $h$, let $h \xrightarrow{S} h'$, then $\hsem{h'} \;=\; \hsem{h}$.
 \end{theorem}
 
 The proof proceeds by induction on the length of the chain.
@@ -804,9 +802,10 @@ Putting it all together, we are ready to prove that the synthesized compressor t
 preserves the value of the original word-level arithmetic expression (\autoref{thm:tobitheap-compression}).
 \begin{theorem}[Compressor Tree Synthesis]
 \label{thm:tobitheap-compression}
-For all $a : \mathtt{ArithCircuit}_w$, all $\rho : \texttt{Var}_{\texttt{Arith}} \to
-\mathtt{BitVec}\ w$, and all well formed $S: \Chain$ for $h$, let $h = \mathsf{toBitHeap}(a)$, $h\xrightarrow{S} h'$, and $\sigma$ denote the bit environment induced
-by $\rho$, then
+For all $a : \mathtt{ArithCircuit}_w$ and all $\rho : \texttt{Var}_{\texttt{Arith}} \to
+\mathtt{BitVec}\ w$, let $h = \mathsf{toBitHeap}(a)$ and let $\sigma$ denote the bit
+environment induced by $\rho$; then for all well formed $S : \Chain$ for $h$
+with $h \xrightarrow{S} h'$,
 \[
   \hsem{h'} \;=\; \bvsem{a}.
 \]
@@ -821,7 +820,7 @@ and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation
 
 We integrate the verified datapath synthesis step into the CIRCT compiler framework, 
 and make our contributions open-source.\footnote{GitHub link anonymized for review.}
-CIRCT's \texttt{circt-synth} (\autoref{fig:flow-comparison} - top) flow can lower 
+CIRCT's \texttt{circt-synth} (\autoref{fig:circt-synth-flow}) flow can lower 
 a word-level SystemVerilog design through the \texttt{comb} dialect to an
 \ac{aig}; within that flow, an existing unverified datapath engine rewrites arithmetic operations into
 compressor trees in a dedicated pass.
