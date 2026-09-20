@@ -396,7 +396,7 @@ Our contributions are:
 \begin{itemize} 
   \item a formalization of the bit heap data structure and 
   chains of bit heap modifications in the Lean~4 theorem prover,
-  which enables the algorithm-generic automatic validation of compression trees in dataflow synthesis
+  which enables the algorithm-generic automatic validation of compressor trees in datapath synthesis
   (\autoref{sec:formalization}),
   \item integration into an existing synthesis tool to offer a complete datapath circuit verification flow (\autoref{sec:integration}),
   \item the first verified synthesis of existing benchmarks using open-source tools (\autoref{sec:evaluation}). 
@@ -464,11 +464,10 @@ and lowers it to an \ac{aig}, which can be passed on to technology mapping.
 
 To enable verified synthesis, we implement, and prove the correctness of bit heaps.
 We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) and the bit heap (\autoref{subsec:bitheap}) in Lean 4,
-along with basic operations on the bit heap, such as evaluating a it to a concrete value and adding or removing bits.
+along with basic operations on the bit heap, such as evaluating it to a concrete value and adding or removing bits.
 We then define a representation of word-level arithmetic and prove that the bit heap
 constructed from such expressions evaluates to the same value (\autoref{subsec:to_bitheap}).
-Lastly, we construct compressor trees and prove that applying one to a bit 
-value unchanged (\autoref{subsec:compression}).
+Lastly, we construct compressor trees and prove that applying one to a bit heap leaves its value unchanged (\autoref{subsec:compression}).
 Every theorem stated here is formalized and proven in Lean~4.
 
 \subsection{Symbolic Bit Representations}\label{subsec:bitexpr}
@@ -559,7 +558,7 @@ increases the total value of the bit heap by $2^k$ times the value of the bit ex
 \begin{theorem}[Bit insertion]
 \label{thm:addBit} 
 For all bit heaps $h : \Heap_w$, bit expressions $e : \BitExpr$, weight $k : \mathbb{N}$,
-and environment $\sigma : \mathcal{V} \to \mathbb{B}$,
+and environment $\sigma : \texttt{Var}  \to \mathbb{B}$,
 $\hsem{\mathtt{addBit}(k, e, h)}
  =
 \bigl(\hsem{h}
@@ -576,7 +575,7 @@ Under this hypothesis, removing a bit $e$ from column $k$ decreases the value of
 \begin{theorem}[Bit removal]
 \label{thm:removeBit}
 For all $h : \Heap_w$, $k : \mathbb{N}$, $c : \BitExpr$, and
-$\sigma : \mathcal{V} \to \mathbb{B}$ with $c \in h_k$,
+$\sigma : \texttt{Var}  \to \mathbb{B}$ with $c \in h_k$,
 \[
   \hsem{\mathtt{removeBit}(k, c, h)}
   \;=\;
@@ -797,7 +796,7 @@ It proposes a chain, and passes it to $\mathsf{applyChainSafe}$, which verifies 
 Another compression algorithm, e.g., Wallace's, can be substituted without further proof, since only the chain it produces is checked.
 Likewise, we do not prove that a proposed chain reduces the bit heap to two rows.
 That is a property of the compression algorithm, and it is not required for the correctness of compression.
-However, we enforce this property at the netlist emission stage ((\autoref{sec:integration})).
+However, we enforce this property at the netlist emission stage (\autoref{sec:integration}).
 If any column still holds more than two bits, the emitter rejects the heap and the datapath synthesis pass aborts.
 
 \subsection{Correct-by-Construction Synthesis}
@@ -878,7 +877,7 @@ We use a benchmark consisting of 22 SystemVerilog datapath designs instantiated 
 spanning signed and unsigned multi-operand addition, multiplication, and fused multiply-add variants.
 
 Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
-In all instances the verified datapath pass completed without aborting. None of the chais failed the well-formedness check, and every chain reduced the bit heap to two rows.
+In all instances the verified datapath pass completed without aborting. None of the chains failed the well-formedness check, and every chain reduced the bit heap to two rows.
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
 All equivalence checks (\autoref{fig:flow-comparison}) use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
@@ -891,7 +890,7 @@ Our area penalty is large on signed benchmarks.
 
 We also report the total verification time (\autoref{tab:qor-and-time-16}), setting a 5-minute timeout per equivalence check.
 For the baseline flow, we sum the runtimes for the three equivalence checks.
-For our flow, sum the runtime of the two equivalence checks and also include the Lean runtime for the verified datapath engine.
+For our flow, we sum the runtime of the two equivalence checks and also include the Lean runtime for the verified datapath engine.
 Using our proposed flow we are able to verify 11 more circuits than can be verified using the standard flow.
 For every timeout in the baseline flow, ``Equivalence Check 2'' (the datapath engine check) timed out,
 proving that we do indeed isolate and formalize the hardest step to check.
@@ -946,7 +945,7 @@ However, our work is far more general and extensible, admitting varied compressi
 handling arbitrary \acp{sop} circuits by integrating with a complete synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
-arithmetic circuits in VHDL, is built on the bit heap abstraction of~\citet{application_specific_arithmetic} and the compression techniques we formalize in this paper.
+arithmetic circuits in VHDL, is built on the bit heap abstraction of~\citet{arithmetic_core_generation_bitheaps} and the compression techniques we formalize in this paper.
 FloPoCo provides testbenches but no formal correctness guarantees.
 
 \citet{sca} present an \ac{sca}-based approach to verify multiplication circuits, 
