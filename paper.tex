@@ -467,7 +467,7 @@ We begin by defining a symbolic bit representation (\autoref{subsec:bitexpr}) an
 along with basic operations on the bit heap, such as evaluating a it to a concrete value and adding or removing bits.
 We then define a representation of word-level arithmetic and prove that the bit heap
 constructed from such expressions evaluates to the same value (\autoref{subsec:to_bitheap}).
-Lastly, we construct compressor trees and prove that applying one to a bit heap leaves its
+Lastly, we construct compressor trees and prove that applying one to a bit 
 value unchanged (\autoref{subsec:compression}).
 Every theorem stated here is formalized and proven in Lean~4.
 
@@ -953,9 +953,9 @@ using backwards rewriting of polynomials at the gate level, employing a dynamic 
 different substitution orders with polynomial compression techniques, namely phase optimization
 and conflict analysis, and verifies adders and multiply-accumulate units as well.
 
-In their work, \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
+\citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compressor tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
-Similar to our approach, their implementation of the tool in a theorem prover guarantees the correctness of the verification tool.
+Similar to us, their implementation in a theorem prover guarantees correctness.
 
 A line of research focuses on proving \ac{hls} tools correct~\cite{herklotz2021formal,herklotz2024hyperblock}. 
 Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
@@ -975,12 +975,12 @@ Our hybrid verification approach leaves the remaining proof obligations to an SM
 At 16-bits, our approach can verify 16 of 22 designs within the timeout,
 whereas the SMT-based baseline can only verify 5 of the designs.
 
-Future work will address the missing bit heap and partial product optimizations:
-namely, Booth encoding, sign-extension optimizations, and extending our formalization
-with timing-aware compression, in which the arrival of each bit is accounted for during the compression.
+Future work will add bit heap and partial product optimizations:
+Booth encoding, sign-extension optimizations, and extending our formalization
+with timing-aware compression.
 
 \section{Acknowledgments}
-We used Anthropic Fable to refine the flow and story line of abstract and introduction.
+We used Anthropic Fable to refine the flow and story line.
 
 %% Acknowledgments. IEEEtran has no \begin{acks} or \grantsponsor/\grantnum;
 %% IEEE uses an unnumbered section. Suppressed for anonymous review.
