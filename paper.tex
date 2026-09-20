@@ -858,8 +858,10 @@ The pass then emits the compressor tree as gates, leaving two compressed rows an
 \ac{cpa}.
 
 At this point both flows reconverge.
-The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
-apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
+% The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
+% apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
+The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to an \ac{aig} and 
+apply local optimizations such as \ac{cse}.
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
 While non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
 
@@ -872,10 +874,9 @@ the hardest step to check, thus allowing us to verify more designs.
 \section{Evaluation}\label{sec:evaluation}
 We evaluate our contribution on two metrics: the circuit quality and the time needed to verify the circuits.
 We compare against the baseline \texttt{circt-synth} flow (\autoref{fig:circt-synth-flow}) that we augmented.
-We use a benchmark consisting of 22 SystemVerilog datapath designs~\cite{datapath_bench},
-spanning multi-operand addition and multiplication, dot-products and fused multiply-add variants in signed and unsigned forms.
+We use a benchmark consisting of 22 SystemVerilog datapath designs instantiated at 8-, 16-, and 32-bit operand widths~\cite{datapath_bench},
+spanning signed and unsigned multi-operand addition, multiplication, and fused multiply-add variants.
 
-We instantiate each design at 8-, 16-, and 32-bit operand widths.
 Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
 In all instances the verified datapath pass completed without aborting. None of the chais failed the well-formedness check, and every chain reduced the bit heap to two rows.
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
