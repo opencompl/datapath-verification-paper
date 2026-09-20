@@ -383,7 +383,7 @@ correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remainin
 synthesis steps with an SMT solver.
 Our proof holds for every design and bitwidth, such that the per-design cost reduces 
 to a cheap check of the generated tree and an SMT query over the small remaining tail.
-As the core of our proof, we formalize the bit heap data structure~\cite{arithmetic_core_generation_bitheaps,application_specific_arithmetic}, 
+As the core of our proof, we formalize the bit heap data structure~\cite{application_specific_arithmetic, arithmetic_core_generation_bitheaps}, 
 the point in the synthesis flow where the word-level structure is still explicit, 
 and prove that any well-formed circuit of half and full adders preserves its value.
 We do not prove the compression algorithm: Dadda's algorithm~\cite{dadda_tree} proposes a sequence, 
@@ -877,6 +877,7 @@ spanning multi-operand addition and multiplication, dot-products and fused multi
 
 We instantiate each design at 8-, 16-, and 32-bit operand widths.
 Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
+In all instances the verified datapath pass completed without aborting. None of the chais failed the well-formedness check, and every chain reduced the bit heap to two rows.
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
 All equivalence checks (\autoref{fig:flow-comparison}) use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
@@ -905,7 +906,7 @@ proving that we do indeed isolate and formalize the hardest step to check.
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lrrrr}
     \toprule
-    & \multicolumn{2}{c}{Ours\,/\,Basline} & \multicolumn{2}{c}{Verification Time (s)} \\
+    & \multicolumn{2}{c}{Ours\,/\,Baseline} & \multicolumn{2}{c}{Verification Time (s)} \\
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
     Benchmark & Area & Delay & Baseline & \textbf{Ours} \\
     \midrule
@@ -949,9 +950,8 @@ FloPoCo provides testbenches but no formal correctness guarantees.
 
 \citet{sca} present an \ac{sca}-based approach to verify multiplication circuits, 
 using backwards rewriting of polynomials at the gate level, employing a dynamic strategy consisting of sub-circuit detection and phase signal adjusting.
-\citet{trace} extend this line beyond multipliers with TRACE, an \ac{sca} engine that combines
-different substitution orders with polynomial compression techniques, namely phase optimization
-and conflict analysis, and verifies adders and multiply-accumulate units as well.
+\citet{trace} extend this line with TRACE, an \ac{sca} engine that combines substitution orders with polynomial compression (e.g., phase optimization and conflict analysis), 
+to verify adders and multiply-accumulate units as well.
 
 \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
 Their approach can verify different partial-product generation and compressor tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
@@ -962,9 +962,7 @@ Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally re
 Integrated into an existing HLS tool, Graphiti provides a verified rewriting engine that ensures the composition of verified rewrites refines the original behavior.
 
 Commercial synthesis tools generate files to assist datapath verification using tools like Formality~\cite{synopsys_formality}.
-These files provide verification hints such as which multiplie architecture was used.
-
-
+These files provide verification hints such as the multiplier architecture used.
 
 \section{Conclusion and Future Work}
 This paper presents a verified datapath synthesis engine integrated into CIRCT.
