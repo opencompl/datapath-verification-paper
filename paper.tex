@@ -378,8 +378,8 @@ and sums of products~\cite{mul_verif}, while SAT-based checking
 does not scale beyond small bitwidths~\cite{kaufmann2019verifying}.
 
 Instead of verifying the netlist post-synthesis, 
-we verify the synthesis step itself: we prove the generation of compressor trees 
-correct in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining 
+we verify the synthesis step itself: we build a verified compressor-tree generator
+in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining 
 synthesis steps with an SMT solver.
 Our proof holds for every design and bitwidth, such that the per-design cost reduces 
 to a cheap check of the generated tree and an SMT query over the small remaining tail.
@@ -826,7 +826,7 @@ a word-level SystemVerilog design through the \texttt{comb} dialect to an
 \ac{aig}; within that flow, an existing unverified datapath engine rewrites arithmetic operations into
 compressor trees in a dedicated pass.
 We replace exactly this pass and leave the rest of the flow untouched.
-As a result, the proposed flow (\autoref{fig:flow-comparison} - bottom) is a drop-in 
+As a result, the proposed flow (\autoref{fig:verified-datapath-flow}) is a drop-in 
 replacement for \texttt{circt-synth} and the two are directly comparable.
 In both flows we use an SMT solver to check intermediate steps that are not verified in Lean. 
 
@@ -844,7 +844,7 @@ Two-operand additions are not matched, since they are \acp{cpa} that will be han
 by the downstream pass.
 The baseline unverified engine incrementally builds a timing-aware compressor tree~\cite{Zimmermann2009DatapathDesign}, explicitly 
 representing it in the \ac{ir} using the \texttt{datapath} dialect, which also optimizes
-specific sum-of-product circuits. 
+specific \ac{sop} circuits. 
 We verify this step via ``Equivalence Check 2'' using an SMT solver.
 
 The verified datapath engine first converts the \ac{sop} expression to an \Arith.
@@ -857,8 +857,6 @@ The pass then emits the compressor tree as gates, leaving two compressed rows an
 \ac{cpa}.
 
 At this point both flows reconverge.
-% The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to gate-level implementations and 
-% apply local optimizations such as \ac{cse} before generating an \ac{aig}. 
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to an \ac{aig} and 
 apply local optimizations such as \ac{cse}.
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
@@ -873,13 +871,13 @@ the hardest step to check, thus allowing us to verify more designs.
 \section{Evaluation}\label{sec:evaluation}
 We evaluate our contribution on two metrics: the circuit quality and the time needed to verify the circuits.
 We compare against the baseline \texttt{circt-synth} flow (\autoref{fig:circt-synth-flow}) that we augmented.
-We use a benchmark consisting of 22 SystemVerilog datapath designs instantiated at 8-, 16-, and 32-bit operand widths~\cite{datapath_bench},
+We use a benchmark consisting of 22 SystemVerilog datapath designs instantiated at 8-, 16-, and 32-bit widths~\cite{datapath_bench},
 spanning signed and unsigned multi-operand addition, multiplication, and fused multiply-add variants.
 
 Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
 In all instances the verified datapath pass completed without aborting. None of the chains failed the well-formedness check, and every chain reduced the bit heap to two rows.
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
-All equivalence checks (\autoref{fig:flow-comparison}) use the Bitwuzla SMT solver~\cite{bitwuzla}.
+All equivalence checks use the Bitwuzla SMT solver~\cite{bitwuzla}.
 
 We report area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized to the baseline \texttt{circt-synth} flow.
 The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
@@ -894,6 +892,9 @@ For our flow, we sum the runtime of the two equivalence checks and also include 
 Using our proposed flow we are able to verify 11 more circuits than can be verified using the standard flow.
 For every timeout in the baseline flow, ``Equivalence Check 2'' (the datapath engine check) timed out,
 proving that we do indeed isolate and formalize the hardest step to check.
+% Our timeouts fall in ``Equivalence Check 3'': the optimizations we omit change how
+% the downstream ``Logic Synthesis'' passes rewrite the circuit, producing
+% structurally different netlists that are harder to verify.
 
 \begin{table}
   \centering
@@ -942,7 +943,7 @@ The most closely related work pre-dates more recent advances in automatic datapa
 and is a short paper formalizing Wallace tree multiplier synthesis in a theorem prover~\cite{verified_wallace}.
 Some of the proof structure, such as proving the application of compressors, is common to both works. 
 However, our work is far more general and extensible, admitting varied compression algorithms and
-handling arbitrary \acp{sop} circuits by integrating with a complete synthesis flow.
+handling arbitrary \ac{sop} circuits by integrating with a complete synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
 arithmetic circuits in VHDL, is built on the bit heap abstraction of~\citet{arithmetic_core_generation_bitheaps} and the compression techniques we formalize in this paper.
@@ -954,7 +955,7 @@ using backwards rewriting of polynomials at the gate level, employing a dynamic 
 to verify adders and multiply-accumulate units as well.
 
 \citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
-Their approach can verify different partial-product generation and compressor tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
+Their approach can verify different partial-product generation and compressor-tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
 Similar to us, their implementation in a theorem prover guarantees correctness.
 
 A line of research focuses on proving \ac{hls} tools correct~\cite{herklotz2021formal,herklotz2024hyperblock}. 
