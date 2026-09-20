@@ -814,7 +814,7 @@ with $h \xrightarrow{S} h'$,
 The proof is a corollary of \autoref{thm:tobitheap} and \autoref{thm:chain-correct}.
 This theorem is the key step in verifying the correctness of our datapath synthesis engine.
 The next sections will explain the practical integration into CIRCT (\autoref{sec:integration}) 
-and evaluate the verified synthesis datapath benchmarks (\autoref{sec:evaluation}).
+and evaluate the verified synthesis on a set of datapath benchmarks (\autoref{sec:evaluation}).
 
 \section{Integration}
 \label{sec:integration}
@@ -844,7 +844,7 @@ Two-operand additions are not matched, since they are \acp{cpa} that will be han
 by the downstream pass.
 The baseline unverified engine incrementally builds a timing-aware compressor tree~\cite{Zimmermann2009DatapathDesign}, explicitly 
 representing it in the \ac{ir} using the \texttt{datapath} dialect, which also optimizes
-specific \ac{sop} circuits. 
+specific product-of-sum circuits. 
 We verify this step via ``Equivalence Check 2'' using an SMT solver.
 
 The verified datapath engine first converts the \ac{sop} expression to an \Arith.
@@ -856,11 +856,11 @@ that the compressed bit heap computes the same value as the original \Arith expr
 The pass then emits the compressor tree as gates, leaving two compressed rows and a single
 \ac{cpa}.
 
-At this point both flows reconverge.
+At this point the two flows reconverge.
 The ``Logic Synthesis'' passes lower remaining operations, including \acp{cpa}, to an \ac{aig} and 
 apply local optimizations such as \ac{cse}.
 The ``Logic Synthesis'' step in both flows is checked with an SMT solver via ``Equivalence Check 3''.
-While non-trivial, the evaluation will show that this step is much easier to verify than ``Equivalence Check 2''.
+While non-trivial, the evaluation will show that this step is usually much easier to verify than ``Equivalence Check 2''.
 
 In summary, the front-end from SystemVerilog, as well as the hand-off to and return from Lean, remains unverified.
 This leaves a small trusted base, as these parts are syntax translations between
