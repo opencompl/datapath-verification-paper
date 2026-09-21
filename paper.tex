@@ -876,10 +876,10 @@ We use a benchmark consisting of 22 SystemVerilog datapath designs instantiated 
 spanning signed and unsigned multi-operand addition, multiplication, and fused multiply-add variants.
 
 Each instance is synthesized using both flows (\autoref{fig:flow-comparison}).
-In all instances the verified datapath pass completed without aborting. None of the chains failed the well-formedness check, and every chain reduced the bit heap to two rows.
+In all cases the verified datapath pass succeeds. No chains failed the well-formedness check, and every chain reduced the bit heap to two rows.
 The resulting \acp{aig} are technology mapped to the ASAP 7nm library~\cite{asap7} using Mockturtle's emap tool~\cite{Calvino2023TechnologyCells}, and we report the total cell area and critical-path delay.
 All equivalence checks use the Bitwuzla SMT solver~\cite{bitwuzla}.
-
+  
 We report area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized to the baseline \texttt{circt-synth} flow.
 The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
 with the gap being stable for other bitwidths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
@@ -893,9 +893,10 @@ For our flow, we sum the runtime of the two equivalence checks and also include 
 Using our proposed flow we are able to verify 11 more circuits than can be verified using the standard flow.
 For every timeout in the baseline flow, ``Equivalence Check 2'' (the datapath engine check) timed out,
 proving that we do indeed isolate and formalize the hardest step to check.
-% Our timeouts fall in ``Equivalence Check 3'': the optimizations we omit change how
-% the downstream ``Logic Synthesis'' passes rewrite the circuit, producing
-% structurally different netlists that are harder to verify.
+Our six timeouts are all in ``Equivalence Check 3''.
+These all succeed in the baseline,
+suggesting that formalizing the baseline's full datapath capabilities could enable full coverage at 16-bits.
+
 
 \begin{table}
   \centering
@@ -940,11 +941,11 @@ proving that we do indeed isolate and formalize the hardest step to check.
 
 
 \section{Related Work}
-The most closely related work pre-dates more recent advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
+The most closely related work pre-dates advances in automatic datapath synthesis~\cite{Zimmermann2009DatapathDesign},
 and is a short paper formalizing Wallace tree multiplier synthesis in a theorem prover~\cite{verified_wallace}.
-Some of the proof structure, such as proving the application of compressors, is common to both works. 
-However, our work is far more general and extensible, admitting varied compression algorithms and
-handling arbitrary \ac{sop} circuits by integrating with a complete synthesis flow.
+Some proof structure, such as proving the application of compressors, is common to both works. 
+However, our work is more general and extensible, admitting varied compression algorithms and
+handling \ac{sop} circuits by integrating with a synthesis flow.
 
 FloPoCo~\cite{application_specific_arithmetic,DinechinPasca2011-DaT}, an open-source datapath generator written in C++ that produces
 arithmetic circuits in VHDL, is built on the bit heap abstraction of~\citet{arithmetic_core_generation_bitheaps} and the compression techniques we formalize in this paper.
@@ -955,9 +956,9 @@ using backwards rewriting of polynomials at the gate level, employing a dynamic 
 \citet{trace} extend this line with TRACE, an \ac{sca} engine that combines substitution orders with polynomial compression (e.g., phase optimization and conflict analysis), 
 to verify adders and multiply-accumulate units as well.
 
-\citet{mertcan_acl2multipliers,vescmul_acl2} prove correctness of integer multiplication circuits using a rewrite-based method in ACL2. 
-Their approach can verify different partial-product generation and compressor-tree algorithms scaling to $1024\times1024$-bit multipliers in minutes. 
-Similar to us, their implementation in a theorem prover guarantees correctness.
+VeSCMul~\cite{mertcan_acl2multipliers,vescmul_acl2} verifies integer multiplier circuits using a rewrite-based method. 
+Their approach can verify different partial-product generation and compression algorithms scaling to $1024$-bit multipliers in minutes. 
+Similar to us, their implementation in the ACL2 theorem prover guarantees correctness.
 
 A line of research focuses on proving \ac{hls} tools correct~\cite{herklotz2021formal,herklotz2024hyperblock}. 
 Graphiti~\cite{graphiti} is a graph-rewriting framework in Lean 4 to formally reason about optimizations on dataflow circuits.
