@@ -335,7 +335,9 @@ We formalize the bit heap data structure and compressor tree construction in Lea
 proving that every generated compressor tree implements the correct arithmetic.
 We integrate our formalized datapath synthesis engine with the CIRCT framework, which 
 we evaluate on 22 datapath benchmarks.
-Using the resulting flow we can verify 11 circuits that SMT-based equivalence checking cannot. 
+Using the resulting flow we can verify 11 circuits that SMT-based equivalence checking cannot,
+at a geometric mean cost of $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay
+over the unverified baseline.
 % For this approach, we phrase circuit synthesis as a bit-heap compression problem.
 % We formalize the bit heap data structure and its operations in the Lean theorem prover,
 % synthesize compression trees with this data structure,
@@ -891,8 +893,8 @@ We report area and delay at 16 bits (\autoref{tab:qor-and-time-16}), normalized 
 The geometric mean is $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay at 16 bits,
 with the gap being stable for other bitwidths as well ($\geoAreaThirtyTwo\times$ / $\geoDelayThirtyTwo\times$ at 32 bits, $\geoAreaEight\times$ / $\geoDelayEight\times$ at 8 bits).
 This gap in circuit quality, particularly signed variants, is not an inherent limitation of our flow.
-The baseline datapath engine applies optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations~\cite{application_specific_arithmetic}. Our partially verified synthesis flow takes 0.36ms on average whilst the unverified baseline takes 0.12ms.
-
+The baseline datapath engine applies optimizations we have not yet implemented, notably Booth encoding and sign-extension optimizations~\cite{application_specific_arithmetic}. 
+Our partially verified synthesis flow takes $\synthGeoOurs$ms on average whilst the unverified baseline takes $\synthGeoBaseline$ms.
 
 We also report the total verification time (\autoref{tab:qor-and-time-16}), setting a 5-minute timeout per equivalence check.
 For the baseline flow, we sum the runtimes for the three equivalence checks.
