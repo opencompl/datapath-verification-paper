@@ -537,7 +537,7 @@ where $v_k = \sum_{c \in h_k} \csem{c}$.
 \begin{split}
   \Bigl( \sum_{k=0}^{w-1} &v_k \cdot 2^{k} \Bigr) \bmod 2^{w}\\
     &= \Bigl( v_0 + 2 \bigl( v_1
-      + 2 ( v_2 + \cdots + 2 \, v_{w-1} ) \bigr) \Bigr) \bmod 2^{w}
+      + 2 ( v_2 + \cdots + 2 \, v_{w-1} ) \cdots \bigr) \Bigr) \bmod 2^{w}
 \end{split}
 \end{equation*}
 Horner's method is structurally recursive on the vector of columns, which makes it amenable to inductive reasoning.
