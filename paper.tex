@@ -455,7 +455,7 @@ It is capable of expressing different abstraction layers of a hardware design th
 are self-contained sets of operations and types that together form an \ac{ir}.
 Separate dialects cover the structure of a design (\texttt{hw}), its
 word-level combinational logic (\texttt{comb}), and its gate-level representation (\texttt{synth}), such that a design
-can be lowered from RTL-level to gate-level constructs within CIRCT.
+can be lowered from RTL to gate-level constructs within CIRCT.
 
 CIRCT relies on passes, each of which rewrites the \ac{ir} in place, either optimizing operations within a
 dialect or lowering them into a dialect at a lower level of abstraction.
@@ -516,8 +516,11 @@ where the column at index $k$ holds the bits of weight $2^k$.
 
 \paragraph*{Bit Heap Evaluation}
 Since a bit heap represents a summation of weighted bits,
-we can evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written as $\csem{h}$.
-This is defined by adding up all the bits across all the columns, with bits at column $k$ being evaluated by $\csem{\cdot}$ and weighted by $2^k$. Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$:
+we evaluate the bit heap $h$ under a bit environment $\sigma$ to obtain a concrete value, written $\csem{h}$.
+Letting $h_k$ denote the $k^{\text{th}}$ column, we 
+add up all the bits across all the columns, with each bit in $h_k$, 
+being evaluated by $\csem{\cdot}$ and weighted by $2^k$. 
+Moreover, since we work with fixed-size bitvectors, all our computations happen modulo $2^w$.
 \[
 \begin{array}{r@{\;}c@{\;}l}
 \csem{\cdot} &:& \Heap_w \to \mathbb{N} \\[2pt]
@@ -528,8 +531,8 @@ This is defined by adding up all the bits across all the columns, with bits at c
 \]
 
 For the purpose of proving by induction,
-it is easier to define the evaluation of a bit heap using Horner's method.
-Letting $h_k$ denote the $k^{\text{th}}$ column and $v_k = \sum_{c \in h_k} \csem{c}$ denote its value:
+it is easier to define the evaluation of a bit heap using Horner's method,
+where $v_k = \sum_{c \in h_k} \csem{c}$.
 \begin{equation*}
 \begin{split}
   \Bigl( \sum_{k=0}^{w-1} &v_k \cdot 2^{k} \Bigr) \bmod 2^{w}\\
