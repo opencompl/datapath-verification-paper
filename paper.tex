@@ -77,6 +77,9 @@
 
 \usepackage[numbers]{natbib}
 \bibliographystyle{IEEEtranN}
+%% natbib redefines \thebibliography and drops IEEEtran's \footnotesize, which
+%% would typeset the references at body size (10pt). Restore the IEEE look.
+\renewcommand{\bibfont}{\footnotesize}
 
 \usemintedstyle{colorful}
 
