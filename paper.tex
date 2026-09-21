@@ -662,15 +662,14 @@ by $\rho$, then
 \]
 \end{theorem}
 
-The proof uses structural induction, handling each \Arith operation separately. 
+The proof proceeds by structural induction, handling each \Arith operation separately. 
 The proofs for variables and their zero-extension are trivial. 
 The sign-extended case requires an induction argument on the number of replicated columns,
 for which we give a closed form for the value of the heap after $k$ sign columns have been added:
-it is $x_{[0,w')}$ when the sign bit is clear, and $x_{[0,w')} + (2^{w'+k} - 2^{w'})$ when it is set.
+it is $x \bmod 2^{w'}$ when the sign bit is clear, and $(x \bmod 2^{w'}) + (2^{w'+k} - 2^{w'})$ when it is set.
 Each further column contributes exactly one more copy of the sign bit at weight $2^{w'+k}$, which proves the induction step,
 and the closed form stays below $2^{w}$ as long as $w' + k \leq w$, so the truncation in the bit heap semantics never wraps around.
 Instantiating the closed form at $k = w - w'$ yields precisely the value of the sign-extended word.
-\sam{This proof for sign-extension case became very confusing...}
 The addition proof is simpler and uses the identity $\sum_i h_i 2^i + \sum_j  g_j 2^j = \sum_k (h_k + g_k) 2^k$.
 Similarly, partial products are proven equal using the identity $\sum_i x_i 2^i \cdot \sum_j y_j 2^j = \sum_{i,j} x_i y_j 2^{i+j}$.
 
