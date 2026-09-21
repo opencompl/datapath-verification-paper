@@ -908,7 +908,7 @@ proving that we do indeed isolate and formalize the hardest step to check.
   \setlength{\tabcolsep}{4pt}
   \begin{tabular}{lrrrr}
     \toprule
-    & \multicolumn{2}{c}{Ours\,/\,Baseline} & \multicolumn{2}{c}{Verification Time (s)} \\
+    & \multicolumn{2}{c}{\textbf{Ours}\,/\,Baseline} & \multicolumn{2}{c}{Verification Time (s)} \\
     \cmidrule(lr){2-3} \cmidrule(lr){4-5}
     Benchmark & Area & Delay & Baseline & \textbf{Ours} \\
     \midrule
@@ -968,7 +968,7 @@ These files provide verification hints such as the multiplier architecture used.
 
 \section{Conclusion and Future Work}
 This paper presents a verified datapath synthesis engine integrated into CIRCT.
-Our key insight is that compressor-tree transformations are among the hardest datapath synthesis optimizations to verify.
+Our key insight is that compressor-tree transformations are among the hardest synthesis optimizations to verify.
 By formalizing the bit heap and compression algorithms in Lean 4,
 we provide machine-checked correctness guarantees on the arithmetic circuits we generate.
 Our hybrid verification approach leaves the remaining proof obligations to an SMT solver.
