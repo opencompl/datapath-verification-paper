@@ -39,9 +39,13 @@
 \usepackage{microtype}
 \usepackage{tcolorbox}
 
-\ifx\paperversion\paperversiondraft
-  \usepackage{geometry}
-\fi
+%% Page geometry identical to DATE's official template
+%% (conference-template-A4-latex/template-A4.tex): an A4 sheet with a
+%% 184mm x 239mm text block. geometry's default margin ratios (1:1 horizontal,
+%% 2:3 vertical) then give 13mm side margins, 23.2mm top and 34.8mm bottom.
+%% The draft build loads the same options and only widens the sheet around this
+%% block to make room for margin notes (see tex/setup.tex).
+\usepackage[a4paper, total={184mm,239mm}]{geometry}
 \usepackage{xargs}
 \usepackage{lipsum}
 \usepackage{xparse}

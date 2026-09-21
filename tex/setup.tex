@@ -16,16 +16,16 @@
   \raggedbottom
   \makeatletter
   \ifdraftmargins
-    % IEEEtran's own two-column measure. \geometry recomputes \textwidth from
-    % its defaults, which silently narrows the text block (516pt -> 430pt) and
-    % changes line breaking relative to the submission build. Capture the class
-    % values first and restore them after, so the draft differs from the
-    % submission ONLY by the extra margin-note space, never by column width.
-    % IEEEtran's native conference measure. These cannot be read from
-    % \textwidth here: loading the geometry package has already overwritten it
-    % with geometry's own default (430pt), so the class values are hard-coded.
-    \newdimen\ieee@textwidth   \ieee@textwidth=516pt
-    \newdimen\ieee@textheight  \ieee@textheight=672pt
+    % The submission measure, i.e. DATE's template block (184mm x 239mm, see
+    % the \usepackage[a4paper, total=...]{geometry} call in paper.tex). Widening
+    % the sheet below makes \geometry recompute \textwidth from the new
+    % \paperwidth, which would change line breaking relative to the submission
+    % build. Capture the submission values here and restore them after, so the
+    % draft differs from the submission ONLY by the extra margin-note space,
+    % never by column width. Hard-coded because \textwidth has already been
+    % overwritten by the time this file is read.
+    \newdimen\ieee@textwidth   \ieee@textwidth=184mm
+    \newdimen\ieee@textheight  \ieee@textheight=239mm
     \newdimen\ieee@columnsep   \ieee@columnsep=12pt
     \geometry{asymmetric}
     % Widen the sheet on BOTH sides: 3.5cm of margin note space on the right,
