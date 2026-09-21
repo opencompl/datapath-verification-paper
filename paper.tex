@@ -335,9 +335,7 @@ We formalize the bit heap data structure and compressor tree construction in Lea
 proving that every generated compressor tree implements the correct arithmetic.
 We integrate our formalized datapath synthesis engine with the CIRCT framework, which 
 we evaluate on 22 datapath benchmarks.
-Using the resulting flow we can verify 11 circuits that SMT-based equivalence checking cannot,
-at a geometric mean cost of $\geoAreaSixteen\times$ in area and $\geoDelaySixteen\times$ in delay
-over the unverified baseline.
+Using the resulting flow we can verify 11 circuits that SMT-based equivalence checking cannot. 
 % For this approach, we phrase circuit synthesis as a bit-heap compression problem.
 % We formalize the bit heap data structure and its operations in the Lean theorem prover,
 % synthesize compression trees with this data structure,
