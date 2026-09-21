@@ -383,8 +383,9 @@ in the Lean~4 theorem prover~\cite{moura2021lean} and check the remaining
 synthesis steps with an SMT solver.
 Our proof holds for every design and bitwidth, such that the per-design cost reduces 
 to a cheap check of the generated tree and an SMT query over the small remaining tail.
-As the core of our proof, we formalize the bit heap data structure~\cite{application_specific_arithmetic, arithmetic_core_generation_bitheaps}, 
-the point in the synthesis flow where the word-level structure is still explicit, 
+Our core proof formalizes the bit heap data structure~\cite{application_specific_arithmetic, arithmetic_core_generation_bitheaps}, 
+% the point in the synthesis flow where the word-level structure is still explicit, 
+which marks the first synthesis step to cross from word-level arithmetic to gate-level logic,
 and prove that any well-formed circuit of half and full adders preserves its value.
 We do not prove the compression algorithm: Dadda's algorithm~\cite{dadda_tree} proposes a sequence, 
 our verified checker validates it,
